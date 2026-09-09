@@ -971,12 +971,12 @@ const AppWrapper = () => {
 
         <Route
   path="/sign-in/*"
-  element={<SignInPage />}
+  element={<PhoneLogin />}
 />
 
 <Route
   path="/sign-up/*"
-  element={<SignUpPage />}
+  element={<PhoneLogin />}
 />
 
 
