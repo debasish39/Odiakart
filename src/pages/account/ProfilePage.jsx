@@ -17,7 +17,7 @@ import { AccountShell, api } from "./AccountShell";
 import { MdVerified } from "react-icons/md";
 
 import { useNavigate } from "react-router-dom";
-
+import Spinner from "../../components/Spinner"
 export default function ProfilePage() {
   const navigate = useNavigate();
 
@@ -31,16 +31,22 @@ export default function ProfilePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <AccountShell title="Account">
-        <div className="ok-card ok-empty">
-          Loading account...
-        </div>
-      </AccountShell>
-    );
-  }
-
+ if (loading) {
+  return (
+    <AccountShell title="Account">
+      <div
+        style={{
+          minHeight: "300px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Spinner />
+      </div>
+    </AccountShell>
+  );
+}
   const name =
     [user?.firstName, user?.lastName]
       .filter(Boolean)

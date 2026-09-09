@@ -2169,9 +2169,9 @@ export default function PhoneLogin() {
           .banner-logo {
             min-height: 53px;
             padding: 8px 13px;
-            background: #fff;
+            background: gray;
             border-radius: 15px;
-          }
+          
 
           .banner-logo img {
             max-width: 150px;
@@ -2397,7 +2397,7 @@ export default function PhoneLogin() {
 
                   <div className="phone-field">
                     <div className="phone-prefix">
-                      +91 <span>⌄</span>
+                      +91
                     </div>
 
                     <input

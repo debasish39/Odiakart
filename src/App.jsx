@@ -928,9 +928,9 @@ const AppWrapper = () => {
                 }
               />
               <Route
-  path="/phone-login"
-  element={<PhoneLogin />}
-/>
+                path="/phone-login"
+                element={<PhoneLogin />}
+              />
 
               {/* =================================================
                   404
@@ -969,15 +969,15 @@ const AppWrapper = () => {
                   AUTH
               ================================================= */}
 
-        <Route
-  path="/sign-in/*"
-  element={<PhoneLogin />}
-/>
+              <Route
+                path="/sign-in/*"
+                element={<PhoneLogin />}
+              />
 
-<Route
-  path="/sign-up/*"
-  element={<PhoneLogin />}
-/>
+              <Route
+                path="/sign-up/*"
+                element={<PhoneLogin />}
+              />
 
 
               {/* =================================================

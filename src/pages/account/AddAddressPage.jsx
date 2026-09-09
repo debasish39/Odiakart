@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FaHome,
   FaBriefcase,
@@ -8,6 +8,8 @@ import {
   FaCity,
   FaCheck,
   FaSave,
+  FaArrowLeft,
+  FaShieldAlt,
 } from "react-icons/fa";
 import { toast } from "sonner";
 import { AccountShell, api } from "./AccountShell";
@@ -18,6 +20,8 @@ import { useNavigate } from "react-router-dom";
 ============================================================ */
 
 export default function AddAddressPage() {
+  const navigate = useNavigate();
+
   const [f, setF] = useState({
     label: "Home",
     fullName: "",
@@ -41,7 +45,7 @@ export default function AddAddressPage() {
   });
 
   const [saving, setSaving] = useState(false);
-  const navigate = useNavigate();
+
   const set = (key, value) => {
     setF((prev) => ({
       ...prev,
@@ -148,7 +152,7 @@ export default function AddAddressPage() {
 
   return (
     <AddressForm
-      title="Add address"
+      title="Add new address"
       f={f}
       set={set}
       save={save}
@@ -158,11 +162,10 @@ export default function AddAddressPage() {
   );
 }
 
-
 /* ============================================================
    REUSABLE ADDRESS FORM
-   IMPORTANT:
-   This is a NAMED EXPORT because EditAddressPage imports it.
+
+   Can also be used by EditAddressPage.
 ============================================================ */
 
 export function AddressForm({
@@ -173,12 +176,29 @@ export function AddressForm({
   saving,
   submit,
 }) {
+  const navigate = useNavigate();
+
+  const pinInputRef = useRef(null);
+
   const [pinLoading, setPinLoading] = useState(false);
   const [postOffices, setPostOffices] = useState([]);
 
-  /* ==========================================================
+  /* ============================================================
+     AUTO FOCUS PIN
+  ============================================================ */
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      pinInputRef.current?.focus();
+      pinInputRef.current?.select();
+    }, 180);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  /* ============================================================
      PIN LOOKUP
-  ========================================================== */
+  ============================================================ */
 
   const fetchPinDetails = async (pin) => {
     if (!/^[1-9][0-9]{5}$/.test(pin)) {
@@ -208,10 +228,7 @@ export function AddressForm({
       ) {
         toast.error("PIN code not found");
 
-        set({
-          area: "",
-        });
-
+        set("area", "");
         set("city", "");
         set("district", "");
         set("state", "");
@@ -236,7 +253,6 @@ export function AddressForm({
       );
 
       set("district", firstOffice.District || "");
-
       set("state", firstOffice.State || "");
 
       set(
@@ -262,10 +278,9 @@ export function AddressForm({
     }
   };
 
-
-  /* ==========================================================
+  /* ============================================================
      PIN CHANGE
-  ========================================================== */
+  ============================================================ */
 
   const handlePinChange = (value) => {
     const pin = value
@@ -274,10 +289,6 @@ export function AddressForm({
 
     set("postalCode", pin);
 
-    /*
-     * Clear automatically populated fields
-     * until a complete PIN is entered.
-     */
     if (pin.length < 6) {
       setPostOffices([]);
 
@@ -289,18 +300,14 @@ export function AddressForm({
       return;
     }
 
-    /*
-     * Fetch information once 6 digits are entered.
-     */
     if (pin.length === 6) {
       fetchPinDetails(pin);
     }
   };
 
-
-  /* ==========================================================
+  /* ============================================================
      POST OFFICE SELECTION
-  ========================================================== */
+  ============================================================ */
 
   const handlePostOfficeChange = (officeName) => {
     const selectedOffice = postOffices.find(
@@ -338,78 +345,218 @@ export function AddressForm({
     );
   };
 
-
-  /* ==========================================================
+  /* ============================================================
      ADDRESS TYPES
-  ========================================================== */
+  ============================================================ */
 
   const addressTypes = [
     {
       value: "Home",
-      icon: <FaHome size={15} />,
-      description: "Personal",
+      icon: <FaHome />,
+      description: "For your home",
     },
     {
       value: "Office",
-      icon: <FaBriefcase size={14} />,
-      description: "Work",
+      icon: <FaBriefcase />,
+      description: "For your workplace",
     },
     {
       value: "Other",
-      icon: <FaMapMarkerAlt size={14} />,
-      description: "Other",
+      icon: <FaMapMarkerAlt />,
+      description: "Other location",
     },
   ];
 
+  const pinComplete =
+    String(f.postalCode || "").length === 6;
 
-  /* ==========================================================
+  const locationFound =
+    pinComplete &&
+    !pinLoading &&
+    Boolean(f.state);
+
+  /* ============================================================
      UI
-  ========================================================== */
+  ============================================================ */
 
   return (
     <AccountShell title={title}>
-      <div className="address-form-page">
+      <div className="address-app">
 
-        {/* INTRO */}
+        {/* ======================================================
+           HEADER
+        ====================================================== */}
 
-        <div className="address-form-intro">
+        <header className="address-header">
 
-          <div className="address-form-intro-icon">
-            <FaMapMarkerAlt size={19} />
-          </div>
+          <button
+            type="button"
+            className="back-button"
+            onClick={() =>
+              navigate("/account/addresses")
+            }
+            aria-label="Go back"
+          >
+            <FaArrowLeft size={13} />
+          </button>
 
-          <div>
-            <h2>Delivery address</h2>
+          <div className="header-content">
+            <span className="header-eyebrow">
+              <span className="eyebrow-dot" />
+              DELIVERY ADDRESS
+            </span>
+
+            <h1>{title}</h1>
 
             <p>
-              Add your details so we can deliver your
-              orders to the right place.
+              Add your location once and make checkout
+              faster .
             </p>
           </div>
 
-        </div>
+          <div className="secure-badge">
+            <FaShieldAlt size={11} />
+            <span>Secure</span>
+          </div>
 
+        </header>
 
-        <div className="address-form-card">
+        {/* ======================================================
+           MAIN CARD
+        ====================================================== */}
 
-          {/* ==================================================
-              ADDRESS TYPE
-          ================================================== */}
+        <main className="address-card">
 
-          <section className="form-section">
+          {/* ====================================================
+             PIN HERO
+          ==================================================== */}
 
-            <div className="form-section-heading">
+          <section className="pin-hero">
 
-              <h3>Address type</h3>
+            <div className="pin-hero-top">
 
-              <p>
-                Choose a label to identify this address
-              </p>
+              <div className="pin-icon">
+                <FaMapMarkerAlt size={17} />
+              </div>
+
+              <div className="pin-copy">
+                <span className="pin-eyebrow">
+                  QUICK START
+                </span>
+
+                <h2>
+                  Start with your PIN code
+                </h2>
+
+                <p>
+                  We'll automatically find your
+                  delivery location.
+                </p>
+              </div>
+
+              {locationFound && (
+                <div className="location-success">
+                  <FaCheck size={9} />
+                  Found
+                </div>
+              )}
 
             </div>
 
+            <div className="pin-input-area">
 
-            <div className="address-type-grid">
+              <label className="input-label">
+                PIN code
+                <span>*</span>
+              </label>
+
+              <div
+                className={`pin-input-container ${
+                  pinLoading ? "loading" : ""
+                } ${
+                  locationFound ? "success" : ""
+                }`}
+              >
+
+                <div className="pin-input-icon">
+                  <FaMapMarkerAlt size={14} />
+                </div>
+
+                <input
+                  ref={pinInputRef}
+                  className="pin-input"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  maxLength={6}
+                  value={f.postalCode || ""}
+                  onChange={(e) =>
+                    handlePinChange(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Enter 6-digit PIN"
+                  aria-label="PIN code"
+                />
+
+                {pinLoading && (
+                  <span className="input-spinner" />
+                )}
+
+                {locationFound && (
+                  <span className="input-success">
+                    <FaCheck size={9} />
+                  </span>
+                )}
+
+              </div>
+
+              <div className="pin-meta">
+
+                <div className="pin-bars">
+                  {[0, 1, 2, 3, 4, 5].map(
+                    (index) => (
+                      <span
+                        key={index}
+                        className={
+                          String(
+                            f.postalCode || ""
+                          ).length > index
+                            ? "filled"
+                            : ""
+                        }
+                      />
+                    )
+                  )}
+                </div>
+
+                <span>
+                  {pinLoading
+                    ? "Finding your location..."
+                    : locationFound
+                    ? `${f.city || f.area}, ${f.state}`
+                    : "6 digits required"}
+                </span>
+
+              </div>
+
+            </div>
+
+          </section>
+
+          {/* ====================================================
+             ADDRESS TYPE
+          ==================================================== */}
+
+          <section className="form-section">
+
+            <SectionHeader
+              number="01"
+              title="Address type"
+              description="Choose a label for this address."
+            />
+
+            <div className="address-types">
 
               {addressTypes.map((item) => {
 
@@ -424,31 +571,31 @@ export function AddressForm({
                       active ? "active" : ""
                     }`}
                     onClick={() =>
-                      set("label", item.value)
+                      set(
+                        "label",
+                        item.value
+                      )
                     }
                   >
 
-                    <div className="address-type-icon">
+                    <span className="type-icon">
                       {item.icon}
-                    </div>
+                    </span>
 
-                    <div className="address-type-text">
-
+                    <span className="type-text">
                       <strong>
                         {item.value}
                       </strong>
 
-                      <span>
+                      <small>
                         {item.description}
-                      </span>
-
-                    </div>
-
+                      </small>
+                    </span>
 
                     {active && (
-                      <div className="address-type-check">
+                      <span className="type-selected">
                         <FaCheck size={8} />
-                      </div>
+                      </span>
                     )}
 
                   </button>
@@ -459,23 +606,17 @@ export function AddressForm({
 
           </section>
 
-
-          {/* ==================================================
-              CONTACT DETAILS
-          ================================================== */}
+          {/* ====================================================
+             CONTACT
+          ==================================================== */}
 
           <section className="form-section">
 
-            <div className="form-section-heading">
-
-              <h3>Contact details</h3>
-
-              <p>
-                Who should receive the delivery?
-              </p>
-
-            </div>
-
+            <SectionHeader
+              number="02"
+              title="Contact details"
+              description="Who should receive the delivery?"
+            />
 
             <div className="form-grid">
 
@@ -483,7 +624,7 @@ export function AddressForm({
                 icon={<FaUser />}
                 label="Full name"
                 required
-                value={f.fullName || ""}
+                value={f.fullName}
                 onChange={(value) =>
                   set("fullName", value)
                 }
@@ -491,12 +632,11 @@ export function AddressForm({
                 autoComplete="name"
               />
 
-
               <Field
                 icon={<FaPhoneAlt />}
                 label="Phone number"
                 required
-                value={f.phone || ""}
+                value={f.phone}
                 onChange={(value) =>
                   set(
                     "phone",
@@ -511,11 +651,10 @@ export function AddressForm({
                 autoComplete="tel"
               />
 
-
               <Field
                 icon={<FaPhoneAlt />}
                 label="Alternate phone"
-                value={f.alternatePhone || ""}
+                value={f.alternatePhone}
                 onChange={(value) =>
                   set(
                     "alternatePhone",
@@ -533,28 +672,22 @@ export function AddressForm({
 
           </section>
 
-
-          {/* ==================================================
-              ADDRESS DETAILS
-          ================================================== */}
+          {/* ====================================================
+             ADDRESS
+          ==================================================== */}
 
           <section className="form-section">
 
-            <div className="form-section-heading">
-
-              <h3>Address details</h3>
-
-              <p>
-                Enter your complete delivery address
-              </p>
-
-            </div>
-
+            <SectionHeader
+              number="03"
+              title="Address details"
+              description="Add your complete delivery address."
+            />
 
             <Field
               label="Address line 1"
               required
-              value={f.addressLine1 || ""}
+              value={f.addressLine1}
               onChange={(value) =>
                 set("addressLine1", value)
               }
@@ -562,70 +695,64 @@ export function AddressForm({
               autoComplete="street-address"
             />
 
-
             <Field
               label="Address line 2"
-              value={f.addressLine2 || ""}
+              value={f.addressLine2}
               onChange={(value) =>
                 set("addressLine2", value)
               }
               placeholder="Apartment, floor, block, etc. (optional)"
             />
 
-
             <div className="form-grid">
 
               <Field
                 label="Landmark"
-                value={f.landmark || ""}
+                value={f.landmark}
                 onChange={(value) =>
                   set("landmark", value)
                 }
                 placeholder="Nearby landmark"
               />
 
+              <div className="field">
 
-              {/* AREA */}
-
-              <div className="ok-field">
-
-                <label>
-                  Area/Post
-                  <span className="required-star">
-                    *
-                  </span>
+                <label className="input-label">
+                  Area / Post
+                  <span>*</span>
                 </label>
-
 
                 {postOffices.length > 1 ? (
 
-                  <select
-                    className="ok-input area-select"
-                    value={f.area || ""}
-                    onChange={(e) =>
-                      handlePostOfficeChange(
-                        e.target.value
-                      )
-                    }
-                  >
+                  <div className="select-box">
 
-                    {postOffices.map((office) => (
+                    <select
+                      className="input"
+                      value={f.area || ""}
+                      onChange={(e) =>
+                        handlePostOfficeChange(
+                          e.target.value
+                        )
+                      }
+                    >
+                      {postOffices.map(
+                        (office) => (
+                          <option
+                            key={`${office.Name}-${office.Pincode}`}
+                            value={office.Name}
+                          >
+                            {office.Name}
+                          </option>
+                        )
+                      )}
+                    </select>
 
-                      <option
-                        key={`${office.Name}-${office.Pincode}`}
-                        value={office.Name}
-                      >
-                        {office.Name}
-                      </option>
-
-                    ))}
-
-                  </select>
+                  </div>
 
                 ) : (
 
                   <input
-                    className="ok-input"
+                    className="input"
                     value={f.area || ""}
                     onChange={(e) =>
                       set(
@@ -634,6 +761,7 @@ export function AddressForm({
                       )
                     }
                     placeholder="Locality / area"
+                    autoComplete="address-line2"
                   />
 
                 )}
@@ -642,7 +770,7 @@ export function AddressForm({
 
               <Field
                 label="Village"
-                value={f.village || ""}
+                value={f.village}
                 onChange={(value) =>
                   set("village", value)
                 }
@@ -653,33 +781,25 @@ export function AddressForm({
 
           </section>
 
-
-          {/* ==================================================
-              LOCATION
-          ================================================== */}
+          {/* ====================================================
+             LOCATION
+          ==================================================== */}
 
           <section className="form-section">
 
-            <div className="form-section-heading">
-
-              <h3>Location</h3>
-
-              <p>
-                PIN code automatically fills location details
-              </p>
-
-            </div>
-
+            <SectionHeader
+              number="04"
+              title="Location"
+              description="These details are filled from your PIN."
+            />
 
             <div className="form-grid">
-
-              {/* CITY */}
 
               <Field
                 icon={<FaCity />}
                 label="City"
                 required
-                value={f.city || ""}
+                value={f.city}
                 onChange={(value) =>
                   set("city", value)
                 }
@@ -687,26 +807,20 @@ export function AddressForm({
                 autoComplete="address-level2"
               />
 
-
-              {/* DISTRICT */}
-
               <Field
                 label="District"
                 required
-                value={f.district || ""}
+                value={f.district}
                 onChange={(value) =>
                   set("district", value)
                 }
                 placeholder="Enter district"
               />
 
-
-              {/* STATE */}
-
               <Field
                 label="State"
                 required
-                value={f.state || ""}
+                value={f.state}
                 onChange={(value) =>
                   set("state", value)
                 }
@@ -714,62 +828,28 @@ export function AddressForm({
                 autoComplete="address-level1"
               />
 
+              <div className="field">
 
-              {/* PIN CODE */}
-
-              <div className="ok-field">
-
-                <label>
+                <label className="input-label">
                   PIN code
-                  <span className="required-star">
-                    *
-                  </span>
+                  <span>*</span>
                 </label>
 
+                <div className="readonly-location">
+                  <FaMapMarkerAlt size={11} />
 
-                <div className="pin-input-wrapper">
+                  <span>
+                    {f.postalCode ||
+                      "Waiting for PIN"}
+                  </span>
 
-                  <input
-                    className="ok-input"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="postal-code"
-                    maxLength={6}
-                    value={f.postalCode || ""}
-                    onChange={(e) =>
-                      handlePinChange(
-                        e.target.value
-                      )
-                    }
-                    placeholder={
-                      pinLoading
-                        ? "Finding location..."
-                        : "6-digit PIN"
-                    }
-                  />
-
-
-                  {pinLoading && (
-                    <span className="pin-spinner" />
+                  {locationFound && (
+                    <FaCheck
+                      className="readonly-check"
+                      size={9}
+                    />
                   )}
-
                 </div>
-
-
-                {pinLoading && (
-                  <small className="pin-status">
-                    Finding address details...
-                  </small>
-                )}
-
-
-                {!pinLoading &&
-                  String(f.postalCode || "").length === 6 &&
-                  f.state && (
-                    <small className="pin-success">
-                      ✓ Location found
-                    </small>
-                  )}
 
               </div>
 
@@ -777,23 +857,17 @@ export function AddressForm({
 
           </section>
 
-
-          {/* ==================================================
-              COUNTRY
-          ================================================== */}
+          {/* ====================================================
+             COUNTRY
+          ==================================================== */}
 
           <section className="form-section country-section">
 
-            <div className="form-section-heading">
-
-              <h3>Country</h3>
-
-              <p>
-                Delivery country
-              </p>
-
-            </div>
-
+            <SectionHeader
+              number="05"
+              title="Country"
+              description="Where should this address be delivered?"
+            />
 
             <Field
               label="Country"
@@ -808,18 +882,19 @@ export function AddressForm({
 
           </section>
 
+          {/* ====================================================
+             DEFAULT
+          ==================================================== */}
 
-          {/* ==================================================
-              DEFAULT ADDRESS
-          ================================================== */}
+          <section className="default-section">
 
-          <section className="default-address-section">
-
-            <label className="default-address-toggle">
+            <label className="default-card">
 
               <input
                 type="checkbox"
-                checked={Boolean(f.isDefault)}
+                checked={Boolean(
+                  f.isDefault
+                )}
                 onChange={(e) =>
                   set(
                     "isDefault",
@@ -828,25 +903,21 @@ export function AddressForm({
                 }
               />
 
-
-              <span className="custom-checkbox">
-
+              <span className="checkbox">
                 {f.isDefault && (
                   <FaCheck size={9} />
                 )}
-
               </span>
 
-
-              <span className="default-address-content">
+              <span className="default-copy">
 
                 <strong>
                   Make this my default address
                 </strong>
 
                 <small>
-                  Use this address automatically during
-                  checkout
+                  We'll use this address automatically
+                  during checkout.
                 </small>
 
               </span>
@@ -855,270 +926,543 @@ export function AddressForm({
 
           </section>
 
+          {/* ====================================================
+             ACTIONS
+          ==================================================== */}
 
-          {/* ==================================================
-              ACTIONS
-          ================================================== */}
-
-          <div className="address-form-actions">
+          <footer className="form-actions">
 
             <button
               type="button"
-              className="ok-btn ok-outline cancel-btn"
+              className="cancel-button"
               disabled={saving}
               onClick={() =>
-                navigate("/account/addresses")
+                navigate(
+                  "/account/addresses"
+                )
               }
             >
               Cancel
             </button>
 
-
             <button
               type="button"
-              className="ok-btn ok-primary save-address-btn"
-              disabled={saving || pinLoading}
+              className="save-button"
+              disabled={
+                saving ||
+                pinLoading
+              }
               onClick={save}
             >
 
               {saving ? (
-
                 <>
                   <span className="save-spinner" />
                   Saving...
                 </>
-
               ) : (
-
                 <>
                   <FaSave size={12} />
                   {submit}
                 </>
-
               )}
 
             </button>
 
-          </div>
+          </footer>
 
-        </div>
+        </main>
 
       </div>
 
-
       {/* ========================================================
-          STYLES
+         STYLES
       ======================================================== */}
 
       <style>{`
 
-        .address-form-page {
-          width: 100%;
-          padding-bottom: 24px;
+        * {
+          box-sizing: border-box;
         }
 
-        .address-form-intro {
+        .address-app {
+          width: 100%;
+          max-width: 960px;
+          margin: 0 auto;
+          padding: 10px 0 40px;
+          color: #18181b;
+        }
+
+        /* ======================================================
+           HEADER
+        ====================================================== */
+
+        .address-header {
           display: flex;
           align-items: center;
-          gap: 13px;
+          gap: 15px;
           margin-bottom: 18px;
         }
 
-        .address-form-intro-icon {
-          width: 44px;
-          height: 44px;
+        .back-button {
+          width: 42px;
+          height: 42px;
           flex: none;
           display: grid;
           place-items: center;
-          border-radius: 14px;
-          background: #eeedff;
+          border: 1px solid #e7e7ec;
+          border-radius: 13px;
+          background: #fff;
+          color: #71717a;
+          cursor: pointer;
+          transition: all .18s ease;
+        }
+
+        .back-button:hover {
           color: #4f46e5;
+          border-color: #d9d7ff;
+          background: #fafaff;
+          transform: translateX(-2px);
         }
 
-        .address-form-intro h2 {
-          margin: 0 0 4px;
-          color: #111827;
-          font-size: 20px;
-          font-weight: 800;
-          letter-spacing: -.3px;
+        .header-content {
+          flex: 1;
+          min-width: 0;
         }
 
-        .address-form-intro p {
+        .header-eyebrow {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          margin-bottom: 4px;
+          color: #6366f1;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: .12em;
+        }
+
+        .eyebrow-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #6366f1;
+          box-shadow:
+            0 0 0 4px rgba(99,102,241,.1);
+        }
+
+        .header-content h1 {
+          margin: 0 0 5px;
+          color: #18181b;
+          font-size: clamp(23px, 3vw, 30px);
+          line-height: 1.15;
+          font-weight: 850;
+          letter-spacing: -.8px;
+        }
+
+        .header-content p {
           margin: 0;
-          color: #737582;
+          color: #8a8a93;
           font-size: 11px;
           line-height: 1.5;
         }
 
-        .address-form-card {
-          overflow: hidden;
+        .secure-badge {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 11px;
+          border: 1px solid #e4e4e9;
+          border-radius: 999px;
+          color: #71717a;
           background: #fff;
-          border: 1px solid #e8e8ef;
-          border-radius: 20px;
-          box-shadow:
-            0 3px 16px rgba(20,20,40,.05);
-        }
-
-        .form-section {
-          padding: 21px;
-          border-bottom: 1px solid #eef0f4;
-        }
-
-        .form-section-heading {
-          margin-bottom: 16px;
-        }
-
-        .form-section-heading h3 {
-          margin: 0 0 4px;
-          color: #17181d;
-          font-size: 14px;
+          font-size: 9px;
           font-weight: 800;
         }
 
-        .form-section-heading p {
+        /* ======================================================
+           MAIN CARD
+        ====================================================== */
+
+        .address-card {
+          overflow: hidden;
+          border: 1px solid #e8e8ed;
+          border-radius: 24px;
+          background: #fff;
+          box-shadow:
+            0 20px 60px rgba(20,20,45,.07);
+        }
+
+        /* ======================================================
+           PIN HERO
+        ====================================================== */
+
+        .pin-hero {
+          padding: 22px;
+          border-bottom: 1px solid #ededf1;
+          background:
+            radial-gradient(
+              circle at 90% 0%,
+              rgba(99,102,241,.13),
+              transparent 32%
+            ),
+            linear-gradient(
+              135deg,
+              #fafaff,
+              #ffffff
+            );
+        }
+
+        .pin-hero-top {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .pin-icon {
+          width: 42px;
+          height: 42px;
+          flex: none;
+          display: grid;
+          place-items: center;
+          border: 1px solid #dedcff;
+          border-radius: 13px;
+          color: #4f46e5;
+          background: #eeedff;
+        }
+
+        .pin-copy {
+          flex: 1;
+        }
+
+        .pin-eyebrow {
+          display: block;
+          margin-bottom: 3px;
+          color: #6366f1;
+          font-size: 8px;
+          font-weight: 900;
+          letter-spacing: .1em;
+        }
+
+        .pin-copy h2 {
+          margin: 0 0 3px;
+          color: #27272a;
+          font-size: 15px;
+          font-weight: 850;
+          letter-spacing: -.2px;
+        }
+
+        .pin-copy p {
           margin: 0;
-          color: #858894;
+          color: #85858d;
           font-size: 10px;
         }
 
-        .address-type-grid {
+        .location-success {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 7px 9px;
+          border-radius: 999px;
+          color: #059669;
+          background: #ecfdf5;
+          font-size: 8px;
+          font-weight: 850;
+        }
+
+        .pin-input-area {
+          margin-top: 18px;
+        }
+
+        .input-label {
+          display: block;
+          margin-bottom: 6px;
+          color: #45454d;
+          font-size: 10px;
+          font-weight: 800;
+        }
+
+        .input-label span {
+          margin-left: 2px;
+          color: #ef4444;
+        }
+
+        .pin-input-container {
+          position: relative;
+          display: flex;
+          align-items: center;
+          height: 56px;
+          border: 1.5px solid #d9d7fa;
+          border-radius: 14px;
+          background: #fff;
+          box-shadow:
+            0 5px 20px rgba(79,70,229,.06);
+          transition:
+            border-color .18s ease,
+            box-shadow .18s ease;
+        }
+
+        .pin-input-container:focus-within {
+          border-color: #6366f1;
+          box-shadow:
+            0 0 0 4px rgba(99,102,241,.1),
+            0 8px 25px rgba(79,70,229,.08);
+        }
+
+        .pin-input-container.success {
+          border-color: #a7f3d0;
+        }
+
+        .pin-input-icon {
+          width: 48px;
+          display: grid;
+          place-items: center;
+          color: #6366f1;
+          pointer-events: none;
+        }
+
+        .pin-input {
+          width: 100%;
+          height: 100%;
+          padding: 0 50px 0 0;
+          border: 0;
+          outline: none;
+          background: transparent;
+          color: #18181b;
+          font-family: inherit;
+          font-size: 18px;
+          font-weight: 850;
+          letter-spacing: .18em;
+        }
+
+        .pin-input::placeholder {
+          color: #b2b2ba;
+          font-size: 13px;
+          letter-spacing: 0;
+          font-weight: 600;
+        }
+
+        .input-spinner {
+          position: absolute;
+          right: 17px;
+          width: 17px;
+          height: 17px;
+          border: 2px solid #e5e5f5;
+          border-top-color: #6366f1;
+          border-radius: 50%;
+          animation: spin .65s linear infinite;
+        }
+
+        .input-success {
+          position: absolute;
+          right: 15px;
+          width: 23px;
+          height: 23px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          color: #fff;
+          background: #10b981;
+        }
+
+        .pin-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-top: 8px;
+          color: #8b8b94;
+          font-size: 8px;
+          font-weight: 700;
+        }
+
+        .pin-bars {
+          flex: 1;
           display: grid;
           grid-template-columns:
-            repeat(3, 1fr);
-          gap: 9px;
+            repeat(6, minmax(0, 1fr));
+          gap: 5px;
+        }
+
+        .pin-bars span {
+          height: 3px;
+          border-radius: 999px;
+          background: #e7e7ed;
+          transition: all .2s ease;
+        }
+
+        .pin-bars span.filled {
+          background: #6366f1;
+          transform: scaleY(1.25);
+        }
+
+        /* ======================================================
+           SECTIONS
+        ====================================================== */
+
+        .form-section {
+          padding: 23px;
+          border-bottom: 1px solid #eeeeF2;
+        }
+
+        .section-header {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          margin-bottom: 18px;
+        }
+
+        .section-number {
+          width: 28px;
+          height: 28px;
+          flex: none;
+          display: grid;
+          place-items: center;
+          border: 1px solid #e4e3f7;
+          border-radius: 9px;
+          color: #6366f1;
+          background: #f7f6ff;
+          font-size: 8px;
+          font-weight: 900;
+        }
+
+        .section-header h3 {
+          margin: 0 0 3px;
+          color: #27272a;
+          font-size: 13px;
+          font-weight: 850;
+        }
+
+        .section-header p {
+          margin: 0;
+          color: #9999a1;
+          font-size: 9px;
+        }
+
+        /* ======================================================
+           ADDRESS TYPES
+        ====================================================== */
+
+        .address-types {
+          display: grid;
+          grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+          gap: 10px;
         }
 
         .address-type {
           position: relative;
-          min-height: 66px;
           display: flex;
           align-items: center;
-          gap: 9px;
-          padding: 10px;
-          text-align: left;
-          border: 1px solid #e5e7eb;
-          border-radius: 13px;
+          gap: 10px;
+          min-height: 70px;
+          padding: 11px;
+          border: 1px solid #e5e5ea;
+          border-radius: 14px;
           background: #fff;
-          color: #374151;
+          text-align: left;
           cursor: pointer;
-          transition:
-            border-color .16s ease,
-            background .16s ease,
-            box-shadow .16s ease;
+          transition: all .18s ease;
         }
 
         .address-type:hover {
-          border-color: #c7c5ff;
-          background: #fafaff;
+          transform: translateY(-1px);
+          border-color: #cfccf9;
+          background: #fbfbff;
         }
 
         .address-type.active {
           border-color: #6366f1;
-          background: #f7f7ff;
+          background: #f8f7ff;
           box-shadow:
-            0 0 0 2px
-            rgba(99,102,241,.08);
+            0 0 0 3px rgba(99,102,241,.07);
         }
 
-        .address-type-icon {
-          width: 34px;
-          height: 34px;
+        .type-icon {
+          width: 36px;
+          height: 36px;
           flex: none;
           display: grid;
           place-items: center;
           border-radius: 10px;
-          background: #f1f5f9;
-          color: #64748b;
+          color: #777780;
+          background: #f3f3f6;
+          transition: all .18s ease;
         }
 
-        .address-type.active
-        .address-type-icon {
-          background: #eeedff;
+        .address-type.active .type-icon {
           color: #4f46e5;
+          background: #e9e8ff;
         }
 
-        .address-type-text {
+        .type-text {
           min-width: 0;
         }
 
-        .address-type strong {
+        .type-text strong {
           display: block;
-          margin-bottom: 2px;
-          font-size: 11px;
-          font-weight: 800;
+          margin-bottom: 3px;
+          color: #34343b;
+          font-size: 10px;
+          font-weight: 850;
         }
 
-        .address-type span {
+        .type-text small {
           display: block;
-          color: #858894;
-          font-size: 9px;
+          color: #9999a2;
+          font-size: 8px;
         }
 
-        .address-type-check {
+        .type-selected {
           position: absolute;
-          top: 7px;
-          right: 7px;
-          width: 16px;
-          height: 16px;
+          top: 8px;
+          right: 8px;
+          width: 17px;
+          height: 17px;
           display: grid;
           place-items: center;
           border-radius: 50%;
-          background: #4f46e5;
           color: #fff;
+          background: #4f46e5;
         }
+
+        /* ======================================================
+           FORM
+        ====================================================== */
 
         .form-grid {
           display: grid;
           grid-template-columns:
             repeat(2, minmax(0, 1fr));
-          gap: 0 12px;
+          gap: 0 13px;
         }
 
-        .address-form-card .ok-field {
-          margin-bottom: 15px;
+        .field {
+          min-width: 0;
+          margin-bottom: 16px;
         }
 
-        .address-form-card
-        .ok-field label {
-          display: block;
-          margin-bottom: 7px;
-          color: #4b5563;
-          font-size: 11px;
-          font-weight: 750;
-        }
-
-        .required-star {
-          color: #dc2626;
-          margin-left: 2px;
-        }
-
-        .address-form-card .ok-input {
+        .input {
           width: 100%;
           height: 45px;
           padding: 0 12px;
-          box-sizing: border-box;
-          border: 1px solid #e1e3ea;
+          border: 1px solid #e1e2e7;
           border-radius: 11px;
-          background: #fff;
-          color: #111827;
-          font-size: 12px;
           outline: none;
-          transition:
-            border-color .16s ease,
-            box-shadow .16s ease;
+          background: #fff;
+          color: #18181b;
+          font-family: inherit;
+          font-size: 11px;
+          transition: all .17s ease;
         }
 
-        .address-form-card
-        .ok-input::placeholder {
-          color: #a1a5af;
+        .input:hover {
+          border-color: #d2d3da;
         }
 
-        .address-form-card
-        .ok-input:focus {
+        .input:focus {
           border-color: #6366f1;
           box-shadow:
-            0 0 0 3px
-            rgba(99,102,241,.09);
+            0 0 0 3px rgba(99,102,241,.08);
         }
 
         .field-with-icon {
@@ -1129,210 +1473,318 @@ export function AddressForm({
           position: absolute;
           left: 13px;
           top: 50%;
-          transform: translateY(-50%);
-          color: #9ca3af;
-          pointer-events: none;
           z-index: 1;
+          display: grid;
+          place-items: center;
+          color: #9b9ba4;
+          transform: translateY(-50%);
+          pointer-events: none;
         }
 
-        .field-with-icon .ok-input {
+        .field-with-icon .input {
           padding-left: 35px;
         }
 
-        /* PIN */
-
-        .pin-input-wrapper {
+        .select-box {
           position: relative;
         }
 
-        .pin-input-wrapper .ok-input {
-          padding-right: 42px;
-        }
-
-        .pin-spinner {
-          position: absolute;
-          right: 14px;
-          top: 50%;
-          width: 15px;
-          height: 15px;
-          margin-top: -8px;
-          border: 2px solid #e5e7eb;
-          border-top-color: #4f46e5;
-          border-radius: 50%;
-          animation:
-            pinSpin .7s linear infinite;
-        }
-
-        .pin-status {
-          display: block;
-          margin-top: 5px;
-          color: #6b7280;
-          font-size: 9px;
-        }
-
-        .pin-success {
-          display: block;
-          margin-top: 5px;
-          color: #16a34a;
-          font-size: 9px;
-          font-weight: 700;
-        }
-
-        @keyframes pinSpin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .area-select {
+        .select-box select {
           cursor: pointer;
           appearance: auto;
         }
 
-        .country-section {
-          padding-bottom: 6px;
+        /* ======================================================
+           READONLY LOCATION
+        ====================================================== */
+
+        .readonly-location {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          height: 45px;
+          padding: 0 12px;
+          border: 1px solid #ececf0;
+          border-radius: 11px;
+          color: #777780;
+          background: #f8f8fa;
+          font-size: 10px;
+          font-weight: 750;
         }
 
-        .default-address-section {
-          padding: 18px 21px;
-          background: #fafbfc;
-          border-bottom: 1px solid #eef0f4;
+        .readonly-location svg {
+          color: #7774c7;
         }
 
-        .default-address-toggle {
-          position: relative;
+        .readonly-check {
+          margin-left: auto;
+          color: #10b981 !important;
+        }
+
+        /* ======================================================
+           DEFAULT
+        ====================================================== */
+
+        .default-section {
+          padding: 18px 23px;
+          background:
+            linear-gradient(
+              90deg,
+              #fafafa,
+              #fff
+            );
+        }
+
+        .default-card {
           display: flex;
           align-items: center;
           gap: 11px;
           cursor: pointer;
         }
 
-        .default-address-toggle input {
+        .default-card input {
           position: absolute;
           opacity: 0;
           pointer-events: none;
         }
 
-        .custom-checkbox {
-          width: 19px;
-          height: 19px;
+        .checkbox {
+          width: 21px;
+          height: 21px;
           flex: none;
           display: grid;
           place-items: center;
-          border: 1.5px solid #cfd2da;
+          border: 1.5px solid #cfd0d7;
           border-radius: 6px;
-          background: #fff;
           color: #fff;
-          transition: all .15s ease;
+          background: #fff;
+          transition: all .16s ease;
         }
 
-        .default-address-toggle
-        input:checked + .custom-checkbox {
+        .default-card input:checked + .checkbox {
           border-color: #4f46e5;
           background: #4f46e5;
         }
 
-        .default-address-content strong {
+        .default-copy strong {
           display: block;
           margin-bottom: 3px;
-          color: #374151;
-          font-size: 11px;
-          font-weight: 800;
+          color: #34343b;
+          font-size: 10px;
+          font-weight: 850;
         }
 
-        .default-address-content small {
+        .default-copy small {
           display: block;
-          color: #858894;
-          font-size: 9px;
+          color: #9999a1;
+          font-size: 8px;
         }
 
-        .address-form-actions {
+        /* ======================================================
+           ACTIONS
+        ====================================================== */
+
+        .form-actions {
           display: flex;
           justify-content: flex-end;
           gap: 9px;
-          padding: 18px 21px;
+          padding: 18px 23px;
           background: #fff;
         }
 
-        .address-form-actions button {
+        .cancel-button,
+        .save-button {
+          min-height: 44px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           gap: 7px;
-          min-height: 43px;
+          padding: 0 18px;
           border-radius: 11px;
+          font-family: inherit;
+          font-size: 10px;
+          font-weight: 850;
+          cursor: pointer;
+          transition: all .18s ease;
         }
 
-        .cancel-btn {
+        .cancel-button {
           min-width: 90px;
+          border: 1px solid #e2e3e8;
+          color: #666670;
+          background: #fff;
         }
 
-        .save-address-btn {
-          min-width: 135px;
+        .cancel-button:hover {
+          background: #fafafa;
+          border-color: #d4d5dc;
         }
 
-        .save-address-btn:disabled {
-          opacity: .7;
+        .save-button {
+          min-width: 145px;
+          border: 1px solid #4f46e5;
+          color: #fff;
+          background: #4f46e5;
+          box-shadow:
+            0 8px 20px rgba(79,70,229,.18);
+        }
+
+        .save-button:hover:not(:disabled) {
+          transform: translateY(-1px);
+          background: #4338ca;
+          box-shadow:
+            0 11px 26px rgba(79,70,229,.23);
+        }
+
+        .save-button:active:not(:disabled) {
+          transform: translateY(0);
+        }
+
+        .cancel-button:disabled,
+        .save-button:disabled {
+          opacity: .55;
           cursor: not-allowed;
         }
 
         .save-spinner {
-          width: 12px;
-          height: 12px;
-          border: 2px solid
-            rgba(255,255,255,.4);
+          width: 13px;
+          height: 13px;
+          border: 2px solid rgba(255,255,255,.35);
           border-top-color: #fff;
           border-radius: 50%;
-          animation:
-            saveSpin .7s linear infinite;
+          animation: spin .65s linear infinite;
         }
 
-        @keyframes saveSpin {
+        /* ======================================================
+           ACCESSIBILITY
+        ====================================================== */
+
+        .back-button:focus-visible,
+        .address-type:focus-visible,
+        .input:focus-visible,
+        .pin-input:focus-visible,
+        .save-button:focus-visible,
+        .cancel-button:focus-visible {
+          outline: 3px solid rgba(99,102,241,.16);
+          outline-offset: 2px;
+        }
+
+        /* ======================================================
+           ANIMATION
+        ====================================================== */
+
+        @keyframes spin {
           to {
             transform: rotate(360deg);
           }
         }
 
-        @media (max-width: 600px) {
+        @media (
+          prefers-reduced-motion: reduce
+        ) {
+          *,
+          *::before,
+          *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .01ms !important;
+          }
+        }
 
-          .address-form-intro h2 {
-            font-size: 18px;
+        /* ======================================================
+           TABLET
+        ====================================================== */
+
+        @media (max-width: 760px) {
+
+          .address-app {
+            padding-left: 8px;
+            padding-right: 8px;
           }
 
-          .address-form-card {
-            border-radius: 17px;
-          }
-
-          .form-section {
-            padding: 17px 15px;
-          }
-
-          .address-type-grid {
-            gap: 7px;
+          .address-types {
+            grid-template-columns: 1fr;
           }
 
           .address-type {
             min-height: 60px;
-            padding: 8px;
-            gap: 7px;
           }
 
-          .address-type-icon {
-            width: 30px;
-            height: 30px;
+        }
+
+        /* ======================================================
+           MOBILE
+        ====================================================== */
+
+        @media (max-width: 600px) {
+
+          .address-app {
+            padding:
+              0
+              4px
+              86px;
           }
 
-          .address-type strong {
-            font-size: 10px;
+          .address-header {
+            gap: 10px;
+            margin-bottom: 13px;
           }
 
-          .address-type span {
-            font-size: 8px;
+          .back-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
           }
 
-          .address-type-check {
-            width: 14px;
-            height: 14px;
+          .header-content h1 {
+            font-size: 21px;
+          }
+
+          .header-content p {
+            max-width: 270px;
+            font-size: 9px;
+          }
+
+          .secure-badge {
+            display: none;
+          }
+
+          .address-card {
+            border-radius: 18px;
+          }
+
+          .pin-hero {
+            padding: 17px 14px;
+          }
+
+          .pin-icon {
+            width: 37px;
+            height: 37px;
+            border-radius: 11px;
+          }
+
+          .pin-copy h2 {
+            font-size: 13px;
+          }
+
+          .pin-copy p {
+            font-size: 9px;
+          }
+
+          .location-success {
+            padding: 6px 8px;
+          }
+
+          .pin-input-container {
+            height: 52px;
+          }
+
+          .pin-input {
+            font-size: 16px;
+          }
+
+          .form-section {
+            padding: 18px 14px;
           }
 
           .form-grid {
@@ -1340,37 +1792,86 @@ export function AddressForm({
             gap: 0;
           }
 
-          .default-address-section {
-            padding: 16px 15px;
+          .address-type {
+            min-height: 57px;
           }
 
-          .address-form-actions {
-            padding: 15px;
+          .default-section {
+            padding: 15px 14px;
           }
 
-          .cancel-btn {
-            flex: 1;
+          .form-actions {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            display: grid;
+            grid-template-columns: .8fr 1.5fr;
+            gap: 8px;
+            padding:
+              9px
+              max(
+                9px,
+                env(safe-area-inset-right)
+              )
+              calc(
+                9px +
+                env(safe-area-inset-bottom)
+              )
+              max(
+                9px,
+                env(safe-area-inset-left)
+              );
+            border-top: 1px solid #e6e6eb;
+            background: rgba(255,255,255,.94);
+            box-shadow:
+              0 -8px 28px rgba(20,20,40,.08);
+            backdrop-filter: blur(14px);
           }
 
-          .save-address-btn {
-            flex: 1.5;
+          .cancel-button,
+          .save-button {
+            width: 100%;
+            min-height: 45px;
           }
+
         }
+
+        /* ======================================================
+           SMALL MOBILE
+        ====================================================== */
 
         @media (max-width: 380px) {
 
-          .address-type-grid {
-            grid-template-columns: 1fr;
+          .header-content h1 {
+            font-size: 19px;
           }
 
-          .address-type {
-            min-height: 54px;
+          .pin-copy p {
+            max-width: 190px;
           }
 
-          .address-type span {
-            display: inline;
-            margin-left: 5px;
+          .pin-meta {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 6px;
           }
+
+          .pin-bars {
+            width: 100%;
+          }
+
+          .form-section {
+            padding-left: 12px;
+            padding-right: 12px;
+          }
+
+          .section-number {
+            width: 25px;
+            height: 25px;
+          }
+
         }
 
       `}</style>
@@ -1378,6 +1879,31 @@ export function AddressForm({
   );
 }
 
+/* ============================================================
+   SECTION HEADER
+============================================================ */
+
+function SectionHeader({
+  number,
+  title,
+  description,
+}) {
+  return (
+    <div className="section-header">
+
+      <div className="section-number">
+        {number}
+      </div>
+
+      <div>
+        <h3>{title}</h3>
+
+        <p>{description}</p>
+      </div>
+
+    </div>
+  );
+}
 
 /* ============================================================
    REUSABLE FIELD
@@ -1395,15 +1921,13 @@ function Field({
   autoComplete,
 }) {
   return (
-    <div className="ok-field">
+    <div className="field">
 
-      <label>
+      <label className="input-label">
         {label}
 
         {required && (
-          <span className="required-star">
-            *
-          </span>
+          <span>*</span>
         )}
       </label>
 
@@ -1424,7 +1948,7 @@ function Field({
         )}
 
         <input
-          className="ok-input"
+          className="input"
           type={type}
           inputMode={inputMode}
           value={value || ""}
@@ -1440,4 +1964,3 @@ function Field({
     </div>
   );
 }
-
