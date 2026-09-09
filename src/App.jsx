@@ -969,19 +969,15 @@ const AppWrapper = () => {
                   AUTH
               ================================================= */}
 
-              <Route
-                path="/sign-in/*"
-                element={
-                  <PhoneLogin />
-                }
-              />
+        <Route
+  path="/sign-in/*"
+  element={<SignInPage />}
+/>
 
-              <Route
-                path="/sign-up/*"
-                element={
-                  <PhoneLogin />
-                }
-              />
+<Route
+  path="/sign-up/*"
+  element={<SignUpPage />}
+/>
 
 
               {/* =================================================

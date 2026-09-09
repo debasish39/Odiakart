@@ -5,11 +5,12 @@ import {
 } from "firebase/auth";
 
 import { auth } from "../firebase/firebase";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   FaArrowRight,
   FaCheckCircle,
+  FaGift,
   FaPhoneAlt,
   FaShieldAlt,
 } from "react-icons/fa";
@@ -17,6 +18,7 @@ import {
 import { toast } from "sonner";
 
 const BACKEND_URL = `${import.meta.env.VITE_BACKEND_URL}/api/auth`;
+const REFERRAL_STORAGE_KEY = "odikart_referral_code";
 
 export default function PhoneLogin() {
   /* =====================================================
@@ -24,6 +26,21 @@ export default function PhoneLogin() {
   ===================================================== */
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const referralFromUrl = searchParams.get("ref")?.trim().toUpperCase() || "";
+
+  const [referralCode, setReferralCode] = useState(() => {
+    if (referralFromUrl) {
+      localStorage.setItem(REFERRAL_STORAGE_KEY, referralFromUrl);
+      return referralFromUrl;
+    }
+
+    return (
+      localStorage.getItem(REFERRAL_STORAGE_KEY)?.trim().toUpperCase() || ""
+    );
+  });
+
   const recaptchaVerifierRef = useRef(null);
   const recaptchaWidgetIdRef = useRef(null);
   const otpRefs = useRef([]);
@@ -62,8 +79,23 @@ export default function PhoneLogin() {
     useState(null);
 
   /* =====================================================
-     TIMER
+     REFERRAL CODE
   ===================================================== */
+
+  useEffect(() => {
+    if (!referralFromUrl) return;
+
+    localStorage.setItem(
+      REFERRAL_STORAGE_KEY,
+      referralFromUrl
+    );
+
+    setReferralCode(referralFromUrl);
+  }, [referralFromUrl]);
+
+  /* =====================================================
+     TIMER
+  =====================================================
 
   useEffect(() => {
     if (timer <= 0) return;
@@ -431,6 +463,9 @@ export default function PhoneLogin() {
 
             body: JSON.stringify({
               app: "customer",
+              ...(referralCode
+                ? { referralCode }
+                : {}),
             }),
           }
         );
@@ -1197,6 +1232,7 @@ export default function PhoneLogin() {
           box-shadow:
             inset 0 1px 0 rgba(255,255,255,.10),
             0 15px 40px rgba(0,0,0,.14);
+          background-color:white;
         }
 
         .banner-logo img {
@@ -1750,6 +1786,72 @@ export default function PhoneLogin() {
           cursor: not-allowed;
         }
 
+        .referral-box {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 14px;
+          padding: 12px 13px;
+          border: 1px solid #e5d8ff;
+          border-radius: 14px;
+          background:
+            linear-gradient(
+              135deg,
+              rgba(124,58,237,.08),
+              rgba(99,102,241,.04)
+            );
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.8);
+        }
+
+        .referral-icon {
+          width: 28px;
+          height: 28px;
+          flex: 0 0 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 9px;
+          color: #6d28d9;
+          background: #f1e8ff;
+        }
+
+        .referral-copy {
+          min-width: 0;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .referral-copy strong {
+          color: #4c1d95;
+          font-size: 10px;
+          font-weight: 850;
+        }
+
+        .referral-copy span {
+          color: #81758f;
+          font-size: 9px;
+          line-height: 1.45;
+        }
+
+        .referral-copy b {
+          color: #6d28d9;
+          font-weight: 900;
+          letter-spacing: .04em;
+        }
+
+        .referral-check {
+          flex: 0 0 auto;
+          color: #16a34a;
+        }
+
+        .profile-referral {
+          margin-top: -5px;
+          margin-bottom: 18px;
+        }
+
         .trust-row {
           display: flex;
           align-items: center;
@@ -2067,6 +2169,7 @@ export default function PhoneLogin() {
           .banner-logo {
             min-height: 53px;
             padding: 8px 13px;
+            background: #fff;
             border-radius: 15px;
           }
 
@@ -2350,6 +2453,27 @@ export default function PhoneLogin() {
                     {!loading && <FaArrowRight size={11} />}
                   </button>
 
+                  {referralCode && (
+                    <div className="referral-box">
+                      <span className="referral-icon">
+                        <FaGift size={10} />
+                      </span>
+
+                      <div className="referral-copy">
+                        <strong>Referral applied</strong>
+                        <span>
+                          Code <b>{referralCode}</b> will be linked to your
+                          new Odikart account.
+                        </span>
+                      </div>
+
+                      <FaCheckCircle
+                        className="referral-check"
+                        size={14}
+                      />
+                    </div>
+                  )}
+
                   <div className="trust-row">
                     <span className="trust-icon">
                       <FaShieldAlt size={9} />
@@ -2465,6 +2589,27 @@ export default function PhoneLogin() {
                   <FaCheckCircle size={11} />
                   {phone} · Verified
                 </div>
+
+                {referralCode && (
+                  <div className="referral-box profile-referral">
+                    <span className="referral-icon">
+                      <FaGift size={10} />
+                    </span>
+
+                    <div className="referral-copy">
+                      <strong>Referral code applied</strong>
+                      <span>
+                        <b>{referralCode}</b> · Your referral will be linked
+                        when this new account is created.
+                      </span>
+                    </div>
+
+                    <FaCheckCircle
+                      className="referral-check"
+                      size={14}
+                    />
+                  </div>
+                )}
 
                 <div className="details-field">
                   <label className="details-label">
