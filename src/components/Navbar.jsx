@@ -24,6 +24,7 @@ import {
   LogOut,
   LocateFixed,
   MapPinned,
+  Bell,
 } from "lucide-react";
 
 import {
@@ -43,6 +44,7 @@ import { useWishlist } from "../context/wishlistContext";
 import { getData } from "../context/DataContext";
 import LocationMap from "../components/LocationMap";
 import { toast } from "sonner";
+import NotificationBell from "./NotificationBell";
 
 
 /* =====================================================
@@ -1594,6 +1596,8 @@ export default function Navbar({
               )
             )}
 
+            <NotificationBell />
+
             <div className="mx-2 h-6 w-px bg-slate-200" />
 
             <Link
@@ -1817,7 +1821,9 @@ export default function Navbar({
               )}
             </Link>
 
-            <Link
+            <NotificationBell />
+
+            {/* <Link
               to="/wishlist"
               className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
             >
@@ -1833,7 +1839,7 @@ export default function Navbar({
                   }
                 </span>
               )}
-            </Link>
+            </Link> */}
           </div>
         </div>
       </header>

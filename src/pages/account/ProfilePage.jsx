@@ -143,7 +143,7 @@ export default function ProfilePage() {
       </AccountSection>
 
       {/* PAYMENTS & SECURITY */}
-      <AccountSection title="Payments & security">
+      {/* <AccountSection title="Payments & security">
 
         <Tile
           icon={<FaCreditCard />}
@@ -161,7 +161,7 @@ export default function ProfilePage() {
           navigate={navigate}
         />
 
-      </AccountSection>
+      </AccountSection> */}
 
       {/* PREFERENCES */}
       <AccountSection title="Preferences">

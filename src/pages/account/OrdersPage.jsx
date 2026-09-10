@@ -613,7 +613,7 @@ function ProductPreview({
       }
 
       navigate(
-        `/product/${encodeURIComponent(id)}`,
+        `/products/${encodeURIComponent(id)}`,
         {
           state: {
             product,
@@ -801,7 +801,7 @@ function OrderListItem({
       }
 
       navigate(
-        `/product/${encodeURIComponent(id)}`,
+        `/products/${encodeURIComponent(id)}`,
         {
           state: {
             product,
