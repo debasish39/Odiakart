@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
   FaPlus,
@@ -15,21 +16,25 @@ import { AccountShell, api } from "./AccountShell";
 export default function AddressesPage() {
   const navigate = useNavigate();
 
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const token = localStorage.getItem("token");
 
-  const load = () => {
-    setLoading(true);
-
-    api("/api/addresses")
-      .then((d) => setItems(d.addresses || d.data || d || []))
-      .catch((e) => toast.error(e.message))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
+  const {
+    data: items = [],
+    isLoading: loading,
+    error: addressesError,
+  } = useQuery({
+    queryKey: ["addresses", token],
+    queryFn: async () => {
+      const d = await api("/api/addresses");
+      return d.addresses || d.data || d || [];
+    },
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
 
   const remove = async (id) => {
     if (!confirm("Delete this address?")) return;
@@ -40,7 +45,12 @@ export default function AddressesPage() {
       });
 
       toast.success("Address deleted");
-      load();
+
+      // Refresh the cached address list instead of doing a manual
+      // fetch + local state update cycle.
+      await queryClient.invalidateQueries({
+        queryKey: ["addresses", token],
+      });
     } catch (e) {
       toast.error(e.message);
     }
@@ -154,6 +164,41 @@ export default function AddressesPage() {
               </div>
             ))}
           </div>
+        ) : addressesError ? (
+          <section className="address-empty">
+            <div className="address-empty-visual">
+              <div className="address-empty-orbit orbit-one" />
+              <div className="address-empty-orbit orbit-two" />
+
+              <div className="address-empty-pin">
+                <FaMapMarkerAlt size={25} />
+              </div>
+            </div>
+
+            <div className="address-empty-copy">
+              <span className="address-empty-kicker">
+                Couldn't load addresses
+              </span>
+
+              <h2>We couldn't get your saved addresses</h2>
+
+              <p>
+                Please try again. Your saved addresses have not been changed.
+              </p>
+
+              <button
+                type="button"
+                className="address-primary-btn"
+                onClick={() =>
+                  queryClient.invalidateQueries({
+                    queryKey: ["addresses", token],
+                  })
+                }
+              >
+                Try again
+              </button>
+            </div>
+          </section>
         ) : items.length === 0 ? (
           /* EMPTY STATE */
           <section className="address-empty">

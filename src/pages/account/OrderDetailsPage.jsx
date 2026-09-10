@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
     FaBox,
     FaMapMarkerAlt,
@@ -11,8 +11,6 @@ import {
     FaChevronLeft,
     FaExternalLinkAlt,
     FaCheck,
-    FaPhone,
-    FaEnvelope,
     FaRedo,
     FaRupeeSign,
 } from "react-icons/fa";
@@ -20,6 +18,7 @@ import { IoCallOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import { AccountShell } from "./AccountShell";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { HiOutlineMail } from "react-icons/hi";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL;
@@ -79,22 +78,6 @@ const getProductId = (item) => {
     return value || "";
 };
 
-const getItemImage = (item) => {
-    const product =
-        item?.productId &&
-            typeof item.productId === "object"
-            ? item.productId
-            : null;
-
-    return (
-        item?.image ||
-        item?.thumbnail ||
-        product?.thumbnail ||
-        product?.images?.[0] ||
-        product?.image ||
-        ""
-    );
-};
 
 const statusLabel = (status) => {
     const value = String(status || "").toLowerCase().trim();
@@ -213,23 +196,6 @@ function Section({ icon, title, subtitle, children }) {
 
             {children}
         </section>
-    );
-}
-
-function Info({ label, value }) {
-    if (
-        value === undefined ||
-        value === null ||
-        value === ""
-    ) {
-        return null;
-    }
-
-    return (
-        <div className="od-info">
-            <span>{label}</span>
-            <strong>{safe(value)}</strong>
-        </div>
     );
 }
 
@@ -510,78 +476,157 @@ export default function OrderDetailsPage() {
     const navigate = useNavigate();
     const { id } = useParams();
 
-    const [order, setOrder] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
+    const token = localStorage.getItem("token");
+
     const [retrying, setRetrying] = useState(false);
     const [openingProductId, setOpeningProductId] = useState(null);
 
     /*
     |--------------------------------------------------------------------------
-    | LOAD ORDER + PRODUCTS
+    | LOAD ORDER
     |--------------------------------------------------------------------------
+    | TanStack Query keeps each order cached by its ID.
+    | Returning to the same order avoids an unnecessary API request while
+    | the cached data is still fresh.
     */
 
-    const loadOrder = async () => {
+    const fetchOrder = async () => {
+        if (!token) {
+            toast.error("Please login first.");
+            navigate("/login");
+            throw new Error("Authentication required");
+        }
+
+        const response = await fetch(
+            `${API_URL}/api/order/${encodeURIComponent(id)}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data?.message || "Failed to load order"
+            );
+        }
+
+        return (
+            data?.order ||
+            data?.data ||
+            data
+        );
+    };
+
+    const {
+        data: order = null,
+        isLoading: loading,
+        isFetching,
+        error: orderError,
+        refetch: refetchOrder,
+    } = useQuery({
+        queryKey: ["order", token, id],
+        queryFn: fetchOrder,
+        enabled: !!token && !!id,
+        staleTime: 30 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        retry: 1,
+    });
+
+    const retry = async () => {
+        setRetrying(true);
         try {
-            setLoading(true);
-
-            const token = localStorage.getItem("token");
-
-            if (!token) {
-                toast.error("Please login first.");
-                navigate("/login");
-                return;
-            }
-
-            /*
-             * Load order
-             */
-            const response = await fetch(
-                `${API_URL}/api/order/${id}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data?.message ||
-                    "Failed to load order"
-                );
-            }
-
-            const loadedOrder =
-                data?.order ||
-                data?.data ||
-                data;
-
-            setOrder(loadedOrder);
-
-        } catch (error) {
-            console.error(
-                "Order details error:",
-                error
-            );
-
-            toast.error(
-                error?.message ||
-                "Unable to load order"
-            );
-
-            setOrder(null);
+            await refetchOrder();
         } finally {
-            setLoading(false);
             setRetrying(false);
         }
     };
 
-    useEffect(() => {
-        loadOrder();
-    }, [id]);
+    /*
+    |--------------------------------------------------------------------------
+    | OPEN PRODUCT BY PRODUCT ID
+    |--------------------------------------------------------------------------
+    | Product details are also cached. If the same product was already opened
+    | from Orders, OrderDetails, Products, etc., the browser can reuse it.
+    */
+
+    const fetchProduct = async (productIdString) => {
+        if (!token) {
+            toast.error("Please login first.");
+            navigate("/login");
+            throw new Error("Authentication required");
+        }
+
+        const response = await fetch(
+            `${API_URL}/api/products/${encodeURIComponent(productIdString)}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data?.message || "Failed to load product"
+            );
+        }
+
+        const product =
+            data?.product ||
+            data?.data?.product ||
+            data?.data ||
+            data;
+
+        if (!product) {
+            throw new Error("Product not found.");
+        }
+
+        return product;
+    };
+
+    const openProduct = async (item) => {
+        const productId = getProductId(item);
+
+        if (!productId) {
+            toast.error("Product ID is not available for this item.");
+            return;
+        }
+
+        const productIdString = String(productId);
+
+        try {
+            setOpeningProductId(productIdString);
+
+            const product = await queryClient.fetchQuery({
+                queryKey: ["product", token, productIdString],
+                queryFn: () => fetchProduct(productIdString),
+                staleTime: 10 * 60 * 1000,
+                gcTime: 30 * 60 * 1000,
+            });
+
+            navigate(`/products/${encodeURIComponent(productIdString)}`, {
+                state: {
+                    product,
+                    productId: productIdString,
+                },
+            });
+        } catch (error) {
+            console.error("Product loading error:", error);
+            toast.error(
+                error?.message || "Unable to open product."
+            );
+        } finally {
+            setOpeningProductId(null);
+        }
+    };
 
     const customer = useMemo(
         () => order?.deliveryAddress?.customer || {},
@@ -628,101 +673,7 @@ export default function OrderDetailsPage() {
         0
     );
 
-    const retry = async () => {
-        setRetrying(true);
-        await loadOrder();
-    };
 
-    /*
-    |--------------------------------------------------------------------------
-    | OPEN PRODUCT BY PRODUCT ID
-    |--------------------------------------------------------------------------
-    */
-
-    const openProduct = async (item) => {
-        const productId = getProductId(item);
-
-        if (!productId) {
-            toast.error("Product ID is not available for this item.");
-            return;
-        }
-
-        const productIdString = String(productId);
-
-        try {
-            setOpeningProductId(productIdString);
-
-            const token = localStorage.getItem("token");
-
-            if (!token) {
-                toast.error("Please login first.");
-                navigate("/login");
-                return;
-            }
-
-            console.log("Loading product by productId:", {
-                productId: productIdString,
-            });
-
-            const response = await fetch(
-                `${API_URL}/api/products/${encodeURIComponent(productIdString)}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data?.message ||
-                    "Failed to load product"
-                );
-            }
-
-            const product =
-                data?.product ||
-                data?.data?.product ||
-                data?.data ||
-                data;
-
-            if (!product) {
-                throw new Error("Product not found.");
-            }
-
-            console.log("Product loaded by productId:", {
-                productId: productIdString,
-                product,
-            });
-
-            /*
-             * IMPORTANT:
-             * The product page is opened using PRODUCT ID.
-             * We do NOT use product.title or product.slug
-             * to identify the product.
-             */
-            navigate(`/products/${encodeURIComponent(productIdString)}`, {
-                state: {
-                    product,
-                    productId: productIdString,
-                },
-            });
-        } catch (error) {
-            console.error(
-                "Product loading error:",
-                error
-            );
-
-            toast.error(
-                error?.message ||
-                "Unable to open product."
-            );
-        } finally {
-            setOpeningProductId(null);
-        }
-    };
 
     if (loading) {
         return (
@@ -825,6 +776,12 @@ export default function OrderDetailsPage() {
                         <span className="od-status-dot" />
                         {statusLabel(order.status)}
                     </span>
+
+                    {isFetching && !loading && (
+                        <span className="od-refreshing" aria-live="polite">
+                            Updating…
+                        </span>
+                    )}
                 </div>
 
                 {/* TIMELINE */}
@@ -2352,5 +2309,26 @@ const styles = `
     .od-spinner,
     .od-spin,
     .od-step.current .od-step-dot { animation: none; }
+  }
+
+  .od-refreshing {
+    position: absolute;
+    right: 20px;
+    bottom: -18px;
+    z-index: 2;
+    padding: 4px 8px;
+    border-radius: 999px;
+    color: #6366f1;
+    background: rgba(255,255,255,.9);
+    border: 1px solid rgba(99,102,241,.14);
+    font-size: 10px;
+    font-weight: 800;
+    box-shadow: 0 5px 14px rgba(55,48,163,.08);
+    animation: od-fade 1.2s ease-in-out infinite alternate;
+  }
+
+  @keyframes od-fade {
+    from { opacity: .55; }
+    to { opacity: 1; }
   }
 `;

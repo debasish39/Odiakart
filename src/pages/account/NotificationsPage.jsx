@@ -21,7 +21,8 @@ import {
   FaCommentAlt,
 } from "react-icons/fa";
 
-import { AccountShell } from "./AccountShell";
+import { AccountShell, api } from "./AccountShell";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   getNotifications,
@@ -45,124 +46,122 @@ const initial = {
 };
 
 export default function NotificationsPage() {
+  const queryClient = useQueryClient();
+  const token = localStorage.getItem("token");
+
   const [s, setS] = useState(initial);
-
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
   const [settingsOpen, setSettingsOpen] = useState(false);
-
-  const [notifications, setNotifications] = useState([]);
-  const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [notificationsRefreshing, setNotificationsRefreshing] =
     useState(false);
-  const [notificationsError, setNotificationsError] = useState("");
-
   const [notificationFilter, setNotificationFilter] = useState("all");
 
   const navigate = useNavigate();
 
   /* =========================================================
-     LOAD NOTIFICATIONS
-  ========================================================= */
+     NOTIFICATIONS
+     Shared cache:
+       ["notifications", token, 100]
+     ========================================================= */
+
+  const {
+    data: notifications = [],
+    isLoading: notificationsLoading,
+    error: notificationsQueryError,
+    refetch: refetchNotifications,
+  } = useQuery({
+    queryKey: ["notifications", token, 100],
+    queryFn: async () => {
+      const data = await getNotifications(100);
+      return data?.notifications || [];
+    },
+    enabled: !!token,
+    staleTime: 30 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
+  const notificationsError =
+    notificationsQueryError?.message ||
+    (!token
+      ? "Please sign in to view your notifications."
+      : "");
+
+  /* =========================================================
+     SETTINGS
+     Reuse the same current-user cache used by ProfilePage and
+     wishlistContext instead of calling /api/auth/me again.
+     ========================================================= */
+
+  const {
+    data: currentUser = null,
+    isLoading: loading,
+    error: currentUserError,
+  } = useQuery({
+    queryKey: ["currentUser", token],
+    queryFn: async () => {
+      const data = await api("/api/auth/me");
+
+      if (!data?.success) {
+        throw new Error(
+          data?.message || "Failed to load notification settings."
+        );
+      }
+
+      return data.user || null;
+    },
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    const settings = currentUser?.notificationSettings;
+
+    if (!settings) return;
+
+    setS({
+      inApp: settings.inApp !== false,
+      email: settings.email !== false,
+      sms: settings.sms !== false,
+      push: settings.push !== false,
+      promotionalEmail: settings.promotionalEmail !== false,
+      promotionalSms: settings.promotionalSms !== false,
+      promotionalPush: settings.promotionalPush !== false,
+    });
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUserError) return;
+
+    console.error(
+      "Failed to load notification settings:",
+      currentUserError
+    );
+
+    toast.error(
+      currentUserError.message ||
+        "Could not load notification preferences."
+    );
+  }, [currentUserError]);
 
   const loadNotifications = async (showRefresh = false) => {
     try {
       if (showRefresh) setNotificationsRefreshing(true);
-      else setNotificationsLoading(true);
 
-      setNotificationsError("");
-
-      const data = await getNotifications(100);
-
-      setNotifications(data?.notifications || []);
+      await refetchNotifications();
     } catch (error) {
-      console.error("Failed to load notifications:", error);
-
-      setNotificationsError(
-        error.message || "Could not load your notifications."
+      console.error(
+        "Failed to refresh notifications:",
+        error
       );
     } finally {
-      setNotificationsLoading(false);
-      setNotificationsRefreshing(false);
+      if (showRefresh) setNotificationsRefreshing(false);
     }
   };
-
-  useEffect(() => {
-    loadNotifications();
-  }, []);
-
-  /* =========================================================
-     LOAD SETTINGS
-  ========================================================= */
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadSettings = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-          throw new Error(
-            "Please sign in to manage notification preferences."
-          );
-        }
-
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/auth/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        let data = null;
-
-        try {
-          data = await response.json();
-        } catch {
-          data = null;
-        }
-
-        if (!response.ok) {
-          throw new Error(
-            data?.message ||
-              data?.error ||
-              "Failed to load notification settings."
-          );
-        }
-
-        const settings =
-          data?.user?.notificationSettings ||
-          data?.notificationSettings;
-
-        if (mounted && settings) {
-          setS({
-            inApp: settings.inApp !== false,
-            email: settings.email !== false,
-            sms: settings.sms !== false,
-            push: settings.push !== false,
-            promotionalEmail: settings.promotionalEmail !== false,
-            promotionalSms: settings.promotionalSms !== false,
-            promotionalPush: settings.promotionalPush !== false,
-          });
-        }
-      } catch (error) {
-        console.error("Failed to load notification settings:", error);
-        toast.error("Could not load notification preferences.");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    loadSettings();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   /* =========================================================
      NOTIFICATION HELPERS
@@ -272,21 +271,25 @@ export default function NotificationsPage() {
      NOTIFICATION ACTIONS
   ========================================================= */
 
+  const notificationQueryKey = ["notifications", token, 100];
+
   const handleNotificationClick = async (notification) => {
     try {
       if (!notification.isRead) {
         await markNotificationAsRead(notification._id);
 
-        setNotifications((prev) =>
-          prev.map((item) =>
-            item._id === notification._id
-              ? {
-                  ...item,
-                  isRead: true,
-                  readAt: new Date().toISOString(),
-                }
-              : item
-          )
+        queryClient.setQueryData(
+          notificationQueryKey,
+          (prev = []) =>
+            prev.map((item) =>
+              item._id === notification._id
+                ? {
+                    ...item,
+                    isRead: true,
+                    readAt: new Date().toISOString(),
+                  }
+                : item
+            )
         );
       }
     } catch (error) {
@@ -314,12 +317,14 @@ export default function NotificationsPage() {
     try {
       await markAllNotificationsAsRead();
 
-      setNotifications((prev) =>
-        prev.map((item) => ({
-          ...item,
-          isRead: true,
-          readAt: item.readAt || new Date().toISOString(),
-        }))
+      queryClient.setQueryData(
+        notificationQueryKey,
+        (prev = []) =>
+          prev.map((item) => ({
+            ...item,
+            isRead: true,
+            readAt: item.readAt || new Date().toISOString(),
+          }))
       );
 
       toast.success("All notifications marked as read.");
@@ -334,8 +339,10 @@ export default function NotificationsPage() {
     try {
       await deleteNotification(id);
 
-      setNotifications((prev) =>
-        prev.filter((item) => item._id !== id)
+      queryClient.setQueryData(
+        notificationQueryKey,
+        (prev = []) =>
+          prev.filter((item) => item._id !== id)
       );
 
       toast.success("Notification deleted.");
@@ -417,6 +424,19 @@ export default function NotificationsPage() {
       setSaving(true);
 
       await updateNotificationSettings(next);
+
+      // Keep the shared current-user cache in sync so ProfilePage
+      // and other consumers don't need another /api/auth/me call.
+      queryClient.setQueryData(
+        ["currentUser", token],
+        (user) =>
+          user
+            ? {
+                ...user,
+                notificationSettings: next,
+              }
+            : user
+      );
 
       toast.success("Notification preference updated.");
     } catch (error) {

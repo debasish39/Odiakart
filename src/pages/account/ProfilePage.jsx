@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   FaUser,
   FaMapMarkerAlt,
@@ -21,20 +22,51 @@ import Spinner from "../../components/Spinner";
 export default function ProfilePage() {
   const navigate = useNavigate();
 
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
-  useEffect(() => {
-    api("/api/auth/me")
-      .then((d) => d.success && setUser(d.user))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  const token = localStorage.getItem("token");
+
+  const {
+    data: user = null,
+    isLoading: loading,
+    error: userError,
+  } = useQuery({
+    queryKey: ["currentUser", token],
+    queryFn: async () => {
+      const data = await api("/api/auth/me");
+
+      if (!data?.success) {
+        throw new Error(data?.message || "Failed to load profile");
+      }
+
+      return data.user;
+    },
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
 
   const handleSignOut = () => {
     setSigningOut(true);
+
+    // Remove authenticated query cache so another account on this
+    // device cannot temporarily see the previous user's cached data.
+    queryClient.removeQueries({
+      queryKey: ["currentUser", token],
+    });
+
+    queryClient.removeQueries({
+      queryKey: ["wishlist", token],
+    });
+
+    queryClient.removeQueries({
+      queryKey: ["cart", token],
+    });
 
     localStorage.removeItem("token");
 
@@ -48,6 +80,37 @@ export default function ProfilePage() {
       <AccountShell title="Account">
         <div className="profile-loading">
           <Spinner />
+        </div>
+      </AccountShell>
+    );
+  }
+
+  if (userError && !user) {
+    return (
+      <AccountShell title="Account">
+        <div className="profile-loading">
+          <div style={{ textAlign: "center", color: "#6b7280" }}>
+            <p style={{ marginBottom: 10 }}>
+              Unable to load your profile.
+            </p>
+            <button
+              type="button"
+              onClick={() => queryClient.invalidateQueries({
+                queryKey: ["currentUser", token],
+              })}
+              style={{
+                border: 0,
+                borderRadius: 10,
+                padding: "9px 14px",
+                background: "#4f46e5",
+                color: "#fff",
+                cursor: "pointer",
+                fontWeight: 700,
+              }}
+            >
+              Try again
+            </button>
+          </div>
         </div>
       </AccountShell>
     );

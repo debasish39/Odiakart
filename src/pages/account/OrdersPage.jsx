@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   FaArrowLeft,
   FaSearch,
@@ -553,6 +554,7 @@ function ProductPreview({
   const navigate = useNavigate();
 
   const [opening, setOpening] = useState(false);
+  const queryClient = useQueryClient();
 
   const productId = getProductId(item);
   const title = getProductTitle(item);
@@ -566,75 +568,74 @@ function ProductPreview({
     }
 
     const id = String(productId);
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("Please login first.");
+      navigate("/login");
+      return;
+    }
 
     try {
       setOpening(true);
 
-      const token = localStorage.getItem("token");
+      const product = await queryClient.fetchQuery({
+        queryKey: ["product", id],
+        queryFn: async () => {
+          const response = await fetch(
+            `${API_URL}/api/products/${encodeURIComponent(id)}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-      if (!token) {
-        toast.error("Please login first.");
-        navigate("/login");
-        return;
-      }
+          let data = {};
 
-      const response = await fetch(
-        `${API_URL}/api/products/${encodeURIComponent(id)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+          try {
+            data = await response.json();
+          } catch {
+            throw new Error("Invalid product response.");
+          }
 
-      let data = {};
+          if (!response.ok) {
+            throw new Error(
+              data?.message || "Failed to load product."
+            );
+          }
 
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error("Invalid product response.");
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          data?.message ||
-            "Failed to load product."
-        );
-      }
-
-      const product =
-        data?.product ||
-        data?.data?.product ||
-        data?.data ||
-        data;
+          return (
+            data?.product ||
+            data?.data?.product ||
+            data?.data ||
+            data
+          );
+        },
+        staleTime: 10 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
+        retry: 1,
+      });
 
       if (!product) {
         throw new Error("Product not found.");
       }
 
-      navigate(
-        `/products/${encodeURIComponent(id)}`,
-        {
-          state: {
-            product,
-            productId: id,
-          },
-        }
-      );
+      navigate(`/products/${encodeURIComponent(id)}`, {
+        state: {
+          product,
+          productId: id,
+        },
+      });
     } catch (error) {
-      console.error(
-        "Product loading error:",
-        error
-      );
-
+      console.error("Product loading error:", error);
       toast.error(
-        error?.message ||
-          "Unable to open product."
+        error?.message || "Unable to open product."
       );
     } finally {
       setOpening(false);
     }
-  };
+  }
 
   return (
     <button
@@ -709,6 +710,7 @@ function OrderListItem({
 
   const [openingProduct, setOpeningProduct] =
     useState(false);
+  const queryClient = useQueryClient();
 
   const status = getOrderStatus(order);
   const statusType = getStatusType(status);
@@ -749,80 +751,74 @@ function OrderListItem({
     }
 
     const id = String(firstProductId);
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("Please login first.");
+      navigate("/login");
+      return;
+    }
 
     try {
       setOpeningProduct(true);
 
-      const token =
-        localStorage.getItem("token");
+      const product = await queryClient.fetchQuery({
+        queryKey: ["product", id],
+        queryFn: async () => {
+          const response = await fetch(
+            `${API_URL}/api/products/${encodeURIComponent(id)}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-      if (!token) {
-        toast.error("Please login first.");
-        navigate("/login");
-        return;
-      }
+          let data = {};
 
-      const response = await fetch(
-        `${API_URL}/api/products/${encodeURIComponent(id)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+          try {
+            data = await response.json();
+          } catch {
+            throw new Error("Invalid product response.");
+          }
 
-      let data = {};
+          if (!response.ok) {
+            throw new Error(
+              data?.message || "Failed to load product."
+            );
+          }
 
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error(
-          "Invalid product response."
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          data?.message ||
-            "Failed to load product."
-        );
-      }
-
-      const product =
-        data?.product ||
-        data?.data?.product ||
-        data?.data ||
-        data;
+          return (
+            data?.product ||
+            data?.data?.product ||
+            data?.data ||
+            data
+          );
+        },
+        staleTime: 10 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
+        retry: 1,
+      });
 
       if (!product) {
-        throw new Error(
-          "Product not found."
-        );
+        throw new Error("Product not found.");
       }
 
-      navigate(
-        `/products/${encodeURIComponent(id)}`,
-        {
-          state: {
-            product,
-            productId: id,
-          },
-        }
-      );
+      navigate(`/products/${encodeURIComponent(id)}`, {
+        state: {
+          product,
+          productId: id,
+        },
+      });
     } catch (error) {
-      console.error(
-        "Product loading error:",
-        error
-      );
-
+      console.error("Product loading error:", error);
       toast.error(
-        error?.message ||
-          "Unable to open product."
+        error?.message || "Unable to open product."
       );
     } finally {
       setOpeningProduct(false);
     }
-  };
+  }
 
   return (
     <article className="orders-list-item">
@@ -1035,10 +1031,8 @@ function EmptyOrders({
 export default function OrdersPage() {
   const navigate = useNavigate();
 
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] =
-    useState(false);
+  const queryClient = useQueryClient();
+  const token = localStorage.getItem("token");
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] =
@@ -1049,102 +1043,115 @@ export default function OrdersPage() {
 
   const filterTabsRef = useRef(null);
 
-  const loadOrders = async (
-    isRefresh = false
-  ) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
+  const fetchOrders = async () => {
+    if (!token) {
+      throw new Error("AUTH_REQUIRED");
+    }
+
+    let response = await fetch(
+      `${API_URL}/api/orders/my-orders`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
+    );
 
-      const token =
-        localStorage.getItem("token");
-
-      if (!token) {
-        toast.error(
-          "Please login to view your orders."
-        );
-        navigate("/login");
-        return;
-      }
-
-      /*
-       * Primary route used by the orders backend.
-       */
-      let response = await fetch(
-        `${API_URL}/api/orders/my-orders`,
+    if (response.status === 404) {
+      response = await fetch(
+        `${API_URL}/api/my-orders`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+    }
 
-      /*
-       * Backward-compatible fallback for
-       * projects that still expose /api/my-orders.
-       */
-      if (response.status === 404) {
-        response = await fetch(
-          `${API_URL}/api/my-orders`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      }
+    let data = {};
 
-      let data = {};
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error("Invalid server response.");
+    }
 
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error(
-          "Invalid server response."
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          data?.message ||
-            "Failed to load orders."
-        );
-      }
-
-      const receivedOrders =
-        Array.isArray(data?.orders)
-          ? data.orders
-          : Array.isArray(data?.data?.orders)
-          ? data.data.orders
-          : Array.isArray(data?.data)
-          ? data.data
-          : Array.isArray(data)
-          ? data
-          : [];
-
-      setOrders(receivedOrders);
-    } catch (error) {
-      console.error(
-        "Orders loading error:",
-        error
+    if (!response.ok) {
+      throw new Error(
+        data?.message || "Failed to load orders."
       );
+    }
 
+    return Array.isArray(data?.orders)
+      ? data.orders
+      : Array.isArray(data?.data?.orders)
+      ? data.data.orders
+      : Array.isArray(data?.data)
+      ? data.data
+      : Array.isArray(data)
+      ? data
+      : [];
+  };
+
+  const {
+    data: orders = [],
+    isLoading: loading,
+    isFetching,
+    error: ordersError,
+    refetch: refetchOrders,
+  } = useQuery({
+    queryKey: ["orders", token],
+    queryFn: fetchOrders,
+    enabled: !!token,
+    staleTime: 30 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (!token) {
+      toast.error("Please login to view your orders.");
+      navigate("/login");
+    }
+  }, [token, navigate]);
+
+  useEffect(() => {
+    if (ordersError && ordersError.message !== "AUTH_REQUIRED") {
+      console.error("Orders loading error:", ordersError);
+      toast.error(
+        ordersError?.message ||
+          "Unable to load order history."
+      );
+    }
+  }, [ordersError]);
+
+  const loadOrders = async (isRefresh = false) => {
+    if (!token) {
+      toast.error("Please login to view your orders.");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      if (isRefresh) {
+        await refetchOrders();
+      } else {
+        await queryClient.fetchQuery({
+          queryKey: ["orders", token],
+          queryFn: fetchOrders,
+        });
+      }
+    } catch (error) {
+      console.error("Orders loading error:", error);
       toast.error(
         error?.message ||
           "Unable to load order history."
       );
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
+  const refreshing = isFetching && !loading;
 
   const counts = useMemo(() => {
     const result = {};

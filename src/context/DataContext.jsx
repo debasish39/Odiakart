@@ -1,22 +1,20 @@
 import React, {
   createContext,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
 
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import {
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 export const DataContext = createContext(null);
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
-console.log("========================================");
-console.log("🔧 DATA CONTEXT INITIALIZED");
-console.log("🔧 BACKEND_URL:", BACKEND_URL);
-console.log("========================================");
 
 /* =====================================================
    HELPERS
@@ -32,14 +30,11 @@ const getId = (value) => {
   return String(value);
 };
 
-const normalizeText = (value) => {
-  return String(value || "")
-    .trim()
-    .toLowerCase();
-};
+const normalizeText = (value) =>
+  String(value || "").trim().toLowerCase();
 
 /* =====================================================
-   PRODUCT PRICE
+   PRODUCT HELPERS
 ===================================================== */
 
 const getProductPrice = (product) => {
@@ -51,63 +46,35 @@ const getProductPrice = (product) => {
       )
     : [];
 
-  if (variants.length === 0) {
-    return 0;
-  }
+  if (variants.length === 0) return 0;
 
   const prices = variants
     .map((variant) => Number(variant?.price))
     .filter(
-      (price) =>
-        !Number.isNaN(price) &&
-        price >= 0
+      (price) => !Number.isNaN(price) && price >= 0
     );
 
-  if (prices.length === 0) {
-    return 0;
-  }
-
-  return Math.min(...prices);
+  return prices.length ? Math.min(...prices) : 0;
 };
 
-/* =====================================================
-   ORIGINAL PRICE
-===================================================== */
-
 const getProductOriginalPrice = (product) => {
-  if (!product?.variants?.length) {
-    return 0;
-  }
+  if (!product?.variants?.length) return 0;
 
   const variants = product.variants.filter(
     (variant) => variant?.isActive !== false
   );
 
   const prices = variants
-    .map((variant) =>
-      Number(variant?.originalPrice)
-    )
+    .map((variant) => Number(variant?.originalPrice))
     .filter(
-      (price) =>
-        !Number.isNaN(price) &&
-        price > 0
+      (price) => !Number.isNaN(price) && price > 0
     );
 
-  if (prices.length === 0) {
-    return 0;
-  }
-
-  return Math.min(...prices);
+  return prices.length ? Math.min(...prices) : 0;
 };
 
-/* =====================================================
-   STOCK
-===================================================== */
-
 const getProductStock = (product) => {
-  if (!product?.variants?.length) {
-    return 0;
-  }
+  if (!product?.variants?.length) return 0;
 
   return product.variants
     .filter(
@@ -120,21 +87,13 @@ const getProductStock = (product) => {
     );
 };
 
-/* =====================================================
-   IMAGE
-===================================================== */
-
 const getProductImage = (product) => {
-  if (!product) {
-    return "";
-  }
+  if (!product) return "";
 
-  /* Main thumbnail */
   if (product?.media?.thumbnail) {
     return product.media.thumbnail;
   }
 
-  /* Main gallery */
   if (
     Array.isArray(product?.media?.images) &&
     product.media.images.length > 0
@@ -142,7 +101,6 @@ const getProductImage = (product) => {
     return product.media.images[0];
   }
 
-  /* Variant fallback */
   if (
     Array.isArray(product?.variants) &&
     product.variants.length > 0
@@ -163,163 +121,157 @@ const getProductImage = (product) => {
 };
 
 /* =====================================================
+   API FETCHERS
+===================================================== */
+
+const fetchProducts = async (searchValue = "") => {
+  const params = new URLSearchParams();
+
+  if (searchValue.trim()) {
+    params.set("search", searchValue.trim());
+  }
+
+  const url = `${BACKEND_URL}/api/products${
+    params.toString()
+      ? `?${params.toString()}`
+      : ""
+  }`;
+
+  const res = await axios.get(url);
+
+  const rawProducts = Array.isArray(
+    res.data?.products
+  )
+    ? res.data.products
+    : [];
+
+  return rawProducts.map((product) => ({
+    ...product,
+    displayPrice: getProductPrice(product),
+    originalPrice: getProductOriginalPrice(product),
+    totalStock: getProductStock(product),
+    image: getProductImage(product),
+  }));
+};
+
+const fetchCategories = async () => {
+  const res = await axios.get(
+    `${BACKEND_URL}/api/category`
+  );
+
+  return Array.isArray(res.data?.categories)
+    ? res.data.categories
+    : [];
+};
+
+/* =====================================================
    DATA PROVIDER
 ===================================================== */
 
 export const DataProvider = ({ children }) => {
-  const [data, setData] = useState([]);
-
-  const [categories, setCategories] = useState([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
-
-  const [loading, setLoading] = useState(true);
-
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
   const [sort, setSort] = useState("default");
-
   const [search, setSearch] = useState("");
-
   const [category, setCategory] = useState("All");
-
   const [subCategory, setSubCategory] =
     useState("All");
-
   const [brand, setBrand] = useState("All");
-
   const [priceRange, setPriceRange] =
     useState([0, 100000]);
 
-  /* =====================================================
-     FETCH PRODUCTS
-  ===================================================== */
+  /* ===================================================
+     PRODUCTS QUERY
+  =================================================== */
 
- const fetchAllProducts = async (searchValue = "") => {
-  setLoading(true);
-  setError(null);
+  const productsQuery = useQuery({
+    queryKey: ["products", search.trim()],
+    queryFn: () => fetchProducts(search),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+    placeholderData: (previousData) =>
+      previousData,
+  });
 
-  try {
-    const params = new URLSearchParams();
+  /* ===================================================
+     CATEGORIES QUERY
+  =================================================== */
 
-    if (searchValue.trim()) {
-      params.set("search", searchValue.trim());
-    }
+  const categoriesQuery = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchCategories,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
 
-    const url = `${BACKEND_URL}/api/products${
-      params.toString() ? `?${params.toString()}` : ""
-    }`;
+  const data = useMemo(
+    () =>
+      Array.isArray(productsQuery.data)
+        ? productsQuery.data
+        : [],
+    [productsQuery.data]
+  );
 
-    const res = await axios.get(url);
+  const categories = useMemo(
+    () =>
+      Array.isArray(categoriesQuery.data)
+        ? categoriesQuery.data
+        : [],
+    [categoriesQuery.data]
+  );
 
-    const rawProducts = Array.isArray(res.data?.products)
-      ? res.data.products
-      : [];
+  const loading =
+    productsQuery.isLoading ||
+    productsQuery.isFetching;
 
-    const productsData = rawProducts.map((product) => ({
-      ...product,
-      displayPrice: getProductPrice(product),
-      originalPrice: getProductOriginalPrice(product),
-      totalStock: getProductStock(product),
-      image: getProductImage(product),
-    }));
+  const categoriesLoading =
+    categoriesQuery.isLoading ||
+    categoriesQuery.isFetching;
 
-    setData(productsData);
-  } catch (err) {
-    console.error("FETCH PRODUCTS ERROR:", err);
-    setError(err?.message || "Failed to fetch products");
-    setData([]);
-    toast.error("Failed to fetch products");
-  } finally {
-    setLoading(false);
-  }
-};
-  /* =====================================================
-     FETCH ON MOUNT
-  ===================================================== */
-
-  useEffect(() => {
-    fetchAllProducts(search);
-  }, [search]);
-
-  /* =====================================================
-     FETCH CATEGORIES
-  ===================================================== */
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setCategoriesLoading(true);
-
-        const res = await axios.get(
-          `${BACKEND_URL}/api/category`
-        );
-
-        const categoryData = Array.isArray(
-          res.data?.categories
-        )
-          ? res.data.categories
-          : [];
-
-        setCategories(categoryData);
-      } catch (err) {
-        console.error(
-          "FETCH CATEGORIES ERROR:",
-          err
-        );
-        setCategories([]);
-      } finally {
-        setCategoriesLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
+  const error = productsQuery.error
+    ? productsQuery.error?.message ||
+      "Failed to fetch products"
+    : null;
 
   /* =====================================================
      CATEGORIES
   ===================================================== */
 
-  const categoryOnlyData = useMemo(() => {
-    return Array.isArray(categories)
-      ? categories
-      : [];
-  }, [categories]);
+  const categoryOnlyData = useMemo(
+    () => categories,
+    [categories]
+  );
 
   /* =====================================================
      UNIQUE SUBCATEGORIES
   ===================================================== */
 
-  const subCategoryOnlyData =
-    useMemo(() => {
-      const subCategoryMap =
-        new Map();
+  const subCategoryOnlyData = useMemo(() => {
+    const subCategoryMap = new Map();
 
-      data.forEach((item) => {
-        if (!item?.subCategory) return;
+    data.forEach((item) => {
+      if (!item?.subCategory) return;
 
-        const id =
-          getId(item.subCategory);
+      const id = getId(item.subCategory);
+      if (!id) return;
 
-        if (!id) return;
+      const name =
+        typeof item.subCategory === "object"
+          ? item.subCategory?.name
+          : String(item.subCategory);
 
-        const name =
-          typeof item.subCategory ===
-          "object"
-            ? item.subCategory?.name
-            : String(item.subCategory);
-
-        subCategoryMap.set(id, {
-          _id: id,
-          name:
-            name ||
-            "Unnamed Subcategory",
-        });
+      subCategoryMap.set(id, {
+        _id: id,
+        name: name || "Unnamed Subcategory",
       });
+    });
 
-      return [
-        ...subCategoryMap.values(),
-      ];
-    }, [data]);
+    return [...subCategoryMap.values()];
+  }, [data]);
 
   /* =====================================================
      UNIQUE BRANDS
@@ -330,14 +282,11 @@ export const DataProvider = ({ children }) => {
       .map((item) => item?.brand)
       .filter(
         (brandName) =>
-          typeof brandName ===
-            "string" &&
+          typeof brandName === "string" &&
           brandName.trim() !== ""
       );
 
-    return [
-      ...new Set(brands),
-    ].sort((a, b) =>
+    return [...new Set(brands)].sort((a, b) =>
       a.localeCompare(b)
     );
   }, [data]);
@@ -349,144 +298,18 @@ export const DataProvider = ({ children }) => {
   const filteredData = useMemo(() => {
     let temp = [...data];
 
-    console.log("");
-    console.log(
-      "========================================"
-    );
-
-    console.log(
-      "🔎 FILTER START"
-    );
-
-    console.log(
-      "🔎 Total products:",
-      temp.length
-    );
-
-    console.log(
-      "🔎 Search:",
-      search
-    );
-
-    console.log(
-      "🔎 Category:",
-      category
-    );
-
-    console.log(
-      "🔎 SubCategory:",
-      subCategory
-    );
-
-    console.log(
-      "🔎 Brand:",
-      brand
-    );
-
-    console.log(
-      "🔎 Price range:",
-      priceRange
-    );
-
-    /* =====================================================
-       SEARCH
-    ===================================================== */
-
-    // if (search.trim()) {
-    //   const searchValue =
-    //     normalizeText(search);
-
-    //   temp = temp.filter((item) => {
-    //     const title =
-    //       normalizeText(item?.title);
-
-    //     const description =
-    //       normalizeText(
-    //         item?.description
-    //       );
-
-    //     const shortDescription =
-    //       normalizeText(
-    //         item?.shortDescription
-    //       );
-
-    //     const brandName =
-    //       normalizeText(
-    //         item?.brand
-    //       );
-
-    //     const tags =
-    //       Array.isArray(item?.tags)
-    //         ? normalizeText(
-    //             item.tags.join(" ")
-    //           )
-    //         : "";
-
-    //     return (
-    //       title.includes(searchValue) ||
-    //       description.includes(searchValue) ||
-    //       shortDescription.includes(
-    //         searchValue
-    //       ) ||
-    //       brandName.includes(
-    //         searchValue
-    //       ) ||
-    //       tags.includes(searchValue)
-    //     );
-    //   });
-
-    //   console.log(
-    //     "🔎 After SEARCH:",
-    //     temp.length
-    //   );
-    // }
-
-    /* =====================================================
-       CATEGORY
-    ===================================================== */
-
     if (
       category &&
       category !== "All"
     ) {
-      const selectedCategory =
-        String(category);
+      const selectedCategory = String(category);
 
-      console.log(
-        "🏷️ Applying category:",
-        selectedCategory
-      );
-
-      temp = temp.filter((item) => {
-        const productCategory =
-          getId(item?.category);
-
-        const matched =
-          productCategory ===
-          selectedCategory;
-
-        console.log(
-          "🏷️ CATEGORY CHECK:",
-          {
-            title: item?.title,
-            productCategory,
-            selectedCategory,
-            matched,
-          }
-        );
-
-        return matched;
-      });
-
-      console.log(
-        "🔎 After CATEGORY:",
-        temp.length
+      temp = temp.filter(
+        (item) =>
+          getId(item?.category) ===
+          selectedCategory
       );
     }
-
-    /* =====================================================
-       SUBCATEGORY
-    ===================================================== */
 
     if (
       subCategory &&
@@ -495,41 +318,12 @@ export const DataProvider = ({ children }) => {
       const selectedSubCategory =
         String(subCategory);
 
-      console.log(
-        "📂 Applying subcategory:",
-        selectedSubCategory
-      );
-
-      temp = temp.filter((item) => {
-        const productSubCategory =
-          getId(item?.subCategory);
-
-        const matched =
-          productSubCategory ===
-          selectedSubCategory;
-
-        console.log(
-          "📂 SUBCATEGORY CHECK:",
-          {
-            title: item?.title,
-            productSubCategory,
-            selectedSubCategory,
-            matched,
-          }
-        );
-
-        return matched;
-      });
-
-      console.log(
-        "🔎 After SUBCATEGORY:",
-        temp.length
+      temp = temp.filter(
+        (item) =>
+          getId(item?.subCategory) ===
+          selectedSubCategory
       );
     }
-
-    /* =====================================================
-       BRAND
-    ===================================================== */
 
     if (
       brand &&
@@ -538,88 +332,41 @@ export const DataProvider = ({ children }) => {
       const selectedBrand =
         normalizeText(brand);
 
-      console.log(
-        "🏢 Applying brand:",
-        selectedBrand
-      );
-
-      temp = temp.filter((item) => {
-        const productBrand =
-          normalizeText(
-            item?.brand
-          );
-
-        const matched =
-          productBrand ===
-          selectedBrand;
-
-        console.log(
-          "🏢 BRAND CHECK:",
-          {
-            title: item?.title,
-            productBrand,
-            selectedBrand,
-            matched,
-          }
-        );
-
-        return matched;
-      });
-
-      console.log(
-        "🔎 After BRAND:",
-        temp.length
+      temp = temp.filter(
+        (item) =>
+          normalizeText(item?.brand) ===
+          selectedBrand
       );
     }
 
-    /* =====================================================
-       PRICE
-    ===================================================== */
-
     temp = temp.filter((item) => {
-      const price =
-        Number(
-          item?.displayPrice || 0
-        );
+      const price = Number(
+        item?.displayPrice || 0
+      );
 
       return (
         price >=
           Number(priceRange?.[0] || 0) &&
         price <=
-          Number(priceRange?.[1] || 100000)
+          Number(
+            priceRange?.[1] || 100000
+          )
       );
     });
-
-    console.log(
-      "🔎 After PRICE:",
-      temp.length
-    );
-
-    /* =====================================================
-       SORT
-    ===================================================== */
 
     if (sort === "low-high") {
       temp.sort(
         (a, b) =>
-          Number(
-            a.displayPrice || 0
-          ) -
-          Number(
-            b.displayPrice || 0
-          )
+          Number(a.displayPrice || 0) -
+          Number(b.displayPrice || 0)
       );
     }
 
     if (sort === "high-low") {
       temp.sort(
         (a, b) =>
-          Number(
-            b.displayPrice || 0
-          ) -
-          Number(
-            a.displayPrice || 0
-          )
+          Number(b.displayPrice || 0) -
+          Number(a.displayPrice || 0)
       );
     }
 
@@ -634,12 +381,8 @@ export const DataProvider = ({ children }) => {
     if (sort === "newest") {
       temp.sort(
         (a, b) =>
-          new Date(
-            b.createdAt || 0
-          ) -
-          new Date(
-            a.createdAt || 0
-          )
+          new Date(b.createdAt || 0) -
+          new Date(a.createdAt || 0)
       );
     }
 
@@ -655,24 +398,9 @@ export const DataProvider = ({ children }) => {
       );
     }
 
-    console.log(
-      "✅ FINAL FILTERED PRODUCTS:",
-      temp.length
-    );
-
-    console.log(
-      "✅ FINAL PRODUCTS:",
-      temp
-    );
-
-    console.log(
-      "========================================"
-    );
-
     return temp;
   }, [
     data,
-    search,
     category,
     subCategory,
     brand,
@@ -684,43 +412,63 @@ export const DataProvider = ({ children }) => {
      EVENT HANDLERS
   ===================================================== */
 
-  const handleCategoryChange = (
-    e
-  ) => {
-    const value = e.target.value;
-
-    console.log(
-      "🏷️ CATEGORY CHANGED:",
-      value
-    );
-
-    setCategory(value);
+  const handleCategoryChange = (e) => {
+    setCategory(e.target.value);
   };
 
-  const handleSubCategoryChange = (
-    e
-  ) => {
-    const value = e.target.value;
-
-    console.log(
-      "📂 SUBCATEGORY CHANGED:",
-      value
-    );
-
-    setSubCategory(value);
+  const handleSubCategoryChange = (e) => {
+    setSubCategory(e.target.value);
   };
 
-  const handleBrandChange = (
-    e
+  const handleBrandChange = (e) => {
+    setBrand(e.target.value);
+  };
+
+  /* =====================================================
+     MANUAL PRODUCT REFRESH
+
+     Existing components can continue calling
+     fetchAllProducts().
+  ===================================================== */
+
+  const fetchAllProducts = async (
+    searchValue = search
   ) => {
-    const value = e.target.value;
+    const normalizedSearch =
+      String(searchValue || "").trim();
 
-    console.log(
-      "🏢 BRAND CHANGED:",
-      value
-    );
+    try {
+      setSearch(normalizedSearch);
 
-    setBrand(value);
+      await queryClient.invalidateQueries({
+        queryKey: [
+          "products",
+          normalizedSearch,
+        ],
+      });
+
+      return await queryClient.fetchQuery({
+        queryKey: [
+          "products",
+          normalizedSearch,
+        ],
+        queryFn: () =>
+          fetchProducts(normalizedSearch),
+        staleTime: 5 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
+      });
+    } catch (err) {
+      console.error(
+        "FETCH PRODUCTS ERROR:",
+        err
+      );
+
+      toast.error(
+        "Failed to fetch products"
+      );
+
+      throw err;
+    }
   };
 
   /* =====================================================
@@ -729,11 +477,8 @@ export const DataProvider = ({ children }) => {
 
   const value = {
     data,
-
     loading,
-
     error,
-
     fetchAllProducts,
 
     search,
@@ -773,9 +518,7 @@ export const DataProvider = ({ children }) => {
   };
 
   return (
-    <DataContext.Provider
-      value={value}
-    >
+    <DataContext.Provider value={value}>
       {children}
     </DataContext.Provider>
   );
@@ -786,8 +529,7 @@ export const DataProvider = ({ children }) => {
 ===================================================== */
 
 export const getData = () => {
-  const context =
-    useContext(DataContext);
+  const context = useContext(DataContext);
 
   if (!context) {
     throw new Error(
@@ -797,4 +539,3 @@ export const getData = () => {
 
   return context;
 };
-

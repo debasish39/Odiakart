@@ -25,6 +25,7 @@ import {
 } from "react-icons/md";
 
 import { getData } from "../context/DataContext";
+import { useQuery } from "@tanstack/react-query";
 
 import FilterSection from "../components/FilterSection";
 import ProductCard from "../components/ProductCard";
@@ -90,9 +91,7 @@ export default function Products() {
   const [gridView, setGridView] =
     useState(true);
 
-  // Category fetched directly from backend.
-  // This guarantees the UI uses category.name instead of the MongoDB _id.
-  const [apiCategory, setApiCategory] = useState(null);
+
 
   // =========================================================
   // PRODUCTS
@@ -126,53 +125,50 @@ export default function Products() {
 ]);
 
   // =========================================================
-  // FETCH SELECTED CATEGORY DETAILS
+  // SELECTED CATEGORY QUERY
   // =========================================================
 
-  useEffect(() => {
-    let cancelled = false;
+  const {
+    data: apiCategory = null,
+  } = useQuery({
+    queryKey: ["category", category],
 
-    const fetchSelectedCategory = async () => {
-      if (!category || category === "All") {
-        setApiCategory(null);
-        return;
-      }
+    queryFn: async () => {
+      const response = await fetch(
+        `${BACKEND_URL}/api/category/${category}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
 
-      try {
-        const response = await fetch(
-          `${BACKEND_URL}/api/category/${category}`,
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
-          }
+      if (!response.ok) {
+        throw new Error(
+          `HTTP ${response.status}`
         );
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        if (!cancelled) {
-          setApiCategory(result?.category || null);
-        }
-      } catch (fetchError) {
-        console.error("Failed to fetch selected category:", fetchError);
-
-        if (!cancelled) {
-          setApiCategory(null);
-        }
       }
-    };
 
-    fetchSelectedCategory();
+      const result = await response.json();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [category]);
+      return result?.category || null;
+    },
+
+    enabled:
+      !!category &&
+      category !== "All",
+
+    // Category information normally changes
+    // much less frequently than product data.
+    staleTime: 30 * 60 * 1000,
+
+    gcTime: 60 * 60 * 1000,
+
+    refetchOnWindowFocus: false,
+
+    retry: 1,
+  });
 
   // =========================================================
   // SELECTED CATEGORY

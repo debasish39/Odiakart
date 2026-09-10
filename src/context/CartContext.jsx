@@ -1,10 +1,13 @@
 import React, {
-  useState,
   createContext,
   useContext,
   useEffect,
+  useMemo,
+  useState,
+  useCallback,
 } from "react";
 import { toast } from "react-hot-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const CartContext = createContext(null);
 
@@ -12,11 +15,11 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 /*
 |--------------------------------------------------------------------------
-| Get product image
+| Helpers
 |--------------------------------------------------------------------------
 */
+
 const getProductImage = (product, variant = null) => {
-  // Selected variant image
   if (
     variant?.images &&
     Array.isArray(variant.images) &&
@@ -25,12 +28,10 @@ const getProductImage = (product, variant = null) => {
     return variant.images[0];
   }
 
-  // Product thumbnail
   if (product?.media?.thumbnail) {
     return product.media.thumbnail;
   }
 
-  // Product images
   if (
     product?.media?.images &&
     Array.isArray(product.media.images) &&
@@ -39,12 +40,9 @@ const getProductImage = (product, variant = null) => {
     return product.media.images[0];
   }
 
-  // Fallback to any variant image
   if (Array.isArray(product?.variants)) {
     const variantWithImage = product.variants.find(
-      (item) =>
-        Array.isArray(item.images) &&
-        item.images.length > 0
+      (item) => Array.isArray(item.images) && item.images.length > 0
     );
 
     if (variantWithImage) {
@@ -55,11 +53,6 @@ const getProductImage = (product, variant = null) => {
   return "";
 };
 
-/*
-|--------------------------------------------------------------------------
-| Get default variant
-|--------------------------------------------------------------------------
-*/
 const getDefaultVariant = (product) => {
   if (
     !product?.variants ||
@@ -70,20 +63,41 @@ const getDefaultVariant = (product) => {
   }
 
   return (
-    product.variants.find(
-      (variant) => variant.isActive !== false
-    ) || null
+    product.variants.find((variant) => variant.isActive !== false) || null
   );
 };
 
-function CartProvider({ children }) {
-  /*
-  |--------------------------------------------------------------------------
-  | STATE
-  |--------------------------------------------------------------------------
-  */
+/*
+|--------------------------------------------------------------------------
+| API helper
+|--------------------------------------------------------------------------
+*/
 
-  const [cartItem, setCartItem] = useState([]);
+const fetchCart = async (token) => {
+  const res = await fetch(`${BACKEND_URL}/api/cart`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || data.error || "Failed to fetch cart");
+  }
+
+  return data.items || data.cart?.items || [];
+};
+
+/*
+|--------------------------------------------------------------------------
+| Provider
+|--------------------------------------------------------------------------
+*/
+
+function CartProvider({ children }) {
+  const queryClient = useQueryClient();
 
   /*
   |--------------------------------------------------------------------------
@@ -91,14 +105,15 @@ function CartProvider({ children }) {
   |--------------------------------------------------------------------------
   */
 
-  const [token, setToken] = useState(
-    localStorage.getItem("token")
-  );
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
 
   /*
   |--------------------------------------------------------------------------
   | Listen for login/logout token changes
   |--------------------------------------------------------------------------
+  |
+  | Keeps the same behavior as the original context.
+  |
   */
 
   useEffect(() => {
@@ -106,329 +121,144 @@ function CartProvider({ children }) {
       setToken(localStorage.getItem("token"));
     };
 
-    window.addEventListener(
-      "storage",
-      handleStorageChange
-    );
+    window.addEventListener("storage", handleStorageChange);
 
     return () => {
-      window.removeEventListener(
-        "storage",
-        handleStorageChange
-      );
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
   /*
   |--------------------------------------------------------------------------
-  | LOAD CART
+  | CART QUERY
+  |--------------------------------------------------------------------------
+  |
+  | The cart is cached per logged-in user token.
+  |
+  | Example:
+  |   User opens Cart page -> API request
+  |   User goes Product -> no request
+  |   User comes back to Cart -> cached data
+  |
+  */
+
+  const cartQuery = useQuery({
+    queryKey: ["cart", token],
+    queryFn: () => fetchCart(token),
+    enabled: !!token,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
+  const cartItem = token ? cartQuery.data ?? [] : [];
+
+  /*
+  |--------------------------------------------------------------------------
+  | Small helper to update the cache immediately
   |--------------------------------------------------------------------------
   */
 
-  useEffect(() => {
-    if (!token) {
-      setCartItem([]);
-      return;
-    }
+  const updateCartFromResponse = useCallback(
+    (data) => {
+      const items = data?.cart?.items || data?.items || [];
 
-    const fetchCart = async () => {
-      try {
-        const res = await fetch(
-          `${BACKEND_URL}/api/cart`,
-          {
-            method: "GET",
+      queryClient.setQueryData(["cart", token], items);
 
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await res.json();
-
-        console.log("FETCH CART:", data);
-
-        if (!res.ok || !data.success) {
-          console.error(
-            data.message || data.error
-          );
-
-          return;
-        }
-
-        setCartItem(
-          data.items ||
-          data.cart?.items ||
-          []
-        );
-      } catch (error) {
-        console.error(
-          "Cart fetch error:",
-          error
-        );
-      }
-    };
-
-    fetchCart();
-  }, [token]);
+      return items;
+    },
+    [queryClient, token]
+  );
 
   /*
   |--------------------------------------------------------------------------
   | ADD TO CART
   |--------------------------------------------------------------------------
-  |
-  | Usage:
-  |
-  | addToCart(product)
-  |
-  | OR
-  |
-  | addToCart(product, variant)
-  |
-  |--------------------------------------------------------------------------
   */
 
-  const addToCart = async (
-    product,
-    selectedVariant = null,
-    quantity = 1
-  ) => {
-    console.log(
-      "===================================="
-    );
-
-    console.log(
-      "ADD TO CART CLICKED"
-    );
-
-    console.log(
-      "FULL PRODUCT:",
-      product
-    );
-
-    console.log(
-      "SELECTED VARIANT:",
-      selectedVariant
-    );
-
-    console.log(
-      "===================================="
-    );
-
-    /*
-    |--------------------------------------------------------------------------
-    | LOGIN CHECK
-    |--------------------------------------------------------------------------
-    */
-
-    if (!token) {
-      toast.error(
-        "Please login first"
-      );
-
-      return;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | PRODUCT CHECK
-    |--------------------------------------------------------------------------
-    */
-
-    if (!product?._id) {
-      toast.error(
-        "Invalid product"
-      );
-
-      return;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | SELECT VARIANT
-    |--------------------------------------------------------------------------
-    */
-
-    let variant = selectedVariant;
-
-    /*
-    |--------------------------------------------------------------------------
-    | If no variant selected, use first active variant
-    |--------------------------------------------------------------------------
-    */
-
-    if (!variant) {
-      variant =
-        getDefaultVariant(product);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Variable product requires variant
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-      product.productType === "variable" &&
-      !variant
-    ) {
-      toast.error(
-        "Please select a product variant"
-      );
-
-      return;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Variant SKU
-    |--------------------------------------------------------------------------
-    */
-
-    const variantSku =
-      variant?.sku || "";
-
-    /*
-    |--------------------------------------------------------------------------
-    | Check existing cart item
-    |--------------------------------------------------------------------------
-    */
-
-    const exists = cartItem.some(
-      (item) =>
-        String(item.productId) ===
-        String(product._id) &&
-        item.variantSku ===
-        variantSku
-    );
-
-    if (exists) {
-      toast(
-        "Product already in cart",
-        {
-          icon: "🛒",
-        }
-      );
-
-      return;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | STOCK CHECK
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-      variant &&
-      Number(quantity) >
-      Number(variant.stock || 0)
-    ) {
-      toast.error(
-        `Only ${variant.stock} item(s) available`
-      );
-
-      return;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | REQUEST PAYLOAD
-    |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    | Backend expects these fields directly.
-    |
-    | NOT:
-    | {
-    |   product: {...}
-    | }
-    |--------------------------------------------------------------------------
-    */
-
-    const productImage = getProductImage(product, variant);
-
-    const payload = {
-      productId: product._id,
-      variantSku,
-      quantity: Number(quantity),
-      image: productImage,
-    };
-    console.log(
-      "REQUEST PAYLOAD:",
-      payload
-    );
-
-    try {
-      const res = await fetch(
-        `${BACKEND_URL}/api/cart/add`,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Authorization:
-              `Bearer ${token}`,
-          },
-
-          body: JSON.stringify(
-            payload
-          ),
-        }
-      );
-
-      const data = await res.json();
-
-      console.log(
-        "ADD TO CART RESPONSE:",
-        data
-      );
-
-      /*
-      |--------------------------------------------------------------------------
-      | Handle backend error
-      |--------------------------------------------------------------------------
-      */
-
-      if (
-        !res.ok ||
-        !data.success
-      ) {
-        toast.error(
-          data.message ||
-          data.error ||
-          "Failed to add item"
-        );
-
+  const addToCart = useCallback(
+    async (product, selectedVariant = null, quantity = 1) => {
+      if (!token) {
+        toast.error("Please login first");
         return;
       }
 
-      /*
-      |--------------------------------------------------------------------------
-      | Update cart
-      |--------------------------------------------------------------------------
-      */
+      if (!product?._id) {
+        toast.error("Invalid product");
+        return;
+      }
 
-      setCartItem(
-        data.cart?.items || []
+      let variant = selectedVariant;
+
+      if (!variant) {
+        variant = getDefaultVariant(product);
+      }
+
+      if (product.productType === "variable" && !variant) {
+        toast.error("Please select a product variant");
+        return;
+      }
+
+      const variantSku = variant?.sku || "";
+
+      const exists = cartItem.some(
+        (item) =>
+          String(item.productId) === String(product._id) &&
+          item.variantSku === variantSku
       );
 
-      toast.success(
-        "Added to cart 🛒"
-      );
-    } catch (error) {
-      console.error(
-        "ADD TO CART ERROR:",
-        error
-      );
+      if (exists) {
+        toast("Product already in cart", {
+          icon: "🛒",
+        });
+        return;
+      }
 
-      toast.error(
-        "Failed to add item"
-      );
-    }
-  };
+      if (
+        variant &&
+        Number(quantity) > Number(variant.stock || 0)
+      ) {
+        toast.error(`Only ${variant.stock} item(s) available`);
+        return;
+      }
+
+      const payload = {
+        productId: product._id,
+        variantSku,
+        quantity: Number(quantity),
+        image: getProductImage(product, variant),
+      };
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/cart/add`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          toast.error(
+            data.message || data.error || "Failed to add item"
+          );
+          return;
+        }
+
+        updateCartFromResponse(data);
+
+        toast.success("Added to cart 🛒");
+      } catch (error) {
+        console.error("ADD TO CART ERROR:", error);
+        toast.error("Failed to add item");
+      }
+    },
+    [token, cartItem, updateCartFromResponse]
+  );
 
   /*
   |--------------------------------------------------------------------------
@@ -436,233 +266,140 @@ function CartProvider({ children }) {
   |--------------------------------------------------------------------------
   */
 
-  const increaseQty = async (
-    productId,
-    variantSku = ""
-  ) => {
-    if (!token) {
-      toast.error("Please login first");
-      return;
-    }
+  const increaseQty = useCallback(
+    async (productId, variantSku = "") => {
+      if (!token) {
+        toast.error("Please login first");
+        return;
+      }
 
-    try {
-      console.log("INCREASE REQUEST:", {
-        productId,
-        variantSku,
-      });
-
-      const res = await fetch(
-        `${BACKEND_URL}/api/cart/increase`,
-        {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/cart/increase`, {
           method: "PUT",
-
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-
           body: JSON.stringify({
             productId: String(productId),
             variantSku: variantSku || "",
           }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          toast.error(
+            data.message ||
+              data.error ||
+              "Failed to increase quantity"
+          );
+          return;
         }
-      );
 
-      const data = await res.json();
-
-      console.log(
-        "INCREASE STATUS:",
-        res.status
-      );
-
-      console.log(
-        "INCREASE RESPONSE:",
-        data
-      );
-
-      if (!res.ok || !data.success) {
-        toast.error(
-          data.message ||
-          data.error ||
-          "Failed to increase quantity"
-        );
-
-        return;
+        updateCartFromResponse(data);
+      } catch (error) {
+        console.error("INCREASE ERROR:", error);
+        toast.error("Failed to increase quantity");
       }
-
-      setCartItem(
-        data.cart?.items || []
-      );
-
-    } catch (error) {
-      console.error(
-        "INCREASE ERROR:",
-        error
-      );
-
-      toast.error(
-        "Failed to increase quantity"
-      );
-    }
-  };
+    },
+    [token, updateCartFromResponse]
+  );
 
   /*
   |--------------------------------------------------------------------------
   | DECREASE QUANTITY
   |--------------------------------------------------------------------------
   */
-  const decreaseQty = async (
-    productId,
-    variantSku = ""
-  ) => {
-    if (!token) {
-      toast.error("Please login first");
-      return;
-    }
 
-    try {
-      console.log("DECREASE REQUEST:", {
-        productId,
-        variantSku,
-      });
+  const decreaseQty = useCallback(
+    async (productId, variantSku = "") => {
+      if (!token) {
+        toast.error("Please login first");
+        return;
+      }
 
-      const res = await fetch(
-        `${BACKEND_URL}/api/cart/decrease`,
-        {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/cart/decrease`, {
           method: "PUT",
-
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-
           body: JSON.stringify({
             productId: String(productId),
             variantSku: variantSku || "",
           }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          toast.error(
+            data.message ||
+              data.error ||
+              "Failed to decrease quantity"
+          );
+          return;
         }
-      );
 
-      const data = await res.json();
-
-      console.log(
-        "DECREASE STATUS:",
-        res.status
-      );
-
-      console.log(
-        "DECREASE RESPONSE:",
-        data
-      );
-
-      if (!res.ok || !data.success) {
-        toast.error(
-          data.message ||
-          data.error ||
-          "Failed to decrease quantity"
-        );
-
-        return;
+        updateCartFromResponse(data);
+      } catch (error) {
+        console.error("DECREASE ERROR:", error);
+        toast.error("Failed to decrease quantity");
       }
+    },
+    [token, updateCartFromResponse]
+  );
 
-      setCartItem(
-        data.cart?.items || []
-      );
-
-    } catch (error) {
-      console.error(
-        "DECREASE ERROR:",
-        error
-      );
-
-      toast.error(
-        "Failed to decrease quantity"
-      );
-    }
-  };
   /*
   |--------------------------------------------------------------------------
   | REMOVE FROM CART
   |--------------------------------------------------------------------------
   */
 
-  const removeFromCart = async (
-    productId,
-    variantSku = ""
-  ) => {
-    if (!token) {
-      toast.error("Please login first");
-      return;
-    }
+  const removeFromCart = useCallback(
+    async (productId, variantSku = "") => {
+      if (!token) {
+        toast.error("Please login first");
+        return false;
+      }
 
-    try {
-      console.log("REMOVE REQUEST:", {
-        productId,
-        variantSku,
-      });
-
-      const res = await fetch(
-        `${BACKEND_URL}/api/cart/remove`,
-        {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/cart/remove`, {
           method: "DELETE",
-
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-
           body: JSON.stringify({
             productId: String(productId),
             variantSku: variantSku || "",
           }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          toast.error(
+            data.message || data.error || "Failed to remove item"
+          );
+          return false;
         }
-      );
 
-      const data = await res.json();
+        updateCartFromResponse(data);
 
-      console.log(
-        "REMOVE STATUS:",
-        res.status
-      );
+        toast.success("Item removed 🗑️");
 
-      console.log(
-        "REMOVE RESPONSE:",
-        data
-      );
-
-      if (!res.ok || !data.success) {
-        toast.error(
-          data.message ||
-          data.error ||
-          "Failed to remove item"
-        );
-
+        return true;
+      } catch (error) {
+        console.error("REMOVE CART ERROR:", error);
+        toast.error("Failed to remove item");
         return false;
       }
-
-      setCartItem(
-        data.cart?.items || []
-      );
-
-      toast.success(
-        "Item removed 🗑️"
-      );
-
-      return true;
-
-    } catch (error) {
-      console.error(
-        "REMOVE CART ERROR:",
-        error
-      );
-
-      toast.error(
-        "Failed to remove item"
-      );
-
-      return false;
-    }
-  };
+    },
+    [token, updateCartFromResponse]
+  );
 
   /*
   |--------------------------------------------------------------------------
@@ -670,118 +407,109 @@ function CartProvider({ children }) {
   |--------------------------------------------------------------------------
   */
 
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     if (!token) {
-      setCartItem([]);
+      queryClient.setQueryData(["cart", token], []);
       return;
     }
 
     try {
-      const res = await fetch(
-        `${BACKEND_URL}/api/cart/clear`,
-        {
-          method: "DELETE",
+      const res = await fetch(`${BACKEND_URL}/api/cart/clear`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-          headers: {
-            Authorization:
-              `Bearer ${token}`,
-          },
-        }
-      );
+      const data = await res.json();
 
-      const data =
-        await res.json();
-
-      if (
-        !res.ok ||
-        !data.success
-      ) {
+      if (!res.ok || !data.success) {
         toast.error(
-          data.message ||
-          "Failed to clear cart"
+          data.message || "Failed to clear cart"
         );
-
         return;
       }
 
-      setCartItem([]);
+      queryClient.setQueryData(["cart", token], []);
 
-      toast.success(
-        "Cart cleared"
-      );
+      toast.success("Cart cleared");
     } catch (error) {
-      console.error(
-        "Clear cart failed:",
-        error
-      );
-
-      toast.error(
-        "Failed to clear cart"
-      );
+      console.error("Clear cart failed:", error);
+      toast.error("Failed to clear cart");
     }
-  };
+  }, [token, queryClient]);
 
   /*
   |--------------------------------------------------------------------------
-  | CART TOTAL
+  | DERIVED VALUES
   |--------------------------------------------------------------------------
   */
 
-  const cartTotal = cartItem.reduce(
-    (total, item) => {
-      return (
-        total +
-        Number(item.price || 0) *
-        Number(item.quantity || 0)
-      );
-    },
-    0
+  const cartTotal = useMemo(
+    () =>
+      cartItem.reduce(
+        (total, item) =>
+          total +
+          Number(item.price || 0) *
+            Number(item.quantity || 0),
+        0
+      ),
+    [cartItem]
+  );
+
+  const cartCount = useMemo(
+    () =>
+      cartItem.reduce(
+        (total, item) =>
+          total + Number(item.quantity || 0),
+        0
+      ),
+    [cartItem]
   );
 
   /*
   |--------------------------------------------------------------------------
-  | CART ITEM COUNT
+  | PROVIDER VALUE
   |--------------------------------------------------------------------------
   */
 
-  const cartCount = cartItem.reduce(
-    (total, item) => {
-      return (
-        total +
-        Number(item.quantity || 0)
-      );
-    },
-    0
+  const contextValue = useMemo(
+    () => ({
+      cartItem,
+      addToCart,
+      removeFromCart,
+      increaseQty,
+      decreaseQty,
+      clearCart,
+      cartTotal,
+      cartCount,
+      token,
+
+      // Optional query status for Cart page / loader UI.
+      cartLoading: cartQuery.isLoading,
+      cartFetching: cartQuery.isFetching,
+      cartError: cartQuery.error?.message || null,
+      refetchCart: cartQuery.refetch,
+    }),
+    [
+      cartItem,
+      addToCart,
+      removeFromCart,
+      increaseQty,
+      decreaseQty,
+      clearCart,
+      cartTotal,
+      cartCount,
+      token,
+      cartQuery.isLoading,
+      cartQuery.isFetching,
+      cartQuery.error,
+      cartQuery.refetch,
+    ]
   );
-
-  /*
-  |--------------------------------------------------------------------------
-  | PROVIDER
-  |--------------------------------------------------------------------------
-  */
 
   return (
-    <CartContext.Provider
-      value={{
-        cartItem,
-
-        addToCart,
-
-        removeFromCart,
-
-        increaseQty,
-
-        decreaseQty,
-
-        clearCart,
-
-        cartTotal,
-
-        cartCount,
-
-        token,
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );
@@ -790,13 +518,10 @@ function CartProvider({ children }) {
 export default CartProvider;
 
 export const useCart = () => {
-  const context =
-    useContext(CartContext);
+  const context = useContext(CartContext);
 
   if (!context) {
-    throw new Error(
-      "useCart must be used inside CartProvider"
-    );
+    throw new Error("useCart must be used inside CartProvider");
   }
 
   return context;

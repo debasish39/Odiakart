@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { AccountShell, api } from "./AccountShell";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 /* ============================================================
    ADD ADDRESS PAGE
@@ -44,6 +45,8 @@ export default function AddAddressPage() {
     isDefault: false,
   });
 
+  const queryClient = useQueryClient();
+  const savingRef = useRef(false);
   const [saving, setSaving] = useState(false);
 
   const set = (key, value) => {
@@ -105,10 +108,13 @@ export default function AddAddressPage() {
   };
 
   const save = async () => {
-    if (saving) return;
-
     if (!validate()) return;
 
+    const token = localStorage.getItem("token");
+
+    // Prevent duplicate submissions while the request is in flight.
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
 
     try {
@@ -134,6 +140,11 @@ export default function AddAddressPage() {
         }),
       });
 
+      // Keep the AddressesPage cache fresh when the user returns there.
+      await queryClient.invalidateQueries({
+        queryKey: ["addresses", token],
+      });
+
       toast.success(
         response?.message || "Address saved successfully"
       );
@@ -146,6 +157,7 @@ export default function AddAddressPage() {
         error?.message || "Failed to save address"
       );
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
