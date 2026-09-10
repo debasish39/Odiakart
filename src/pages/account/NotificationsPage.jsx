@@ -293,18 +293,18 @@ export default function NotificationsPage() {
       console.error("Failed to mark notification as read:", error);
     }
 
+    // Order notifications should always open the related order page.
+    if (notification.orderId) {
+      navigate(`/account/orders/${notification.orderId}`);
+      return;
+    }
+
     if (notification.link) {
       if (notification.link.startsWith("http")) {
         window.location.href = notification.link;
       } else {
         navigate(notification.link);
       }
-
-      return;
-    }
-
-    if (notification.orderId) {
-      navigate(`/orders/${notification.orderId}`);
     }
   };
 
@@ -660,6 +660,15 @@ export default function NotificationsPage() {
                         ? 0
                         : undefined
                     }
+                    onKeyDown={(event) => {
+                      if (
+                        (event.key === "Enter" || event.key === " ") &&
+                        (notification.link || notification.orderId)
+                      ) {
+                        event.preventDefault();
+                        handleNotificationClick(notification);
+                      }
+                    }}
                   >
 
                     <div
@@ -708,10 +717,22 @@ export default function NotificationsPage() {
 
                         {(notification.link ||
                           notification.orderId) && (
-                          <span className="open-link">
-                            Open
+                          <button
+                            type="button"
+                            className="open-link"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleNotificationClick(notification);
+                            }}
+                            aria-label={
+                              notification.orderId
+                                ? "Open order"
+                                : "Open notification"
+                            }
+                          >
+                            {notification.orderId ? "Open order" : "Open"}
                             <FaExternalLinkAlt />
-                          </span>
+                          </button>
                         )}
 
                       </div>
@@ -1101,7 +1122,7 @@ export default function NotificationsPage() {
         .notifications-eyebrow {
           margin-bottom: 3px;
           color: #6366f1;
-          font-size: 8px;
+          font-size: 14px;
           font-weight: 850;
           letter-spacing: .13em;
         }
@@ -1109,7 +1130,7 @@ export default function NotificationsPage() {
         .notifications-header h1 {
           margin: 0;
           color: #17181d;
-          font-size: 25px;
+          font-size: 28px;
           line-height: 1.15;
           font-weight: 850;
           letter-spacing: -.7px;
@@ -1118,7 +1139,7 @@ export default function NotificationsPage() {
         .notifications-header p {
           margin: 4px 0 0;
           color: #858690;
-          font-size: 10px;
+          font-size: 13px;
         }
 
         .notifications-header-actions {
@@ -1152,7 +1173,7 @@ export default function NotificationsPage() {
           justify-content: center;
           gap: 7px;
           padding: 0 13px;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 800;
         }
 
@@ -1207,14 +1228,14 @@ export default function NotificationsPage() {
 
         .summary-left strong {
           color: #30313a;
-          font-size: 10px;
+          font-size: 13px;
           font-weight: 850;
         }
 
         .summary-left span {
           margin-top: 2px;
           color: #92939d;
-          font-size: 8px;
+          font-size: 14px;
         }
 
         .mark-read-button {
@@ -1228,7 +1249,7 @@ export default function NotificationsPage() {
           color: #4f46e5;
           background: #f7f6ff;
           font: inherit;
-          font-size: 8px;
+          font-size: 14px;
           font-weight: 800;
           cursor: pointer;
         }
@@ -1257,14 +1278,14 @@ export default function NotificationsPage() {
         .history-heading h2 {
           margin: 0;
           color: #282932;
-          font-size: 14px;
+          font-size: 16px;
           font-weight: 850;
         }
 
         .history-heading p {
           margin: 4px 0 0;
           color: #90919a;
-          font-size: 9px;
+          font-size: 12px;
         }
 
         /* =====================================================
@@ -1288,7 +1309,7 @@ export default function NotificationsPage() {
           color: #7c7d87;
           background: #fff;
           font: inherit;
-          font-size: 8px;
+          font-size: 14px;
           font-weight: 800;
           cursor: pointer;
           transition: .16s ease;
@@ -1300,7 +1321,7 @@ export default function NotificationsPage() {
           border-radius: 999px;
           color: #8b8c96;
           background: #f1f1f5;
-          font-size: 7px;
+          font-size: 10px;
         }
 
         .notification-filters button:hover {
@@ -1419,7 +1440,7 @@ export default function NotificationsPage() {
         .notification-title h3 {
           margin: 0;
           color: #282932;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 850;
         }
 
@@ -1435,14 +1456,14 @@ export default function NotificationsPage() {
         .notification-time {
           flex: none;
           color: #a0a1aa;
-          font-size: 8px;
+          font-size: 14px;
           white-space: nowrap;
         }
 
         .notification-body > p {
           margin: 4px 0 8px;
           color: #777984;
-          font-size: 9px;
+          font-size: 12px;
           line-height: 1.55;
         }
 
@@ -1459,7 +1480,7 @@ export default function NotificationsPage() {
           align-items: center;
           padding: 0 7px;
           border-radius: 999px;
-          font-size: 7px;
+          font-size: 10px;
           font-weight: 850;
         }
 
@@ -1491,14 +1512,46 @@ export default function NotificationsPage() {
         .open-link {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 5px;
-          color: #6366f1;
-          font-size: 7px;
+          padding: 5px 8px;
+          border: 1px solid #e1dfff;
+          border-radius: 8px;
+          color: #5b54e8;
+          background: #f7f6ff;
+          font: inherit;
+          font-size: 10px;
           font-weight: 850;
+          line-height: 1;
+          cursor: pointer;
+          transition:
+            background .16s ease,
+            border-color .16s ease,
+            color .16s ease,
+            transform .16s ease,
+            box-shadow .16s ease;
+        }
+
+        .open-link:hover {
+          border-color: #cbc6ff;
+          color: #4338ca;
+          background: #efedff;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(79,70,229,.10);
+        }
+
+        .open-link:active {
+          transform: translateY(0);
+        }
+
+        .open-link:focus-visible {
+          outline: none;
+          border-color: #6366f1;
+          box-shadow: 0 0 0 3px rgba(99,102,241,.14);
         }
 
         .open-link svg {
-          font-size: 7px;
+          font-size: 10px;
         }
 
         .delete-button {
@@ -1540,7 +1593,7 @@ export default function NotificationsPage() {
         .notification-state strong {
           margin-top: 10px;
           color: #383941;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 850;
         }
 
@@ -1548,7 +1601,7 @@ export default function NotificationsPage() {
           max-width: 390px;
           margin-top: 4px;
           color: #90919a;
-          font-size: 8.5px;
+          font-size: 11px;
         }
 
         .notification-state button {
@@ -1560,7 +1613,7 @@ export default function NotificationsPage() {
           color: #4f46e5;
           background: #f6f5ff;
           font: inherit;
-          font-size: 8px;
+          font-size: 14px;
           font-weight: 800;
           cursor: pointer;
         }
@@ -1695,7 +1748,7 @@ export default function NotificationsPage() {
         .settings-modal-title p {
           margin: 4px 0 0;
           color: #8b8c96;
-          font-size: 9px;
+          font-size: 12px;
         }
 
         .modal-close-button {
@@ -1766,14 +1819,14 @@ export default function NotificationsPage() {
 
         .settings-status-left strong {
           color: #363741;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 850;
         }
 
         .settings-status-left span {
           margin-top: 2px;
           color: #90919a;
-          font-size: 7.5px;
+          font-size: 10px;
         }
 
         .sync-pill {
@@ -1782,7 +1835,7 @@ export default function NotificationsPage() {
           border-radius: 999px;
           color: #087443;
           background: #effcf6;
-          font-size: 7px;
+          font-size: 10px;
           font-weight: 850;
           text-transform: uppercase;
           letter-spacing: .04em;
@@ -1811,7 +1864,7 @@ export default function NotificationsPage() {
           display: block;
           margin-bottom: 4px;
           color: #8b8c96;
-          font-size: 7px;
+          font-size: 10px;
           font-weight: 850;
           letter-spacing: .12em;
         }
@@ -1819,14 +1872,14 @@ export default function NotificationsPage() {
         .settings-section-heading h3 {
           margin: 0;
           color: #30313a;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 850;
         }
 
         .settings-section-heading p {
           margin: 3px 0 0;
           color: #90919a;
-          font-size: 8px;
+          font-size: 14px;
         }
 
         .settings-options {
@@ -1906,7 +1959,7 @@ export default function NotificationsPage() {
         }
 
         .settings-option-icon svg {
-          font-size: 14px;
+          font-size: 16px;
         }
 
         .settings-option-content {
@@ -1923,7 +1976,7 @@ export default function NotificationsPage() {
 
         .settings-option-title strong {
           color: #30313a;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 850;
         }
 
@@ -1933,7 +1986,7 @@ export default function NotificationsPage() {
           border-radius: 999px;
           color: #087443;
           background: #effcf6;
-          font-size: 6px;
+          font-size: 9px;
           font-weight: 850;
           text-transform: uppercase;
         }
@@ -1941,7 +1994,7 @@ export default function NotificationsPage() {
         .settings-option-content p {
           margin: 3px 0 0;
           color: #92939c;
-          font-size: 7.5px;
+          font-size: 10px;
           line-height: 1.4;
         }
 
@@ -2018,7 +2071,7 @@ export default function NotificationsPage() {
           align-items: center;
           gap: 6px;
           color: #9697a0;
-          font-size: 7.5px;
+          font-size: 10px;
         }
 
         .footer-info svg {
@@ -2034,7 +2087,7 @@ export default function NotificationsPage() {
           color: #fff;
           background: #4f46e5;
           font: inherit;
-          font-size: 8px;
+          font-size: 14px;
           font-weight: 850;
           cursor: pointer;
           box-shadow:
@@ -2058,6 +2111,52 @@ export default function NotificationsPage() {
         ===================================================== */
 
         @media (max-width: 600px) {
+          /* APP-FRIENDLY MOBILE TYPOGRAPHY */
+          .notifications-header h1 { font-size: 25px; line-height: 1.2; }
+          .notifications-header p { font-size: 13px; line-height: 1.45; }
+          .summary-left strong { font-size: 15px; }
+          .summary-left span { font-size: 12px; }
+          .mark-read-button { min-height: 44px; font-size: 13px; }
+          .history-heading h2 { font-size: 20px; }
+          .history-heading p { font-size: 13px; line-height: 1.45; }
+          .notification-filters button { min-height: 40px; padding: 0 13px; font-size: 12px; }
+          .notification-filters button span { min-width: 22px; padding: 3px 6px; font-size: 11px; }
+          .notification-card { gap: 12px; padding: 14px; }
+          .notification-type-icon { width: 46px; height: 46px; }
+          .notification-title h3 { font-size: 16px; line-height: 1.3; }
+          .notification-time { font-size: 11px; }
+          .notification-body > p { margin: 6px 0 10px; font-size: 14px; line-height: 1.55; }
+          .notification-category { min-height: 26px; padding: 0 9px; font-size: 11px; }
+          .open-link {
+            min-height: 32px;
+            padding: 0 9px;
+            gap: 6px;
+            font-size: 11px;
+          }
+          .open-link svg { font-size: 10px; }
+          .delete-button { width: 36px; height: 36px; }
+          .notification-state strong { font-size: 15px; }
+          .notification-state > span { font-size: 12px; line-height: 1.5; }
+          .notification-state button { min-height: 40px; font-size: 12px; }
+          .settings-modal-title h2 { font-size: 19px; }
+          .settings-modal-title p { font-size: 12px; }
+          .settings-status-left strong { font-size: 12px; }
+          .settings-status-left span { font-size: 10px; }
+          .settings-section-label { font-size: 10px; }
+          .settings-section-heading h3 { font-size: 15px; }
+          .settings-section-heading p { font-size: 12px; line-height: 1.45; }
+          .settings-option { gap: 12px; padding: 13px; }
+          .settings-option-icon { width: 42px; height: 42px; }
+          .settings-option-icon svg { font-size: 16px; }
+          .settings-option-title strong { font-size: 14px; }
+          .settings-option-title span { font-size: 9px; }
+          .settings-option-content p { font-size: 12px; line-height: 1.45; }
+          .modern-switch { width: 44px; height: 26px; }
+          .modern-switch span { width: 20px; height: 20px; }
+          .modern-switch.on span { transform: translateX(18px); }
+          .footer-info { font-size: 11px; }
+          .done-button { min-width: 78px; min-height: 40px; font-size: 13px; }
+
 
           .notifications-header {
             align-items: flex-start;
@@ -2158,6 +2257,17 @@ export default function NotificationsPage() {
         }
 
         @media (max-width: 390px) {
+          /* COMPACT PHONE READABILITY */
+          .notifications-header h1 { font-size: 23px; }
+          .notifications-header p { font-size: 12px; }
+          .history-heading h2 { font-size: 19px; }
+          .history-heading p { font-size: 12px; }
+          .notification-title h3 { font-size: 15px; }
+          .notification-body > p { font-size: 13px; }
+          .settings-modal-title h2 { font-size: 18px; }
+          .settings-option-title strong { font-size: 13px; }
+          .settings-option-content p { font-size: 11px; }
+
 
           .notifications-header {
             gap: 10px;
@@ -2173,7 +2283,7 @@ export default function NotificationsPage() {
           }
 
           .notifications-header p {
-            font-size: 8.5px;
+            font-size: 11px;
           }
 
           .notification-icon-button {

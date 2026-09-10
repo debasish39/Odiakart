@@ -303,67 +303,6 @@ export default function SearchPage() {
   ]);
 
   /* =========================================================
-     DEBUG
-     ========================================================= */
-
-  useEffect(() => {
-    console.log(
-      "========================================"
-    );
-
-    console.log(
-      "🔎 SEARCH PAGE DEBUG"
-    );
-
-    console.log(
-      "🔎 URL SEARCH:",
-      urlSearch
-    );
-
-    console.log(
-      "🔎 CONTEXT SEARCH:",
-      search
-    );
-
-    console.log(
-      "🔎 LOADING:",
-      loading
-    );
-
-    console.log(
-      "🔎 FILTERED DATA:",
-      filteredData
-    );
-
-    console.log(
-      "🔎 FILTERED DATA LENGTH:",
-      Array.isArray(filteredData)
-        ? filteredData.length
-        : 0
-    );
-
-    console.log(
-      "🔎 SEARCH RESULTS:",
-      searchResults
-    );
-
-    console.log(
-      "🔎 SEARCH RESULTS LENGTH:",
-      searchResults.length
-    );
-
-    console.log(
-      "========================================"
-    );
-  }, [
-    urlSearch,
-    search,
-    loading,
-    filteredData,
-    searchResults,
-  ]);
-
-  /* =========================================================
      SORT RESULTS
      ========================================================= */
 
@@ -660,18 +599,16 @@ export default function SearchPage() {
           group
           w-full
           overflow-hidden
-          rounded-2xl
-          border
-          border-slate-200
+          rounded-[1.45rem]
+          border border-slate-200/80
           bg-white
           text-left
-          shadow-sm
-          transition-all
-          duration-200
-          hover:-translate-y-1
+          shadow-[0_7px_25px_rgba(15,23,42,.055)]
+          transition-all duration-300 ease-out
           hover:border-indigo-200
-          hover:shadow-lg
-          active:scale-[0.98]
+          hover:shadow-[0_20px_50px_rgba(79,70,229,.13)]
+          active:scale-[0.985]
+          sp-card
         "
       >
         {/* IMAGE */}
@@ -681,7 +618,8 @@ export default function SearchPage() {
             relative
             aspect-square
             overflow-hidden
-            bg-slate-50
+            bg-[linear-gradient(135deg,#f8fafc,#eef2ff)]
+            ring-1 ring-inset ring-slate-100
           "
         >
           {image ? (
@@ -693,9 +631,8 @@ export default function SearchPage() {
                 w-full
                 object-contain
                 p-3
-                transition-transform
-                duration-500
-                group-hover:scale-105
+                transition-transform duration-700 ease-out
+                group-hover:scale-[1.08]
               "
               loading="lazy"
             />
@@ -773,8 +710,9 @@ export default function SearchPage() {
           >
             <span
               className="
-                text-sm
+                text-[15px]
                 font-black
+                tracking-tight
                 text-slate-950
               "
             >
@@ -787,10 +725,10 @@ export default function SearchPage() {
                   flex
                   items-center
                   gap-1
-                  rounded-md
+                  rounded-full
+                  border border-emerald-100
                   bg-emerald-50
-                  px-1.5
-                  py-1
+                  px-2 py-1
                   text-[8px]
                   font-black
                   text-emerald-700
@@ -829,16 +767,16 @@ export default function SearchPage() {
           key={index}
           className="
             overflow-hidden
-            rounded-2xl
-            border
-            border-slate-200
+            rounded-[1.45rem]
+            border border-slate-200/80
             bg-white
+            shadow-sm
           "
         >
           <div
             className="
               aspect-square
-              animate-pulse
+              search-page-skeleton
               bg-slate-100
             "
           />
@@ -853,9 +791,7 @@ export default function SearchPage() {
               className="
                 h-3
                 w-4/5
-                animate-pulse
-                rounded
-                bg-slate-100
+                sp-skeleton rounded
               "
             />
 
@@ -863,9 +799,7 @@ export default function SearchPage() {
               className="
                 h-3
                 w-2/5
-                animate-pulse
-                rounded
-                bg-slate-100
+                sp-skeleton rounded
               "
             />
 
@@ -873,9 +807,7 @@ export default function SearchPage() {
               className="
                 h-4
                 w-1/3
-                animate-pulse
-                rounded
-                bg-slate-100
+                sp-skeleton rounded
               "
             />
           </div>
@@ -892,10 +824,51 @@ export default function SearchPage() {
     <main
       className="
         min-h-screen
-        bg-slate-50
+        bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.08),_transparent_34%),linear-gradient(to_bottom,_#f8fafc,_#f1f5f9)]
         pb-10
       "
     >
+
+      <style>{`
+        @keyframes searchPageFadeUp {
+          from { opacity: 0; transform: translateY(14px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes searchPagePop {
+          0% { opacity: 0; transform: translateY(8px) scale(.985); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes searchPageShimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        @keyframes searchPagePulse {
+          0%, 100% { opacity: .55; transform: scale(.96); }
+          50% { opacity: 1; transform: scale(1); }
+        }
+        .search-page-animate { animation: searchPageFadeUp .42s cubic-bezier(.22,1,.36,1) both; }
+        .search-page-pop { animation: searchPagePop .34s cubic-bezier(.22,1,.36,1) both; }
+        .search-page-stagger > * { animation: searchPageFadeUp .45s cubic-bezier(.22,1,.36,1) both; }
+        .search-page-stagger > *:nth-child(2) { animation-delay: 45ms; }
+        .search-page-stagger > *:nth-child(3) { animation-delay: 90ms; }
+        .search-page-stagger > *:nth-child(4) { animation-delay: 135ms; }
+        .search-page-stagger > *:nth-child(5) { animation-delay: 180ms; }
+        .search-page-stagger > *:nth-child(6) { animation-delay: 225ms; }
+        .search-page-card { transform: translateZ(0); }
+        .search-page-card:hover { transform: translateY(-5px); }
+        .search-page-skeleton {
+          background: linear-gradient(90deg,#f1f5f9 25%,#f8fafc 37%,#f1f5f9 63%);
+          background-size: 400% 100%;
+          animation: searchPageShimmer 1.35s ease-in-out infinite;
+        }
+        .search-page-icon-pulse { animation: searchPagePulse 1.8s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .search-page-animate,.search-page-pop,.search-page-stagger > *,
+          .search-page-skeleton,.search-page-icon-pulse { animation: none !important; }
+          .search-page-card { transition: none !important; }
+        }
+      `}</style>
+
       {/* =====================================================
           HEADER
           ===================================================== */}
@@ -906,16 +879,17 @@ export default function SearchPage() {
           top-0
           z-40
           border-b
-          border-slate-200/70
-          bg-white/95
-          backdrop-blur-xl
+          border-white/70
+          bg-white/80
+          shadow-[0_8px_30px_rgba(15,23,42,0.06)]
+          backdrop-blur-2xl
         "
       >
         <div
           className="
             mx-auto
             flex
-            h-16
+            h-[68px]
             max-w-7xl
             items-center
             gap-2
@@ -937,10 +911,13 @@ export default function SearchPage() {
               shrink-0
               items-center
               justify-center
-              rounded-xl
+              rounded-2xl
+              border border-slate-200/80
+              bg-white/80
               text-slate-600
-              transition
-              hover:bg-slate-100
+              shadow-sm
+              transition-all duration-200
+              hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 hover:shadow-md
               active:scale-95
             "
             aria-label="Go back"
@@ -953,27 +930,29 @@ export default function SearchPage() {
           <div className="relative flex-1">
             <div
               className="
-                flex
-                h-11
+                group flex
+                h-12
                 items-center
                 gap-2.5
-                rounded-xl
+                rounded-2xl
                 border
-                border-slate-200
-                bg-slate-50
-                px-3
-                transition
+                border-slate-200/80
+                bg-white/80
+                px-3.5
+                shadow-sm
+                transition-all duration-200
+                hover:border-indigo-200 hover:shadow-md
                 focus-within:border-indigo-300
                 focus-within:bg-white
-                focus-within:ring-2
-                focus-within:ring-indigo-100
+                focus-within:ring-4
+                focus-within:ring-indigo-500/10
               "
             >
               <FaSearch
                 size={12}
                 className="
                   shrink-0
-                  text-slate-400
+                  text-indigo-500 transition-transform duration-200 group-focus-within:scale-110
                 "
               />
 
@@ -1014,6 +993,26 @@ export default function SearchPage() {
                 autoFocus
               />
 
+              {!loading && searchInput && (
+                <button
+                  type="button"
+                  onClick={() => executeSearch()}
+                  className="
+                    hidden sm:inline-flex
+                    h-8 px-3 shrink-0 items-center justify-center gap-1.5
+                    rounded-xl bg-indigo-600 text-[9px] font-black text-white
+                    shadow-sm shadow-indigo-200
+                    transition-all duration-200
+                    hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md
+                    active:scale-95
+                  "
+                  aria-label="Search"
+                >
+                  <FaSearch size={9} />
+                  Search
+                </button>
+              )}
+
               {loading && (
                 <div
                   className="
@@ -1042,11 +1041,10 @@ export default function SearchPage() {
                       shrink-0
                       items-center
                       justify-center
-                      rounded-lg
+                      rounded-xl
                       text-slate-400
-                      transition
-                      hover:bg-slate-200
-                      hover:text-slate-700
+                      transition-all duration-200
+                      hover:rotate-90 hover:bg-slate-100 hover:text-slate-700
                     "
                     aria-label="Clear search"
                   >
@@ -1070,10 +1068,12 @@ export default function SearchPage() {
                     overflow-hidden
                     rounded-2xl
                     border
-                    border-slate-200
-                    bg-white
+                    border-slate-200/80
+                    bg-white/95
                     p-2
-                    shadow-xl
+                    shadow-[0_18px_55px_rgba(15,23,42,0.14)]
+                    backdrop-blur-xl
+                    search-page-pop
                   "
                 >
                   {suggestions.map(
@@ -1145,8 +1145,9 @@ export default function SearchPage() {
           mx-auto
           max-w-7xl
           px-3
-          pt-5
+          pt-6
           sm:px-5
+          sm:pt-8
         "
       >
         {/* ===================================================
@@ -1155,7 +1156,7 @@ export default function SearchPage() {
 
         {!activeQuery ? (
           <>
-            <div className="mb-6">
+            <div className="mb-7 search-page-animate">
               <p
                 className="
                   text-[9px]
@@ -1242,18 +1243,17 @@ export default function SearchPage() {
                       className="
                         rounded-full
                         border
-                        border-slate-200
-                        bg-white
+                        border-slate-200/80
+                        bg-white/90
                         px-4
                         py-2.5
                         text-[10px]
                         font-bold
                         text-slate-600
                         shadow-sm
-                        transition
-                        hover:border-indigo-200
-                        hover:bg-indigo-50
-                        hover:text-indigo-600
+                        transition-all duration-200
+                        hover:-translate-y-0.5 hover:border-indigo-200
+                        hover:bg-indigo-50 hover:text-indigo-600 hover:shadow-md
                         active:scale-95
                       "
                     >
@@ -1343,14 +1343,15 @@ export default function SearchPage() {
                           w-full
                           items-center
                           gap-3
-                          rounded-xl
-                          bg-white
+                          rounded-2xl
+                          border border-slate-200/70
+                          bg-white/90
                           px-4
                           py-3
                           text-left
                           shadow-sm
-                          transition
-                          hover:bg-slate-50
+                          transition-all duration-200
+                          hover:-translate-y-0.5 hover:border-indigo-100 hover:bg-white hover:shadow-md
                         "
                       >
                         <FaClock
@@ -1390,8 +1391,8 @@ export default function SearchPage() {
 
             <div
               className="
-                mb-5
-                flex
+                mb-6
+                flex search-page-animate
                 flex-wrap
                 items-end
                 justify-between
@@ -1455,12 +1456,13 @@ export default function SearchPage() {
                       )
                     }
                     className="
-                      h-10
+                      h-11
                       appearance-none
-                      rounded-xl
+                      rounded-2xl
                       border
-                      border-slate-200
-                      bg-white
+                      border-slate-200/80
+                      bg-white/90
+                      shadow-sm
                       pl-3
                       pr-8
                       text-[9px]
@@ -1615,14 +1617,13 @@ export default function SearchPage() {
                                     w-full
                                     items-center
                                     justify-between
-                                    rounded-lg
-                                    px-2
-                                    py-2
+                                    rounded-xl
+                                    px-3 py-2.5
                                     text-left
-                                    text-[10px]
-                                    font-bold
-                                    text-slate-700
-                                    hover:bg-slate-50
+                                    text-[10px] font-bold text-slate-700
+                                    transition-all duration-200
+                                    hover:bg-indigo-50 hover:text-indigo-700
+                                    hover:translate-x-0.5
                                   "
                                 >
                                   {name}
@@ -1693,14 +1694,13 @@ export default function SearchPage() {
                                     w-full
                                     items-center
                                     justify-between
-                                    rounded-lg
-                                    px-2
-                                    py-2
+                                    rounded-xl
+                                    px-3 py-2.5
                                     text-left
-                                    text-[10px]
-                                    font-bold
-                                    text-slate-700
-                                    hover:bg-slate-50
+                                    text-[10px] font-bold text-slate-700
+                                    transition-all duration-200
+                                    hover:bg-indigo-50 hover:text-indigo-700
+                                    hover:translate-x-0.5
                                   "
                                 >
                                   {name}
@@ -1731,6 +1731,7 @@ export default function SearchPage() {
                       grid-cols-2
                       gap-3
                       sm:grid-cols-3
+                      sp-stagger
                       lg:grid-cols-4
                       xl:grid-cols-5
                     "
@@ -1764,11 +1765,12 @@ export default function SearchPage() {
                       flex-col
                       items-center
                       justify-center
-                      rounded-3xl
-                      border
-                      border-slate-200
-                      bg-white
+                      rounded-[2rem]
+                      border border-slate-200/80
+                      bg-white/92
                       px-6
+                      shadow-[0_18px_55px_rgba(15,23,42,.07)]
+                      sp-reveal
                       text-center
                     "
                   >
@@ -1779,9 +1781,11 @@ export default function SearchPage() {
                         w-16
                         items-center
                         justify-center
-                        rounded-2xl
-                        bg-slate-100
-                        text-slate-300
+                        rounded-3xl
+                        border border-indigo-100
+                        bg-indigo-50
+                        text-indigo-400
+                        transition-transform duration-500 hover:scale-105
                       "
                     >
                       <FaSearch

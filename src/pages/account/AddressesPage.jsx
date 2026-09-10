@@ -433,7 +433,7 @@ export default function AddressesPage() {
           gap: 7px;
           margin-bottom: 8px;
           color: #6366f1;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 850;
           letter-spacing: .1em;
           text-transform: uppercase;
@@ -473,7 +473,7 @@ export default function AddressesPage() {
           border: 0;
           cursor: pointer;
           font: inherit;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
           white-space: nowrap;
           transition:
@@ -555,13 +555,13 @@ export default function AddressesPage() {
         .address-summary-main strong {
           margin-bottom: 2px;
           color: #30313a;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 850;
         }
 
         .address-summary-main span {
           color: #8a8b96;
-          font-size: 10px;
+          font-size: 13px;
         }
 
         .address-summary-badge {
@@ -574,7 +574,7 @@ export default function AddressesPage() {
           border-radius: 999px;
           color: #087443;
           background: #f0fdf7;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 800;
         }
 
@@ -680,7 +680,7 @@ export default function AddressesPage() {
           border-radius: 999px;
           color: #087443;
           background: #effcf6;
-          font-size: 8px;
+          font-size: 11px;
           font-weight: 850;
           letter-spacing: .04em;
           text-transform: uppercase;
@@ -692,7 +692,7 @@ export default function AddressesPage() {
           flex-wrap: wrap;
           gap: 7px;
           color: #858691;
-          font-size: 10px;
+          font-size: 13px;
           line-height: 1.4;
         }
 
@@ -753,7 +753,7 @@ export default function AddressesPage() {
         .address-body p {
           margin: 1px 0 0;
           color: #555763;
-          font-size: 11px;
+          font-size: 14px;
           line-height: 1.65;
         }
 
@@ -774,7 +774,7 @@ export default function AddressesPage() {
           gap: 6px;
           min-width: 0;
           color: #858691;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 650;
         }
 
@@ -805,7 +805,7 @@ export default function AddressesPage() {
           border-radius: 9px;
           background: transparent;
           font: inherit;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 800;
           cursor: pointer;
           transition: all .16s ease;
@@ -894,7 +894,7 @@ export default function AddressesPage() {
 
         .address-empty-kicker {
           color: #6366f1;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 850;
           letter-spacing: .1em;
           text-transform: uppercase;
@@ -913,7 +913,7 @@ export default function AddressesPage() {
           max-width: 480px;
           margin: 0 auto 20px;
           color: #7b7c88;
-          font-size: 11px;
+          font-size: 14px;
           line-height: 1.7;
         }
 
@@ -942,7 +942,7 @@ export default function AddressesPage() {
           align-items: center;
           gap: 5px;
           color: #858691;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 700;
         }
 
@@ -982,14 +982,14 @@ export default function AddressesPage() {
           display: block;
           margin-bottom: 2px;
           color: #34423c;
-          font-size: 10px;
+          font-size: 13px;
           font-weight: 850;
         }
 
         .address-tip-copy p {
           margin: 0;
           color: #7f8a85;
-          font-size: 9px;
+          font-size: 12px;
         }
 
         .address-tip-arrow {
@@ -1135,7 +1135,7 @@ export default function AddressesPage() {
           }
 
           .address-hero p {
-            font-size: 11px;
+            font-size: 14px;
           }
 
           .address-hero-action {
@@ -1186,7 +1186,7 @@ export default function AddressesPage() {
           }
 
           .address-empty p {
-            font-size: 10.5px;
+            font-size: 12.5px;
           }
 
           .address-primary-btn {
@@ -1208,11 +1208,11 @@ export default function AddressesPage() {
           }
 
           .address-contact {
-            font-size: 9px;
+            font-size: 12px;
           }
 
           .address-body p {
-            font-size: 10px;
+            font-size: 13px;
           }
 
           .address-empty-points {
@@ -1220,10 +1220,145 @@ export default function AddressesPage() {
           }
 
           .address-empty-points span {
-            font-size: 8px;
+            font-size: 11px;
           }
         }
-      `}</style>
+        /* ============================================================
+           MOBILE APP TYPOGRAPHY — READABILITY
+        ============================================================ */
+        @media (max-width: 600px) {
+          .address-page,
+          .address-app { font-size: 15px; }
+
+          .address-eyebrow,
+          .header-eyebrow { font-size: 11px; }
+
+          .address-hero h1,
+          .header-content h1 {
+            font-size: 25px;
+            line-height: 1.2;
+          }
+
+          .address-hero p,
+          .header-content p {
+            font-size: 13px;
+            line-height: 1.5;
+          }
+
+          .address-hero-action,
+          .address-primary-btn,
+          .save-button,
+          .cancel-button {
+            min-height: 44px;
+            font-size: 13px;
+          }
+
+          .address-summary-main strong { font-size: 15px; }
+          .address-summary-main span { font-size: 12px; line-height: 1.4; }
+          .address-summary-badge { font-size: 11px; }
+
+          .address-title-row h2 { font-size: 16px; }
+          .address-default { font-size: 10px; }
+          .address-contact { font-size: 12px; }
+
+          .address-body p {
+            font-size: 14px;
+            line-height: 1.6;
+          }
+
+          .address-delivery-note { font-size: 11px; }
+
+          .address-action {
+            min-height: 38px;
+            padding: 0 11px;
+            font-size: 12px;
+          }
+
+          .address-empty-kicker { font-size: 11px; }
+          .address-empty h2 { font-size: 21px; }
+
+          .address-empty p {
+            font-size: 13px;
+            line-height: 1.6;
+          }
+
+          .address-empty-points span { font-size: 11px; }
+          .address-tip-copy strong { font-size: 13px; }
+
+          .address-tip-copy p {
+            font-size: 12px;
+            line-height: 1.5;
+          }
+
+          .pin-eyebrow { font-size: 10px; }
+
+          .pin-copy h2 {
+            font-size: 18px;
+            line-height: 1.3;
+          }
+
+          .pin-copy p {
+            font-size: 12px;
+            line-height: 1.45;
+          }
+
+          .location-success { font-size: 10px; }
+          .input-label { font-size: 13px; }
+          .pin-input { font-size: 18px; }
+          .pin-meta { font-size: 12px; }
+
+          .form-section h3,
+          .section-header h2 { font-size: 17px; }
+
+          .section-header p {
+            font-size: 12px;
+            line-height: 1.45;
+          }
+
+          .address-type strong { font-size: 14px; }
+          .address-type small { font-size: 11px; }
+
+          .field label,
+          .field .input-label { font-size: 13px; }
+
+          .input,
+          .field input,
+          .field select,
+          textarea {
+            min-height: 46px;
+            font-size: 15px;
+          }
+
+          .default-copy strong { font-size: 14px; }
+
+          .default-copy small {
+            font-size: 12px;
+            line-height: 1.45;
+          }
+
+          .secure-badge { font-size: 11px; }
+        }
+
+        @media (max-width: 390px) {
+          .address-hero h1,
+          .header-content h1 { font-size: 23px; }
+
+          .address-hero p,
+          .header-content p { font-size: 12px; }
+
+          .address-title-row h2 { font-size: 15px; }
+          .address-body p { font-size: 13px; }
+          .address-empty h2 { font-size: 20px; }
+          .pin-copy h2 { font-size: 17px; }
+
+          .input,
+          .field input,
+          .field select,
+          textarea { font-size: 14px; }
+        }
+
+      `}
+      </style>
     </AccountShell>
   );
 }

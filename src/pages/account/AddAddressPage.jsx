@@ -384,48 +384,10 @@ export function AddressForm({
       <div className="address-app">
 
         {/* ======================================================
-           HEADER
-        ====================================================== */}
-
-        <header className="address-header">
-
-          <button
-            type="button"
-            className="back-button"
-            onClick={() =>
-              navigate("/account/addresses")
-            }
-            aria-label="Go back"
-          >
-            <FaArrowLeft size={13} />
-          </button>
-
-          <div className="header-content">
-            <span className="header-eyebrow">
-              <span className="eyebrow-dot" />
-              DELIVERY ADDRESS
-            </span>
-
-            <h1>{title}</h1>
-
-            <p>
-              Add your location once and make checkout
-              faster .
-            </p>
-          </div>
-
-          <div className="secure-badge">
-            <FaShieldAlt size={11} />
-            <span>Secure</span>
-          </div>
-
-        </header>
-
-        {/* ======================================================
            MAIN CARD
         ====================================================== */}
 
-        <main className="address-card">
+        <main className="address-card mt-18">
 
           {/* ====================================================
              PIN HERO
@@ -980,15 +942,14 @@ export function AddressForm({
       ======================================================== */}
 
       <style>{`
-
-        * {
+        .address-app, .address-app * {
           box-sizing: border-box;
         }
 
         .address-app {
           width: 100%;
-          max-width: 960px;
-          margin: 0 auto;
+          max-width: none;
+          margin: 0;
           padding: 10px 0 40px;
           color: #18181b;
         }
@@ -998,10 +959,12 @@ export function AddressForm({
         ====================================================== */
 
         .address-header {
-          display: flex;
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
           align-items: center;
           gap: 15px;
-          margin-bottom: 18px;
+          width: 100%;
+          margin-bottom: 20px;
         }
 
         .back-button {
@@ -1036,7 +999,7 @@ export function AddressForm({
           gap: 7px;
           margin-bottom: 4px;
           color: #6366f1;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 900;
           letter-spacing: .12em;
         }
@@ -1053,7 +1016,7 @@ export function AddressForm({
         .header-content h1 {
           margin: 0 0 5px;
           color: #18181b;
-          font-size: clamp(23px, 3vw, 30px);
+          font-size: clamp(21px, 2.6vw, 27px);
           line-height: 1.15;
           font-weight: 850;
           letter-spacing: -.8px;
@@ -1062,7 +1025,7 @@ export function AddressForm({
         .header-content p {
           margin: 0;
           color: #8a8a93;
-          font-size: 11px;
+          font-size: 14px;
           line-height: 1.5;
         }
 
@@ -1075,7 +1038,7 @@ export function AddressForm({
           border-radius: 999px;
           color: #71717a;
           background: #fff;
-          font-size: 9px;
+          font-size: 12px;
           font-weight: 800;
         }
 
@@ -1084,12 +1047,12 @@ export function AddressForm({
         ====================================================== */
 
         .address-card {
-          overflow: hidden;
-          border: 1px solid #e8e8ed;
-          border-radius: 24px;
-          background: #fff;
-          box-shadow:
-            0 20px 60px rgba(20,20,45,.07);
+          width: 100%;
+          overflow: visible;
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          box-shadow: none;
         }
 
         /* ======================================================
@@ -1097,8 +1060,11 @@ export function AddressForm({
         ====================================================== */
 
         .pin-hero {
-          padding: 22px;
-          border-bottom: 1px solid #ededf1;
+          width: 100%;
+          padding: 24px 28px;
+          border: 1px solid #ededf1;
+          border-radius: 18px;
+
           background:
             radial-gradient(
               circle at 90% 0%,
@@ -1138,7 +1104,7 @@ export function AddressForm({
           display: block;
           margin-bottom: 3px;
           color: #6366f1;
-          font-size: 8px;
+          font-size: 11px;
           font-weight: 900;
           letter-spacing: .1em;
         }
@@ -1154,7 +1120,7 @@ export function AddressForm({
         .pin-copy p {
           margin: 0;
           color: #85858d;
-          font-size: 10px;
+          font-size: 13px;
         }
 
         .location-success {
@@ -1165,7 +1131,7 @@ export function AddressForm({
           border-radius: 999px;
           color: #059669;
           background: #ecfdf5;
-          font-size: 8px;
+          font-size: 11px;
           font-weight: 850;
         }
 
@@ -1177,7 +1143,7 @@ export function AddressForm({
           display: block;
           margin-bottom: 6px;
           color: #45454d;
-          font-size: 10px;
+          font-size: 13px;
           font-weight: 800;
         }
 
@@ -1271,7 +1237,7 @@ export function AddressForm({
           gap: 12px;
           margin-top: 8px;
           color: #8b8b94;
-          font-size: 8px;
+          font-size: 11px;
           font-weight: 700;
         }
 
@@ -1300,8 +1266,9 @@ export function AddressForm({
         ====================================================== */
 
         .form-section {
-          padding: 23px;
-          border-bottom: 1px solid #eeeeF2;
+          width: 100%;
+          padding: 28px 0;
+          border-bottom: 1px solid #eeeef2;
         }
 
         .section-header {
@@ -1321,7 +1288,7 @@ export function AddressForm({
           border-radius: 9px;
           color: #6366f1;
           background: #f7f6ff;
-          font-size: 8px;
+          font-size: 11px;
           font-weight: 900;
         }
 
@@ -1335,7 +1302,7 @@ export function AddressForm({
         .section-header p {
           margin: 0;
           color: #9999a1;
-          font-size: 9px;
+          font-size: 12px;
         }
 
         /* ======================================================
@@ -1402,14 +1369,14 @@ export function AddressForm({
           display: block;
           margin-bottom: 3px;
           color: #34343b;
-          font-size: 10px;
+          font-size: 13px;
           font-weight: 850;
         }
 
         .type-text small {
           display: block;
           color: #9999a2;
-          font-size: 8px;
+          font-size: 11px;
         }
 
         .type-selected {
@@ -1451,7 +1418,7 @@ export function AddressForm({
           background: #fff;
           color: #18181b;
           font-family: inherit;
-          font-size: 11px;
+          font-size: 14px;
           transition: all .17s ease;
         }
 
@@ -1508,7 +1475,7 @@ export function AddressForm({
           border-radius: 11px;
           color: #777780;
           background: #f8f8fa;
-          font-size: 10px;
+          font-size: 13px;
           font-weight: 750;
         }
 
@@ -1526,7 +1493,8 @@ export function AddressForm({
         ====================================================== */
 
         .default-section {
-          padding: 18px 23px;
+          width: 100%;
+          padding: 22px 0;
           background:
             linear-gradient(
               90deg,
@@ -1570,14 +1538,14 @@ export function AddressForm({
           display: block;
           margin-bottom: 3px;
           color: #34343b;
-          font-size: 10px;
+          font-size: 13px;
           font-weight: 850;
         }
 
         .default-copy small {
           display: block;
           color: #9999a1;
-          font-size: 8px;
+          font-size: 11px;
         }
 
         /* ======================================================
@@ -1588,8 +1556,8 @@ export function AddressForm({
           display: flex;
           justify-content: flex-end;
           gap: 9px;
-          padding: 18px 23px;
-          background: #fff;
+          padding: 22px 0 8px;
+          background: transparent;
         }
 
         .cancel-button,
@@ -1602,7 +1570,7 @@ export function AddressForm({
           padding: 0 18px;
           border-radius: 11px;
           font-family: inherit;
-          font-size: 10px;
+          font-size: 13px;
           font-weight: 850;
           cursor: pointer;
           transition: all .18s ease;
@@ -1621,7 +1589,7 @@ export function AddressForm({
         }
 
         .save-button {
-          min-width: 145px;
+          min-width: 138px;
           border: 1px solid #4f46e5;
           color: #fff;
           background: #4f46e5;
@@ -1653,6 +1621,59 @@ export function AddressForm({
           border-top-color: #fff;
           border-radius: 50%;
           animation: spin .65s linear infinite;
+        }
+
+        /* ======================================================
+           MODERN UI / UX POLISH
+        ====================================================== */
+
+        .address-app .field:focus-within .input-label {
+          color: #4f46e5;
+        }
+
+        .address-app .input::placeholder {
+          color: #a1a1aa;
+        }
+
+        .address-app .input:hover {
+          background: #fdfdff;
+        }
+
+        .address-app .address-type {
+          box-shadow: 0 2px 8px rgba(24,24,40,.025);
+        }
+
+        .address-app .address-type.active {
+          box-shadow:
+            0 0 0 3px rgba(99,102,241,.07),
+            0 8px 20px rgba(79,70,229,.07);
+        }
+
+        .address-app .default-card {
+          width: 100%;
+          padding: 13px 14px;
+          border: 1px solid #e7e7ec;
+          border-radius: 14px;
+          background: #fff;
+          transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+
+        .address-app .default-card:hover {
+          border-color: #d8d6fb;
+          background: #fcfcff;
+          box-shadow: 0 6px 18px rgba(24,24,40,.05);
+        }
+
+        .address-app .save-button {
+          background: linear-gradient(135deg, #5b52e8, #4f46e5);
+        }
+
+        .address-app .save-button svg {
+          transition: transform .18s ease;
+        }
+
+        .address-app .save-button:hover:not(:disabled) svg {
+          transform: translateY(-1px);
         }
 
         /* ======================================================
@@ -1742,7 +1763,7 @@ export function AddressForm({
 
           .header-content p {
             max-width: 270px;
-            font-size: 9px;
+            font-size: 12px;
           }
 
           .secure-badge {
@@ -1750,11 +1771,12 @@ export function AddressForm({
           }
 
           .address-card {
-            border-radius: 18px;
+            border-radius: 0;
           }
 
           .pin-hero {
-            padding: 17px 14px;
+            padding: 18px 14px;
+            border-radius: 14px;
           }
 
           .pin-icon {
@@ -1768,7 +1790,7 @@ export function AddressForm({
           }
 
           .pin-copy p {
-            font-size: 9px;
+            font-size: 12px;
           }
 
           .location-success {
@@ -1784,7 +1806,7 @@ export function AddressForm({
           }
 
           .form-section {
-            padding: 18px 14px;
+            padding: 20px 0;
           }
 
           .form-grid {
@@ -1797,7 +1819,7 @@ export function AddressForm({
           }
 
           .default-section {
-            padding: 15px 14px;
+            padding: 17px 0;
           }
 
           .form-actions {
@@ -1842,6 +1864,39 @@ export function AddressForm({
            SMALL MOBILE
         ====================================================== */
 
+        .field .input::placeholder {
+          color: #a1a1aa;
+        }
+
+        .field .input:disabled {
+          background: #f7f7f9;
+          cursor: not-allowed;
+        }
+
+        .address-type:active {
+          transform: translateY(0);
+        }
+
+        .default-card {
+          width: 100%;
+          padding: 14px 15px;
+          border: 1px solid #e7e7ec;
+          border-radius: 14px;
+          background: #fff;
+          transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+
+        .default-card:hover {
+          border-color: #d8d6fb;
+          background: #fcfcff;
+          box-shadow: 0 6px 18px rgba(24,24,40,.05);
+        }
+
+        .default-card input:focus-visible + .checkbox {
+          outline: 3px solid rgba(99,102,241,.16);
+          outline-offset: 2px;
+        }
+
         @media (max-width: 380px) {
 
           .header-content h1 {
@@ -1863,8 +1918,8 @@ export function AddressForm({
           }
 
           .form-section {
-            padding-left: 12px;
-            padding-right: 12px;
+            padding-left: 0;
+            padding-right: 0;
           }
 
           .section-number {
@@ -1874,7 +1929,142 @@ export function AddressForm({
 
         }
 
-      `}</style>
+        /* ============================================================
+           MOBILE APP TYPOGRAPHY — READABILITY
+        ============================================================ */
+        @media (max-width: 600px) {
+          .address-page,
+          .address-app { font-size: 15px; }
+
+          .address-eyebrow,
+          .header-eyebrow { font-size: 11px; }
+
+          .address-hero h1,
+          .header-content h1 {
+            font-size: 25px;
+            line-height: 1.2;
+          }
+
+          .address-hero p,
+          .header-content p {
+            font-size: 13px;
+            line-height: 1.5;
+          }
+
+          .address-hero-action,
+          .address-primary-btn,
+          .save-button,
+          .cancel-button {
+            min-height: 44px;
+            font-size: 13px;
+          }
+
+          .address-summary-main strong { font-size: 15px; }
+          .address-summary-main span { font-size: 12px; line-height: 1.4; }
+          .address-summary-badge { font-size: 11px; }
+
+          .address-title-row h2 { font-size: 16px; }
+          .address-default { font-size: 10px; }
+          .address-contact { font-size: 12px; }
+
+          .address-body p {
+            font-size: 14px;
+            line-height: 1.6;
+          }
+
+          .address-delivery-note { font-size: 11px; }
+
+          .address-action {
+            min-height: 38px;
+            padding: 0 11px;
+            font-size: 12px;
+          }
+
+          .address-empty-kicker { font-size: 11px; }
+          .address-empty h2 { font-size: 21px; }
+
+          .address-empty p {
+            font-size: 13px;
+            line-height: 1.6;
+          }
+
+          .address-empty-points span { font-size: 11px; }
+          .address-tip-copy strong { font-size: 13px; }
+
+          .address-tip-copy p {
+            font-size: 12px;
+            line-height: 1.5;
+          }
+
+          .pin-eyebrow { font-size: 10px; }
+
+          .pin-copy h2 {
+            font-size: 18px;
+            line-height: 1.3;
+          }
+
+          .pin-copy p {
+            font-size: 12px;
+            line-height: 1.45;
+          }
+
+          .location-success { font-size: 10px; }
+          .input-label { font-size: 13px; }
+          .pin-input { font-size: 18px; }
+          .pin-meta { font-size: 12px; }
+
+          .form-section h3,
+          .section-header h2 { font-size: 17px; }
+
+          .section-header p {
+            font-size: 12px;
+            line-height: 1.45;
+          }
+
+          .address-type strong { font-size: 14px; }
+          .address-type small { font-size: 11px; }
+
+          .field label,
+          .field .input-label { font-size: 13px; }
+
+          .input,
+          .field input,
+          .field select,
+          textarea {
+            min-height: 46px;
+            font-size: 15px;
+          }
+
+          .default-copy strong { font-size: 14px; }
+
+          .default-copy small {
+            font-size: 12px;
+            line-height: 1.45;
+          }
+
+          .secure-badge { font-size: 11px; }
+        }
+
+        @media (max-width: 390px) {
+          .address-hero h1,
+          .header-content h1 { font-size: 23px; }
+
+          .address-hero p,
+          .header-content p { font-size: 12px; }
+
+          .address-title-row h2 { font-size: 15px; }
+          .address-body p { font-size: 13px; }
+          .address-empty h2 { font-size: 20px; }
+          .pin-copy h2 { font-size: 17px; }
+
+          .input,
+          .field input,
+          .field select,
+          textarea { font-size: 14px; }
+        }
+
+      `}
+      </style>
     </AccountShell>
   );
 }

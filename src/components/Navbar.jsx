@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 
 import {
@@ -311,8 +310,6 @@ export default function Navbar({
     onClose,
   } = useDisclosure();
 
-  const [mobileOpen, setMobileOpen] =
-    useState(false);
 
   const [showNav, setShowNav] =
     useState(true);
@@ -480,23 +477,6 @@ export default function Navbar({
         fn
       );
   }, []);
-
-
-  /* =====================================================
-     LOCK BODY WHEN MOBILE DRAWER OPEN
-  ===================================================== */
-
-  useEffect(() => {
-    document.body.style.overflow =
-      mobileOpen
-        ? "hidden"
-        : "";
-
-    return () => {
-      document.body.style.overflow =
-        "";
-    };
-  }, [mobileOpen]);
 
 
   /* =====================================================
@@ -1255,6 +1235,42 @@ export default function Navbar({
 
   return (
     <>
+      <style>{`
+        @keyframes odikartNavIn {
+          from { opacity: 0; transform: translateY(-14px) scale(.985); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes odikartGlow {
+          0%, 100% { opacity: .35; transform: scale(.9); }
+          50% { opacity: .8; transform: scale(1.05); }
+        }
+        @keyframes odikartDockIn {
+          from { opacity: 0; transform: translateY(22px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes odikartSearchFocus {
+          0%, 100% { box-shadow: 0 8px 25px rgba(15,23,42,.05); }
+          50% { box-shadow: 0 14px 38px rgba(79,70,229,.12); }
+        }
+        .odikart-navbar-shell { animation: odikartNavIn .45s cubic-bezier(.22,1,.36,1) both; }
+        .odikart-search:hover { animation: odikartSearchFocus 1.6s ease-in-out infinite; }
+        .odikart-location-dot::after {
+          content: ''; position: absolute; inset: -4px; border-radius: 9999px;
+          background: rgba(99,102,241,.16); animation: odikartGlow 2s ease-in-out infinite;
+          pointer-events: none;
+        }
+        .odikart-icon-btn { transition: transform .22s cubic-bezier(.22,1,.36,1), background .22s ease, box-shadow .22s ease; }
+        .odikart-icon-btn:hover { transform: translateY(-2px) scale(1.035); box-shadow: 0 10px 22px rgba(79,70,229,.10); }
+        .odikart-icon-btn:active { transform: translateY(0) scale(.96); }
+        .odikart-bottom-dock { animation: odikartDockIn .5s cubic-bezier(.22,1,.36,1) .08s both; }
+        .odikart-bottom-item { transition: transform .22s cubic-bezier(.22,1,.36,1), color .2s ease; }
+        .odikart-bottom-item:hover { transform: translateY(-3px); }
+        .odikart-bottom-item:active { transform: scale(.94); }
+        @media (prefers-reduced-motion: reduce) {
+          .odikart-navbar-shell, .odikart-search, .odikart-bottom-dock, .odikart-location-dot::after { animation: none !important; transition: none !important; }
+        }
+      `}</style>
+
       {/* =================================================
           SEARCH OVERLAY
       ================================================= */}
@@ -1315,7 +1331,7 @@ export default function Navbar({
                       false
                     )
                   }
-                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                  className="odikart-icon-btn relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 hover:bg-indigo-50 hover:text-indigo-600"
                 >
                   <X size={16} />
                 </button>
@@ -1448,20 +1464,6 @@ export default function Navbar({
 
 
       {/* =================================================
-          MOBILE OVERLAY
-      ================================================= */}
-
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-slate-950/45 backdrop-blur-[2px]"
-          onClick={() =>
-            setMobileOpen(false)
-          }
-        />
-      )}
-
-
-      {/* =================================================
           NAVBAR
       ================================================= */}
 
@@ -1473,12 +1475,13 @@ export default function Navbar({
         }`}
       >
         <div
-          className={`mx-auto flex min-h-[64px] max-w-7xl items-center justify-between gap-3 rounded-2xl border px-3.5 shadow-sm backdrop-blur-xl transition-all duration-300 sm:px-4 ${
+          className={`mx-auto flex min-h-[66px] max-w-7xl items-center justify-between gap-3 rounded-[20px] border px-3.5 shadow-sm backdrop-blur-xl transition-all duration-300 sm:px-4 ${
             scrolled
               ? "border-indigo-100/80 bg-white/95 shadow-[0_12px_35px_rgba(15,23,42,0.09)]"
               : "border-slate-200/70 bg-white/90 shadow-[0_8px_25px_rgba(15,23,42,0.06)]"
           }`}
         >
+          <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-indigo-400/70 to-transparent" />
 
           {/* =================================================
               LOGO + LOCATION
@@ -1487,12 +1490,12 @@ export default function Navbar({
           <div className="flex min-w-0 items-center gap-1 sm:gap-3">
             <Link
               to="/"
-              className="flex h-12 w-21 shrink-0 items-center justify-center overflow-hidden md:hidden"
+              className="group flex h-12 w-[76px] shrink-0 items-center justify-center overflow-hidden md:hidden"
             >
               <img
                 src="/logo.png"
                 alt="Logo"
-                className=" w-auto object-contain"
+                className="w-auto object-contain transition-transform duration-300 group-hover:scale-105 "
               />
             </Link>
 
@@ -1503,7 +1506,7 @@ export default function Navbar({
               <img
                 src="/logo.png"
                 alt="Logo"
-                className="h-9 w-auto object-contain"
+                className="h-12 w-auto object-contain"
               />
             </Link>
 
@@ -1514,9 +1517,9 @@ export default function Navbar({
                 e.stopPropagation();
                 onOpen();
               }}
-              className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-indigo-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:shadow-md sm:w-auto sm:max-w-[260px] sm:gap-2 sm:rounded-xl sm:bg-slate-50/80 sm:px-3"
+              className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-indigo-600 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:shadow-lg sm:w-auto sm:max-w-[260px] sm:gap-2 sm:rounded-xl sm:bg-slate-50/80 sm:px-3"
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 transition group-hover:bg-white">
+              <span className="odikart-location-dot relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 transition group-hover:bg-white">
                 <MapPinned
                   size={16}
                 />
@@ -1541,7 +1544,7 @@ export default function Navbar({
           <div className="hidden max-w-[480px] flex-1 md:flex">
             <button
               onClick={openSearchPage}
-              className="group flex h-12 w-full items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-3.5 text-left text-slate-500 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:shadow-md hover:shadow-indigo-500/5 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+              className="odikart-search group flex h-12 w-full items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/95 px-3.5 text-left text-slate-500 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-100">
                 <Search
@@ -1602,7 +1605,7 @@ export default function Navbar({
 
             <Link
               to="/cart"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+              className="odikart-icon-btn relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 hover:bg-indigo-50 hover:text-indigo-600"
             >
               <ShoppingCart
                 size={19}
@@ -1642,7 +1645,7 @@ export default function Navbar({
                       "/sign-in"
                     )
                   }
-                  className="flex h-10 items-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-4 text-xs font-extrabold text-indigo-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-100 hover:shadow-md"
+                  className="group flex h-10 items-center gap-2 rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-violet-50 px-4 text-xs font-extrabold text-indigo-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg"
                 >
                   <User
                     size={15}
@@ -1652,21 +1655,19 @@ export default function Navbar({
               ) : (
                 <Dropdown placement="bottom-end">
                   <DropdownTrigger>
-                    <button className="group flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50">
+                    <button className="group flex h-10 items-center gap-2 rounded-full border border-slate-200/90 bg-white/95 py-1 pl-1 pr-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:shadow-md">
                       <img
                         src={
                           authUser?.image
                         }
                         alt={
-                          authUser?.name
+                          `${authUser?.firstName || ""} ${authUser?.lastName || ""}`.trim() || "Profile"
                         }
                         className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
                       />
 
-                      <span className="hidden text-xs font-semibold text-slate-900 lg:block">
-                        {
-                          authUser.name
-                        }
+                      <span className="hidden max-w-[110px] truncate text-xs font-bold text-slate-900 lg:block">
+                        {authUser?.firstName || "Account"}
                       </span>
 
                       <ChevronDown
@@ -1707,7 +1708,7 @@ export default function Navbar({
                         />
                       }
                     >
-                      Profile
+                     Account
                     </DropdownItem>
 
                     <DropdownItem
@@ -1774,10 +1775,10 @@ export default function Navbar({
               MOBILE RIGHT
           ================================================= */}
 
-          <div className="flex flex-1 items-center justify-end gap-2 sm:hidden">
+          <div className="flex flex-1 items-center justify-end gap-1 sm:hidden">
             <button
               onClick={openSearchPage}
-              className="flex h-11 min-w-0 max-w-[170px] flex-1 items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white px-3 text-left shadow-sm transition-all duration-200 hover:border-indigo-200 hover:bg-indigo-50/50 hover:shadow-md"
+              className="odikart-search flex h-9 min-w-0 flex-1 items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/95 px-3 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200"
             >
               <span className="shrink-0 text-indigo-600">
                 <Search
@@ -2424,218 +2425,11 @@ export default function Navbar({
 
 
       {/* =================================================
-          MOBILE DRAWER
-      ================================================= */}
-
-      <aside
-        className={`fixed left-0 top-0 z-50 h-full w-[290px] border-r border-slate-200 bg-white shadow-[20px_0_55px_rgba(15,23,42,0.14)] transition-transform duration-300 ease-out ${
-          mobileOpen
-            ? "translate-x-0"
-            : "-translate-x-full"
-        }`}
-      >
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-          <Link
-            to="/"
-            className="flex items-center gap-2"
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600">
-              <span className="text-sm font-bold text-white">
-                E
-              </span>
-            </div>
-
-            <span className="text-lg font-bold text-slate-900">
-              Odikart
-            </span>
-          </Link>
-
-          <button
-            onClick={() =>
-              setMobileOpen(
-                false
-              )
-            }
-            className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-
-        {/* MOBILE LOCATION */}
-
-        <div className="px-4 pt-4">
-          <button
-            onClick={() => {
-              onOpen();
-              setMobileOpen(
-                false
-              );
-            }}
-            className="flex w-full min-w-0 items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-left text-sm text-slate-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
-          >
-            <MapPinned
-              size={15}
-              className="mt-0.5 shrink-0"
-            />
-
-            <span className="min-w-0 flex-1 break-words text-xs font-semibold leading-5">
-              {locationLabel}
-            </span>
-
-            <ChevronDown
-              size={13}
-              className="mt-1 shrink-0"
-            />
-          </button>
-
-          {selectedLocation?.latitude !==
-              undefined &&
-            selectedLocation?.longitude !==
-              undefined && (
-              <p className="mt-1 px-1 text-[9px] text-slate-400">
-                {Number(
-                  selectedLocation.latitude
-                ).toFixed(
-                  6
-                )}
-                ,{" "}
-                {Number(
-                  selectedLocation.longitude
-                ).toFixed(
-                  6
-                )}
-              </p>
-            )}
-        </div>
-
-
-        {/* MOBILE NAV */}
-
-        <nav className="space-y-1 px-4 pt-4">
-          {[
-            {
-              name: "Home",
-              path: "/",
-              icon: (
-                <Home
-                  size={17}
-                />
-              ),
-            },
-            {
-              name: "Orders",
-              path: "/order-history",
-              icon: (
-                <ShoppingCart
-                  size={17}
-                />
-              ),
-            },
-            {
-              name: "Track order",
-              path: "/track-order",
-              icon: (
-                <Truck
-                  size={17}
-                />
-              ),
-            },
-          ].map(
-            ({
-              name,
-              path,
-              icon,
-            }) => (
-              <NavLink
-                key={path}
-                to={path}
-                onClick={() =>
-                  setMobileOpen(
-                    false
-                  )
-                }
-                className={({
-                  isActive,
-                }) =>
-                  `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${
-                    isActive
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
-                  }`
-                }
-              >
-                {icon}
-                {name}
-              </NavLink>
-            )
-          )}
-        </nav>
-
-
-        {/* MOBILE BOTTOM ACTIONS */}
-
-        <div className="absolute bottom-6 left-4 right-4 flex gap-3">
-          <Link
-            to="/cart"
-            onClick={() =>
-              setMobileOpen(
-                false
-              )
-            }
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3 text-sm font-extrabold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5"
-          >
-            <ShoppingCart
-              size={15}
-            />
-
-            Cart
-
-            {cartItem.length >
-              0 && (
-              <span className="rounded-full bg-white/25 px-1.5 py-0.5 text-[10px] font-bold">
-                {
-                  cartItem.length
-                }
-              </span>
-            )}
-          </Link>
-
-          <Link
-            to="/wishlist"
-            onClick={() =>
-              setMobileOpen(
-                false
-              )
-            }
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-indigo-50 py-3 text-sm font-extrabold text-indigo-700 transition hover:-translate-y-0.5 hover:bg-indigo-100"
-          >
-            <Heart
-              size={15}
-            />
-
-            Wishlist
-
-            {wishlist.length >
-              0 && (
-              <span className="rounded-full bg-white/60 px-1.5 py-0.5 text-[10px] font-bold">
-                {
-                  wishlist.length
-                }
-              </span>
-            )}
-          </Link>
-        </div>
-      </aside>
-
-
-      {/* =================================================
           MOBILE BOTTOM NAV
       ================================================= */}
 
       <div
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 shadow-[0_-10px_30px_rgba(15,23,42,0.07)] backdrop-blur-xl sm:hidden"
+        className="fixed inset-x-2 bottom-2 z-40 rounded-[24px] border border-white/80 bg-white/90 shadow-[0_12px_45px_rgba(15,23,42,0.16)] backdrop-blur-2xl sm:hidden odikart-bottom-dock"
         style={{
           transform:
             showNav
@@ -2646,7 +2440,7 @@ export default function Navbar({
             "transform 0.3s ease",
         }}
       >
-        <div className="flex items-center justify-around px-1 py-2">
+        <div className="flex items-center justify-around gap-1 px-1.5 py-2">
           {BOTTOM_LINKS.map(
             ({
               name,
@@ -2659,7 +2453,7 @@ export default function Navbar({
                 className={({
                   isActive,
                 }) =>
-                  `flex min-w-[55px] flex-col items-center gap-1 text-[9px] font-bold transition ${
+                  `odikart-bottom-item relative flex min-w-[55px] flex-col items-center gap-1 text-[9px] font-bold ${
                     isActive
                       ? "text-indigo-700"
                       : "text-slate-500"
@@ -2667,11 +2461,11 @@ export default function Navbar({
                 }
               >
                 <span
-                  className={`flex h-7 w-12 items-center justify-center rounded-full ${
+                  className={`flex h-8 w-12 items-center justify-center rounded-2xl transition-all duration-300 ${
                     routerLocation.pathname ===
                     path
-                      ? "bg-indigo-50"
-                      : ""
+                      ? "bg-indigo-50 text-indigo-700 shadow-sm"
+                      : "text-slate-500"
                   }`}
                 >
                   <Icon
@@ -2692,14 +2486,14 @@ export default function Navbar({
                   : "/sign-in"
               )
             }
-            className={`flex min-w-[55px] flex-col items-center gap-1 text-[9px] font-bold transition ${
+            className={`odikart-bottom-item flex min-w-[55px] flex-col items-center gap-1 text-[9px] font-bold ${
               routerLocation.pathname ===
               "/profile"
                 ? "text-indigo-700"
                 : "text-slate-500"
             }`}
           >
-            <span className="flex h-7 w-12 items-center justify-center rounded-full">
+            <span className="flex h-8 w-12 items-center justify-center rounded-2xl transition-all duration-300">
               {authUser?.image ? (
                 <img
                   src={
@@ -2715,7 +2509,7 @@ export default function Navbar({
               )}
             </span>
 
-            Profile
+           Account
           </button>
         </div>
       </div>

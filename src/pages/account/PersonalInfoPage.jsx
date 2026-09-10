@@ -17,7 +17,7 @@ import {
 } from "react-icons/fa";
 
 import { MdVerified } from "react-icons/md";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import {
   AccountShell,
@@ -394,9 +394,7 @@ export default function PersonalInfoPage() {
         fileInputRef.current.value = "";
       }
 
-      toast.success(
-        "Profile updated successfully"
-      );
+      toast.success("Profile updated successfully");
     } catch (error) {
       console.error(
         "Profile update error:",
@@ -421,7 +419,9 @@ export default function PersonalInfoPage() {
       <AccountShell
         title="Personal information"
       >
-      <Spinner/>
+      <div className="pi-loading">
+        <Spinner />
+      </div>
       </AccountShell>
     );
   }
@@ -783,26 +783,37 @@ export default function PersonalInfoPage() {
 
         <div className="pi-save-container">
 
-          <button
-            type="button"
-            className="pi-save-button"
-            disabled={saving}
-            onClick={save}
-          >
+          <div className="pi-save-bar">
+            <div className="pi-save-status">
+              <div className="pi-save-status-icon">
+                <FaShieldAlt size={11} />
+              </div>
 
-            {saving ? (
-              <>
-                <span className="pi-button-spinner" />
-                Saving changes...
-              </>
-            ) : (
-              <>
-                <FaSave />
-                Save changes
-              </>
-            )}
+              <div>
+                <strong>Profile settings</strong>
+                <span>Your changes are saved securely.</span>
+              </div>
+            </div>
 
-          </button>
+            <button
+              type="button"
+              className="pi-save-button"
+              disabled={saving}
+              onClick={save}
+            >
+              {saving ? (
+                <>
+                  <span className="pi-button-spinner" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <FaSave />
+                  Save changes
+                </>
+              )}
+            </button>
+          </div>
 
         </div>
 
@@ -815,172 +826,120 @@ export default function PersonalInfoPage() {
       <style>{`
 
         /* =====================================================
-           PAGE
+           PERSONAL INFORMATION — MODERN UI
         ===================================================== */
 
         .pi-page {
           width: 100%;
-          max-width: 920px;
+          max-width: 1180px;
           margin: 0 auto;
-          padding: 20px 0 40px;
+          padding: 8px 0 120px;
+          box-sizing: border-box;
         }
 
-        /* =====================================================
-           HERO
-        ===================================================== */
-
+        /* HERO */
         .pi-hero {
           position: relative;
           overflow: hidden;
-
-          min-height: 210px;
-
-          border-radius: 24px;
-
+          min-height: 188px;
+          border: 1px solid rgba(255,255,255,.12);
+          border-radius: 22px;
           background:
-            linear-gradient(
-              135deg,
-              #111827 0%,
-              #1e1b4b 48%,
-              #312e81 100%
-            );
-
-          box-shadow:
-            0 20px 50px
-            rgba(15, 23, 42, 0.16);
+            radial-gradient(circle at 88% 18%, rgba(129,140,248,.32), transparent 30%),
+            radial-gradient(circle at 18% 120%, rgba(59,130,246,.18), transparent 34%),
+            linear-gradient(135deg, #0f172a 0%, #1e1b4b 52%, #312e81 100%);
+          box-shadow: 0 18px 45px rgba(15,23,42,.14);
         }
 
         .pi-hero-glow {
           position: absolute;
-
-          width: 240px;
-          height: 240px;
-
+          width: 190px;
+          height: 190px;
           border-radius: 50%;
-
-          filter: blur(55px);
-
+          filter: blur(48px);
           pointer-events: none;
+          opacity: .55;
         }
 
         .pi-glow-one {
-          top: -140px;
-          right: -40px;
-
-          background:
-            rgba(99, 102, 241, 0.38);
+          top: -125px;
+          right: -25px;
+          background: rgba(99,102,241,.38);
         }
 
         .pi-glow-two {
-          bottom: -160px;
-          left: 10%;
-
-          background:
-            rgba(59, 130, 246, 0.25);
+          bottom: -135px;
+          left: 12%;
+          background: rgba(59,130,246,.20);
         }
 
         .pi-hero-content {
           position: relative;
           z-index: 2;
-
           display: flex;
           align-items: center;
-
-          gap: 24px;
-
-          min-height: 210px;
-
-          padding: 30px;
+          gap: 22px;
+          min-height: 188px;
+          padding: 28px;
+          box-sizing: border-box;
         }
 
-        /* =====================================================
-           AVATAR
-        ===================================================== */
-
+        /* AVATAR */
         .pi-avatar-container {
           position: relative;
           flex-shrink: 0;
         }
 
         .pi-avatar-ring {
-          width: 112px;
-          height: 112px;
-
+          width: 102px;
+          height: 102px;
           padding: 4px;
-
           border-radius: 50%;
-
-          background:
-            rgba(255, 255, 255, 0.35);
-
-          box-shadow:
-            0 12px 30px
-            rgba(0, 0, 0, 0.25);
+          background: linear-gradient(135deg, rgba(255,255,255,.72), rgba(255,255,255,.22));
+          box-shadow: 0 12px 30px rgba(0,0,0,.24);
+          box-sizing: border-box;
         }
 
         .pi-avatar {
           width: 100%;
           height: 100%;
-
           display: block;
-
           object-fit: cover;
-
           border-radius: 50%;
-
-          border:
-            4px solid
-            rgba(255, 255, 255, 0.95);
-
+          border: 4px solid rgba(255,255,255,.96);
           background: #f1f5f9;
+          box-sizing: border-box;
         }
-
-        /* =====================================================
-           CAMERA
-        ===================================================== */
 
         .pi-camera-button {
           position: absolute;
-
-          right: 2px;
-          bottom: 2px;
-
-          width: 38px;
-          height: 38px;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          border:
-            3px solid white;
-
+          right: 0;
+          bottom: 0;
+          width: 36px;
+          height: 36px;
+          display: grid;
+          place-items: center;
+          border: 3px solid #fff;
           border-radius: 50%;
-
-          background: #4f46e5;
-
-          color: white;
-
+          background: linear-gradient(135deg,#6366f1,#4f46e5);
+          color: #fff;
           cursor: pointer;
-
-          box-shadow:
-            0 5px 15px
-            rgba(0, 0, 0, 0.2);
-
-          transition:
-            transform 0.2s ease,
-            background 0.2s ease;
+          box-shadow: 0 7px 18px rgba(0,0,0,.20);
+          transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
         }
 
         .pi-camera-button:hover {
-          transform: scale(1.08);
-          background: #4338ca;
+          transform: scale(1.07);
+          filter: brightness(1.04);
+          box-shadow: 0 9px 22px rgba(79,70,229,.32);
         }
 
-        /* =====================================================
-           USER INFO
-        ===================================================== */
+        .pi-camera-button:focus-visible {
+          outline: 3px solid rgba(165,180,252,.55);
+          outline-offset: 2px;
+        }
 
+        /* USER INFO */
         .pi-user-info {
           min-width: 0;
         }
@@ -988,271 +947,184 @@ export default function PersonalInfoPage() {
         .pi-name-row {
           display: flex;
           align-items: center;
-
           gap: 8px;
-
           flex-wrap: wrap;
         }
 
         .pi-name-row h1 {
           margin: 0;
-
-          color: white;
-
-          font-size: 27px;
-          line-height: 1.2;
-
+          color: #fff;
+          font-size: clamp(22px, 2.5vw, 28px);
+          line-height: 1.18;
           font-weight: 800;
-
-          letter-spacing: -0.5px;
+          letter-spacing: -.035em;
         }
 
         .pi-verified {
           color: #60a5fa;
-          font-size: 24px;
+          font-size: 23px;
+          filter: drop-shadow(0 2px 5px rgba(96,165,250,.22));
         }
 
         .pi-email {
-          margin:
-            7px 0 12px;
-
-          color:
-            rgba(255, 255, 255, 0.72);
-
-          font-size: 14px;
-
+          max-width: 620px;
+          margin: 7px 0 12px;
+          color: rgba(255,255,255,.70);
+          font-size: 13px;
           overflow-wrap: anywhere;
         }
 
         .pi-member-badge {
           display: inline-flex;
           align-items: center;
-
           gap: 6px;
-
-          padding:
-            6px 10px;
-
-          border:
-            1px solid
-            rgba(255,255,255,0.15);
-
+          min-height: 25px;
+          padding: 0 10px;
+          border: 1px solid rgba(255,255,255,.14);
           border-radius: 999px;
-
-          background:
-            rgba(255,255,255,0.1);
-
-          color:
-            rgba(255,255,255,0.9);
-
-          font-size: 11px;
-          font-weight: 700;
+          background: rgba(255,255,255,.09);
+          color: rgba(255,255,255,.90);
+          font-size: 10.5px;
+          font-weight: 750;
+          backdrop-filter: blur(8px);
         }
 
-        /* =====================================================
-           PHOTO SECTION
-        ===================================================== */
-
+        /* PHOTO TOOLBAR */
         .pi-photo-section {
           display: flex;
           align-items: center;
           justify-content: space-between;
-
-          gap: 20px;
-
-          margin-top: 16px;
-
-          padding:
-            18px 20px;
-
-          border:
-            1px solid #e5e7eb;
-
-          border-radius: 18px;
-
-          background: white;
+          gap: 18px;
+          margin-top: 14px;
+          padding: 15px 17px;
+          border: 1px solid #e8ebf0;
+          border-radius: 16px;
+          background: #fff;
+          box-shadow: 0 4px 16px rgba(15,23,42,.035);
+          box-sizing: border-box;
         }
 
         .pi-photo-section h3 {
           margin: 0;
-
           color: #111827;
-
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 800;
         }
 
         .pi-photo-section p {
-          margin:
-            4px 0 0;
-
-          color: #6b7280;
-
-          font-size: 12px;
-          line-height: 1.5;
+          margin: 3px 0 0;
+          color: #8a909c;
+          font-size: 11px;
+          line-height: 1.45;
         }
 
         .pi-photo-actions {
           display: flex;
           align-items: center;
-
-          gap: 8px;
-
+          gap: 7px;
           flex-shrink: 0;
         }
 
         .pi-outline-button,
         .pi-remove-button {
+          min-height: 36px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-
           gap: 7px;
-
-          min-height: 38px;
-
-          padding:
-            0 13px;
-
+          padding: 0 12px;
           border-radius: 10px;
-
-          font-size: 12px;
-          font-weight: 700;
-
+          font-family: inherit;
+          font-size: 11.5px;
+          font-weight: 750;
           cursor: pointer;
-
-          transition:
-            all 0.2s ease;
+          transition: .18s ease;
+          box-sizing: border-box;
         }
 
         .pi-outline-button {
-          border:
-            1px solid #dbe1ea;
-
-          background: white;
-
+          border: 1px solid #dfe3ea;
+          background: #fff;
           color: #374151;
         }
 
         .pi-outline-button:hover {
           border-color: #a5b4fc;
-
-          background: #eef2ff;
-
-          color: #4338ca;
+          background: #f5f3ff;
+          color: #4f46e5;
+          transform: translateY(-1px);
         }
 
         .pi-remove-button {
-          border:
-            1px solid #fecaca;
-
-          background: #fff5f5;
-
+          border: 1px solid #fecaca;
+          background: #fff7f7;
           color: #dc2626;
         }
 
         .pi-remove-button:hover {
           background: #fee2e2;
+          transform: translateY(-1px);
         }
 
-        /* =====================================================
-           CARD
-        ===================================================== */
-
+        /* CARDS */
         .pi-card {
-          margin-top: 16px;
-
-          padding: 22px;
-
-          border:
-            1px solid #e5e7eb;
-
-          border-radius: 20px;
-
-          background: white;
-
-          box-shadow:
-            0 5px 20px
-            rgba(15, 23, 42, 0.035);
+          margin-top: 14px;
+          padding: 20px;
+          border: 1px solid #e8ebf0;
+          border-radius: 18px;
+          background: #fff;
+          box-shadow: 0 5px 20px rgba(15,23,42,.035);
+          box-sizing: border-box;
         }
 
         .pi-card-header {
           display: flex;
           align-items: center;
-
-          gap: 13px;
+          gap: 12px;
         }
 
         .pi-card-icon {
-          width: 42px;
-          height: 42px;
-
+          width: 40px;
+          height: 40px;
           flex-shrink: 0;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          border-radius: 12px;
-
-          background: #eef2ff;
-
+          display: grid;
+          place-items: center;
+          border-radius: 11px;
+          background: linear-gradient(135deg,#eef2ff,#e0e7ff);
           color: #4f46e5;
-
-          font-size: 15px;
+          font-size: 14px;
         }
 
         .pi-card-header h2 {
           margin: 0;
-
           color: #111827;
-
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 800;
+          letter-spacing: -.01em;
         }
 
         .pi-card-header p {
-          margin:
-            3px 0 0;
-
-          color: #737373;
-
-          font-size: 12px;
-
-          line-height: 1.5;
+          margin: 3px 0 0;
+          color: #8a909c;
+          font-size: 11px;
+          line-height: 1.45;
         }
 
         .pi-divider {
           height: 1px;
-
-          margin:
-            20px 0;
-
-          background: #f0f0f0;
+          margin: 17px 0;
+          background: #eef0f4;
         }
-
-        /* =====================================================
-           FORM GRID
-        ===================================================== */
 
         .pi-form-grid {
           display: grid;
-
-          grid-template-columns:
-            repeat(
-              2,
-              minmax(0, 1fr)
-            );
-
-          gap: 16px;
+          grid-template-columns: repeat(2,minmax(0,1fr));
+          gap: 15px;
         }
 
-        /* =====================================================
-           FIELD
-        ===================================================== */
-
+        /* FIELDS */
         .pi-field {
-          margin-bottom: 17px;
+          margin-bottom: 15px;
         }
 
         .pi-field:last-child {
@@ -1263,12 +1135,9 @@ export default function PersonalInfoPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-
-          margin-bottom: 7px;
-
+          margin-bottom: 6px;
           color: #374151;
-
-          font-size: 12px;
+          font-size: 11.5px;
           font-weight: 750;
         }
 
@@ -1282,370 +1151,258 @@ export default function PersonalInfoPage() {
 
         .pi-field-icon {
           position: absolute;
-
-          left: 14px;
+          left: 13px;
           top: 50%;
-
-          transform:
-            translateY(-50%);
-
-          color: #9ca3af;
-
-          font-size: 12px;
-
+          transform: translateY(-50%);
+          color: #a0a6b1;
+          font-size: 11px;
           pointer-events: none;
-
           z-index: 2;
+          transition: color .18s ease;
+        }
+
+        .pi-field-wrapper:focus-within .pi-field-icon {
+          color: #6366f1;
         }
 
         .pi-input {
           width: 100%;
-          height: 46px;
-
-          padding:
-            0 42px;
-
-          border:
-            1px solid #e5e7eb;
-
-          border-radius: 12px;
-
+          height: 44px;
+          padding: 0 40px;
+          border: 1px solid #e4e7ec;
+          border-radius: 11px;
           outline: none;
-
-          background: #fafafa;
-
+          background: #fafbfc;
           color: #111827;
-
-          font-size: 13px;
-
-          transition:
-            border-color 0.2s ease,
-            background 0.2s ease,
-            box-shadow 0.2s ease;
+          font-family: inherit;
+          font-size: 12.5px;
+          box-sizing: border-box;
+          transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
         }
 
         .pi-input::placeholder {
-          color: #b0b5bd;
+          color: #b3b8c1;
         }
 
         .pi-input:hover {
-          border-color: #d1d5db;
-          background: white;
+          border-color: #d2d6de;
+          background: #fff;
         }
 
         .pi-input:focus {
           border-color: #6366f1;
-
-          background: white;
-
-          box-shadow:
-            0 0 0 4px
-            rgba(99, 102, 241, 0.09);
+          background: #fff;
+          box-shadow: 0 0 0 3px rgba(99,102,241,.09);
         }
 
-        .pi-input:disabled {
-          color: #6b7280;
-
-          background:
-            linear-gradient(
-              135deg,
-              #f5f5f5,
-              #f8fafc
-            );
-
-          border-color:
-            #e5e7eb;
-
+        .pi-input:disabled,
+        .pi-locked-field {
+          color: #6b7280 !important;
+          background: #f5f6f8 !important;
+          border-color: #e7e9ed !important;
           cursor: not-allowed;
         }
 
-        .pi-locked-field {
-          background:
-            #f3f4f6 !important;
-
-          color:
-            #6b7280 !important;
+        .pi-lock-icon,
+        .pi-verified-field {
+          position: absolute;
+          right: 13px;
+          top: 50%;
+          transform: translateY(-50%);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
         }
 
         .pi-lock-icon {
-          position: absolute;
-
-          right: 14px;
-          top: 50%;
-
-          transform:
-            translateY(-50%);
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
           color: #9ca3af;
-
           font-size: 10px;
-
-          pointer-events: none;
         }
 
         .pi-verified-field {
-          position: absolute;
-
-          right: 14px;
-          top: 50%;
-
-          transform:
-            translateY(-50%);
-
-          display: flex;
-          align-items: center;
-
           gap: 4px;
-
           color: #16a34a;
-
-          font-size: 10px;
-          font-weight: 700;
-
-          pointer-events: none;
+          font-size: 9.5px;
+          font-weight: 750;
         }
 
         .pi-field-helper {
-          margin-top: 6px;
-
-          color: #9ca3af;
-
-          font-size: 10.5px;
-
+          margin-top: 5px;
+          color: #9aa0aa;
+          font-size: 10px;
           line-height: 1.5;
         }
 
-        /* =====================================================
-           SECURITY
-        ===================================================== */
-
+        /* SECURITY */
         .pi-security {
           display: flex;
           align-items: flex-start;
-
-          gap: 13px;
-
-          margin-top: 16px;
-
-          padding: 17px;
-
-          border:
-            1px solid #dbeafe;
-
-          border-radius: 17px;
-
-          background: #eff6ff;
+          gap: 11px;
+          margin-top: 14px;
+          padding: 14px;
+          border: 1px solid #dbeafe;
+          border-radius: 15px;
+          background: linear-gradient(135deg,#f5f9ff,#eff6ff);
+          box-sizing: border-box;
         }
 
         .pi-security-icon {
-          width: 38px;
-          height: 38px;
-
+          width: 36px;
+          height: 36px;
           flex-shrink: 0;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          border-radius: 11px;
-
-          background: white;
-
+          display: grid;
+          place-items: center;
+          border-radius: 10px;
+          background: #fff;
           color: #2563eb;
-
-          box-shadow:
-            0 2px 7px
-            rgba(37, 99, 235, 0.08);
+          box-shadow: 0 2px 7px rgba(37,99,235,.08);
         }
 
         .pi-security h3 {
           margin: 0;
-
           color: #1e3a8a;
-
-          font-size: 13px;
+          font-size: 12.5px;
           font-weight: 800;
         }
 
         .pi-security p {
-          margin:
-            4px 0 0;
-
-          color: #49658c;
-
-          font-size: 11.5px;
-
-          line-height: 1.6;
+          margin: 4px 0 0;
+          color: #526d91;
+          font-size: 10.5px;
+          line-height: 1.55;
         }
 
-        /* =====================================================
-           SAVE
-        ===================================================== */
-
+        /* FIXED SAVE BAR */
         .pi-save-container {
-          display: flex;
-          justify-content: flex-end;
+          position: fixed;
+          left: 50%;
+          bottom: 16px;
+          transform: translateX(-50%);
+          z-index: 1000;
+          width: min(1180px, calc(100% - 32px));
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          pointer-events: none;
+        }
 
-          margin-top: 18px;
+        .pi-save-bar {
+          position: relative;
+          width: 100%;
+          min-height: 62px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 8px 9px 8px 13px;
+          border: 1px solid rgba(226,232,240,.92);
+          border-radius: 16px;
+          background: rgba(255,255,255,.94);
+          box-shadow:
+            0 18px 42px rgba(15,23,42,.14),
+            0 4px 12px rgba(15,23,42,.06);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          isolation: isolate;
+          box-sizing: border-box;
+          pointer-events: auto;
+        }
+
+        .pi-save-status {
+          min-width: 0;
+          display: flex;
+          align-items: center;
+          gap: 9px;
+        }
+
+        .pi-save-status-icon {
+          width: 31px;
+          height: 31px;
+          display: grid;
+          place-items: center;
+          flex-shrink: 0;
+          border-radius: 9px;
+          background: #eef2ff;
+          color: #4f46e5;
+        }
+
+        .pi-save-status strong {
+          display: block;
+          color: #1f2937;
+          font-size: 11.5px;
+          font-weight: 800;
+          line-height: 1.3;
+        }
+
+        .pi-save-status span {
+          display: block;
+          margin-top: 2px;
+          color: #9298a3;
+          font-size: 9.5px;
+          line-height: 1.3;
         }
 
         .pi-save-button {
-          min-width: 155px;
-          height: 46px;
-
+          min-width: 145px;
+          height: 42px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-
           gap: 8px;
-
+          flex-shrink: 0;
           border: 0;
-
-          border-radius: 12px;
-
-          background: #111827;
-
-          color: white;
-
-          font-size: 13px;
+          border-radius: 10px;
+          background: linear-gradient(135deg,#111827,#312e81);
+          color: #fff;
+          font-family: inherit;
+          font-size: 12px;
           font-weight: 750;
-
           cursor: pointer;
-
-          box-shadow:
-            0 7px 20px
-            rgba(17, 24, 39, 0.15);
-
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease,
-            background 0.2s ease;
+          box-shadow: 0 7px 18px rgba(17,24,39,.15);
+          transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
         }
 
         .pi-save-button:hover:not(:disabled) {
-          transform:
-            translateY(-1px);
+          transform: translateY(-1px);
+          filter: brightness(1.06);
+          box-shadow: 0 10px 23px rgba(17,24,39,.20);
+        }
 
-          background: #1f2937;
-
-          box-shadow:
-            0 10px 25px
-            rgba(17, 24, 39, 0.2);
+        .pi-save-button:focus-visible {
+          outline: 3px solid rgba(99,102,241,.18);
+          outline-offset: 2px;
         }
 
         .pi-save-button:disabled {
-          opacity: 0.7;
-
+          opacity: .65;
           cursor: not-allowed;
         }
 
         .pi-button-spinner {
-          width: 15px;
-          height: 15px;
-
-          border:
-            2px solid
-            rgba(255,255,255,0.35);
-
-          border-top-color:
-            white;
-
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255,255,255,.35);
+          border-top-color: #fff;
           border-radius: 50%;
-
-          animation:
-            pi-spin 0.7s linear infinite;
+          animation: pi-spin .7s linear infinite;
         }
-
-        /* =====================================================
-           LOADING
-        ===================================================== */
 
         .pi-loading {
-          min-height: 280px;
-
+          min-height: 260px;
           display: flex;
           align-items: center;
           justify-content: center;
-
-          gap: 13px;
-
-          padding: 30px;
-
-          border:
-            1px solid #e5e7eb;
-
-          border-radius: 20px;
-
-          background: white;
-        }
-
-        .pi-spinner {
-          width: 34px;
-          height: 34px;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          border:
-            3px solid #e5e7eb;
-
-          border-top-color:
-            #4f46e5;
-
-          border-radius: 50%;
-
-          animation:
-            pi-spin
-            0.75s
-            linear
-            infinite;
-        }
-
-        .pi-spinner span {
-          width: 8px;
-          height: 8px;
-
-          border-radius: 50%;
-
-          background:
-            #4f46e5;
-        }
-
-        .pi-loading-title {
-          color: #111827;
-
-          font-size: 13px;
-          font-weight: 750;
-        }
-
-        .pi-loading-text {
-          margin-top: 3px;
-
-          color: #9ca3af;
-
-          font-size: 11px;
         }
 
         @keyframes pi-spin {
-          to {
-            transform:
-              rotate(360deg);
-          }
+          to { transform: rotate(360deg); }
         }
 
-        /* =====================================================
-           TABLET
-        ===================================================== */
-
+        /* TABLET / MOBILE */
         @media (max-width: 700px) {
-
           .pi-page {
-            padding-top: 12px;
+            padding: 3px 0 108px;
           }
 
           .pi-hero {
@@ -1654,19 +1411,27 @@ export default function PersonalInfoPage() {
 
           .pi-hero-content {
             min-height: auto;
-
             flex-direction: column;
-
             align-items: center;
-
             text-align: center;
+            padding: 27px 18px;
+          }
 
-            padding:
-              30px 20px;
+          .pi-avatar-ring {
+            width: 94px;
+            height: 94px;
           }
 
           .pi-name-row {
             justify-content: center;
+          }
+
+          .pi-name-row h1 {
+            font-size: 22px;
+          }
+
+          .pi-email {
+            font-size: 12px;
           }
 
           .pi-form-grid {
@@ -1676,7 +1441,6 @@ export default function PersonalInfoPage() {
 
           .pi-photo-section {
             align-items: flex-start;
-
             flex-direction: column;
           }
 
@@ -1690,44 +1454,33 @@ export default function PersonalInfoPage() {
           }
         }
 
-        /* =====================================================
-           MOBILE
-        ===================================================== */
-
         @media (max-width: 480px) {
-
-          .pi-page {
-            padding-bottom: 25px;
+          .pi-hero {
+            border-radius: 17px;
           }
 
           .pi-hero-content {
-            padding:
-              26px 16px;
+            padding: 24px 15px;
           }
 
           .pi-avatar-ring {
-            width: 96px;
-            height: 96px;
+            width: 88px;
+            height: 88px;
           }
 
           .pi-camera-button {
-            width: 34px;
-            height: 34px;
+            width: 33px;
+            height: 33px;
           }
 
           .pi-name-row h1 {
-            font-size: 22px;
-          }
-
-          .pi-email {
-            font-size: 12px;
+            font-size: 20px;
           }
 
           .pi-photo-section,
           .pi-card {
-            padding: 17px;
-
-            border-radius: 17px;
+            padding: 15px;
+            border-radius: 15px;
           }
 
           .pi-card-header {
@@ -1735,30 +1488,68 @@ export default function PersonalInfoPage() {
           }
 
           .pi-card-icon {
-            width: 38px;
-            height: 38px;
+            width: 37px;
+            height: 37px;
           }
 
-          .pi-save-container {
-            justify-content: stretch;
-          }
-
-          .pi-save-button {
-            width: 100%;
+          .pi-input {
+            height: 43px;
           }
 
           .pi-security {
-            padding: 14px;
+            padding: 13px;
+          }
+
+          .pi-save-container {
+            left: 0;
+            bottom: 0;
+            transform: none;
+            width: 100%;
+            padding:
+              8px
+              8px
+              max(8px, env(safe-area-inset-bottom));
+            background: rgba(255,255,255,.82);
+            border-top: 1px solid rgba(226,232,240,.9);
+            box-shadow: 0 -8px 24px rgba(15,23,42,.06);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-sizing: border-box;
+          }
+
+          .pi-save-bar {
+            min-height: 58px;
+            gap: 9px;
+            padding: 7px;
+            border-radius: 14px;
+          }
+
+          .pi-save-status {
+            gap: 7px;
+          }
+
+          .pi-save-status-icon {
+            width: 29px;
+            height: 29px;
+          }
+
+          .pi-save-status strong {
+            font-size: 10.5px;
+          }
+
+          .pi-save-status span {
+            font-size: 8.5px;
+          }
+
+          .pi-save-button {
+            min-width: 128px;
+            height: 40px;
+            padding: 0 12px;
+            font-size: 11px;
           }
         }
 
-        /* =====================================================
-           REDUCED MOTION
-        ===================================================== */
-
         @media (prefers-reduced-motion: reduce) {
-
-          .pi-spinner,
           .pi-button-spinner {
             animation: none;
           }
@@ -1766,7 +1557,8 @@ export default function PersonalInfoPage() {
           .pi-camera-button,
           .pi-outline-button,
           .pi-remove-button,
-          .pi-save-button {
+          .pi-save-button,
+          .pi-save-bar {
             transition: none;
           }
         }

@@ -18,28 +18,28 @@ body {
   color:white;
 }
 
+/* ================= HIDE SCROLLBAR ================= */
 
-/* ================= SCROLLBAR ================= */
-
-::-webkit-scrollbar {
-  width:6px;
-  height:4px;
+/* Chrome, Edge, Safari */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background:graywhite;  border-radius:10px;
+/* Firefox */
+html,
+body,
+* {
+  scrollbar-width: none;
 }
 
-::-webkit-scrollbar-thumb {
-  background:linear-gradient(180deg,#2563eb,#6366f1,#7c3aed);
-  border-radius:10px;
+/* Keep scrolling enabled */
+html,
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
 }
-
-::-webkit-scrollbar-thumb:hover{
-  background:linear-gradient(180deg,#1d4ed8,#4f46e5,#6d28d9);
-}
-
-
 /* ================= SLICK DOTS ================= */
 
 .slick-dots {

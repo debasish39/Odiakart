@@ -97,9 +97,27 @@ const getItemImage = (item) => {
 };
 
 const statusLabel = (status) => {
-    const value = String(status || "").toLowerCase();
+    const value = String(status || "").toLowerCase().trim();
 
-    if (value.includes("deliver")) return "Delivered";
+    // IMPORTANT: "Out for Delivery" is not the same as "Delivered".
+    if (
+        value === "out for delivery" ||
+        value === "out-for-delivery" ||
+        value === "out_for_delivery" ||
+        value === "ofd"
+    ) {
+        return "Out for Delivery";
+    }
+
+    if (
+        value === "delivered" ||
+        value.includes("delivery completed") ||
+        value.includes("delivered successfully") ||
+        value === "order delivered"
+    ) {
+        return "Delivered";
+    }
+
     if (value.includes("ship") || value.includes("transit")) {
         return "Shipped";
     }
@@ -112,11 +130,30 @@ const statusLabel = (status) => {
 };
 
 const statusClass = (status) => {
-    const value = String(status || "").toLowerCase();
+    const value = String(status || "").toLowerCase().trim();
 
     if (value.includes("cancel")) return "danger";
     if (value.includes("return")) return "purple";
-    if (value.includes("deliver")) return "success";
+
+    // Out for Delivery is an active delivery state.
+    if (
+        value === "out for delivery" ||
+        value === "out-for-delivery" ||
+        value === "out_for_delivery" ||
+        value === "ofd"
+    ) {
+        return "info";
+    }
+
+    if (
+        value === "delivered" ||
+        value.includes("delivery completed") ||
+        value.includes("delivered successfully") ||
+        value === "order delivered"
+    ) {
+        return "success";
+    }
+
     if (value.includes("ship") || value.includes("transit")) {
         return "info";
     }
@@ -133,10 +170,29 @@ const statusClass = (status) => {
 };
 
 const getProgress = (status) => {
-    const value = String(status || "").toLowerCase();
+    const value = String(status || "").toLowerCase().trim();
 
     if (value.includes("cancel") || value.includes("return")) return 0;
-    if (value.includes("deliver")) return 100;
+
+    // Keep Out for Delivery below 100%.
+    if (
+        value === "out for delivery" ||
+        value === "out-for-delivery" ||
+        value === "out_for_delivery" ||
+        value === "ofd"
+    ) {
+        return 85;
+    }
+
+    if (
+        value === "delivered" ||
+        value.includes("delivery completed") ||
+        value.includes("delivered successfully") ||
+        value === "order delivered"
+    ) {
+        return 100;
+    }
+
     if (value.includes("ship") || value.includes("transit")) return 70;
     if (value.includes("process") || value.includes("confirm")) return 35;
 
@@ -193,26 +249,20 @@ function StatusTimeline({ order }) {
     const progress = getProgress(order?.status);
 
     const standardSteps = [
+        { label: "Confirmed", match: ["confirm"], progress: 15 },
+        { label: "Processing", match: ["process"], progress: 35 },
+        { label: "Shipped", match: ["ship", "transit"], progress: 70 },
         {
-            label: "Confirmed",
-            match: ["confirm"],
-            progress: 15,
+            label: "Out for Delivery",
+            match: [
+                "out for delivery",
+                "out-for-delivery",
+                "out_for_delivery",
+                "ofd",
+            ],
+            progress: 85,
         },
-        {
-            label: "Processing",
-            match: ["process"],
-            progress: 35,
-        },
-        {
-            label: "Shipped",
-            match: ["ship", "transit"],
-            progress: 70,
-        },
-        {
-            label: "Delivered",
-            match: ["deliver"],
-            progress: 100,
-        },
+        { label: "Delivered", match: ["delivered"], progress: 100 },
     ];
 
     const isSpecial =
@@ -1258,9 +1308,9 @@ const styles = `
     position: relative;
     isolation: isolate;
     width: 100%;
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 10px 14px 70px;
+    max-width: none;
+    margin: 0;
+    padding: 10px 24px 70px;
     color: var(--od-text);
     box-sizing: border-box;
     overflow: hidden;
@@ -1506,7 +1556,7 @@ const styles = `
 
   .od-step-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
     margin-top: -11px;
   }
@@ -2152,6 +2202,59 @@ const styles = `
   }
 
   @media (max-width: 700px) {
+    /* Edge-to-edge mobile layout: no outer page card. */
+    .od-page {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 6px 0 88px;
+      overflow-x: hidden;
+    }
+
+    .od-hero {
+      margin-left: 0;
+      margin-right: 0;
+      border-radius: 0;
+      border-left: 0;
+      border-right: 0;
+      box-shadow: none;
+      padding: 16px;
+    }
+
+    .od-section {
+      margin-top: 18px;
+      padding: 0 12px;
+    }
+
+    .od-timeline-card,
+    .od-delivery,
+    .od-summary {
+      box-shadow: none;
+    }
+
+    .od-track,
+    .od-shipping-mini,
+    .od-bottom {
+      margin-left: 12px;
+      margin-right: 12px;
+    }
+
+    .od-step-row {
+      grid-template-columns: repeat(5, minmax(72px, 1fr));
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .od-step-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .od-step {
+      min-width: 72px;
+      font-size: 10px;
+    }
+
     .od-skeleton-page { padding: 7px 10px 42px; }
     .od-skeleton-hero {
       align-items: flex-start;
