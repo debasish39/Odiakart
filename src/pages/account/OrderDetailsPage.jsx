@@ -406,7 +406,7 @@ function OrderDetailsSkeleton() {
                     </div>
                     <span className="od-skeleton-progress" />
                     <div className="od-skeleton-steps">
-                        <span /><span /><span /><span />
+                        <span /><span /><span /><span /><span />
                     </div>
                 </div>
             </div>
@@ -685,17 +685,20 @@ export default function OrderDetailsPage() {
     }
 
     if (!order) {
+        const errorMessage =
+            orderError?.message || "We couldn't load this order.";
+
         return (
             <AccountShell title="Order details">
                 <div className="od-empty">
                     <FaBox />
 
                     <h2>
-                        Order not found
+                        {orderError ? "Unable to load order" : "Order not found"}
                     </h2>
 
                     <p>
-                        We couldn't find this order.
+                        {errorMessage}
                     </p>
 
                     <div className="od-actions">
@@ -715,6 +718,7 @@ export default function OrderDetailsPage() {
                             className="od-primary-btn"
                             onClick={retry}
                             disabled={retrying}
+                            aria-busy={retrying}
                         >
                             <FaRedo
                                 className={
@@ -2034,7 +2038,7 @@ const styles = `
 
   .od-skeleton-steps {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     margin-top: -11px;
   }
 
@@ -2314,7 +2318,8 @@ const styles = `
   .od-refreshing {
     position: absolute;
     right: 20px;
-    bottom: -18px;
+    top: 12px;
+    bottom: auto;
     z-index: 2;
     padding: 4px 8px;
     border-radius: 999px;

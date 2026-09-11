@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Breadcrums from "../components/Breadcrums";
@@ -590,6 +591,58 @@ const CSS = `
   font-weight:700;
   white-space:nowrap;
 }
+/* ── Modern marketplace reviews ── */
+.spx-reviews-modern{display:flex;flex-direction:column;gap:14px}
+.spx-review-hero{display:grid;grid-template-columns:190px minmax(0,1fr);gap:22px;padding:20px;border:1px solid #e0e7ff;border-radius:20px;background:linear-gradient(135deg,#f8faff 0%,#fff 55%,#fafaff 100%);box-shadow:0 8px 28px rgba(79,70,229,.06)}
+.spx-review-score{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 12px;border-right:1px solid #e8ecf7}
+.spx-review-score-num{font:800 46px/1 Manrope,Inter,sans-serif;letter-spacing:-.05em;color:#111827}
+.spx-review-score-label{margin-top:6px;color:#64748b;font-size:10px;font-weight:700}
+.spx-review-bars{display:flex;flex-direction:column;gap:8px;justify-content:center}
+.spx-review-bar{display:grid;grid-template-columns:28px minmax(70px,1fr) 34px;align-items:center;gap:8px;border:0;background:transparent;padding:2px 4px;border-radius:9px;cursor:pointer}
+.spx-review-bar:hover{background:#eef2ff}
+.spx-review-bar-label{font-size:10px;font-weight:800;color:#64748b;text-align:right}
+.spx-review-bar-track{height:8px;border-radius:99px;background:#e8edf5;overflow:hidden}
+.spx-review-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#f59e0b,#fbbf24);transition:width .45s ease}
+.spx-review-bar-count{font-size:10px;font-weight:800;color:#94a3b8}
+.spx-review-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.spx-review-filter-scroll{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.spx-review-filter-scroll::-webkit-scrollbar{display:none}
+.spx-review-chip{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;padding:8px 11px;border:1px solid #e2e8f0;border-radius:999px;background:#fff;color:#64748b;font:800 10.5px Inter,sans-serif;cursor:pointer;transition:.18s ease}
+.spx-review-chip:hover{border-color:#c7d2fe;background:#f8faff;color:#4338ca}
+.spx-review-chip.on{background:#eef2ff;border-color:#c7d2fe;color:#4338ca;box-shadow:0 3px 10px rgba(79,70,229,.08)}
+.spx-review-sort{min-width:130px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;color:#475569;font:700 10.5px Inter,sans-serif;outline:none}
+.spx-review-countline{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#94a3b8;font-size:10px;font-weight:700}
+.spx-modern-review{position:relative;padding:17px;border:1px solid #e5e7eb;border-radius:18px;background:#fff;box-shadow:0 3px 14px rgba(15,23,42,.025);transition:.2s ease}
+.spx-modern-review:hover{border-color:#cbd5e1;box-shadow:0 10px 28px rgba(15,23,42,.06);transform:translateY(-1px)}
+.spx-review-user{display:flex;align-items:center;gap:10px;min-width:0}
+.spx-review-avatar{width:40px;height:40px;border-radius:12px;object-fit:cover;flex:0 0 40px;border:1px solid #e2e8f0}
+.spx-review-avatar-fallback{display:grid;place-items:center;background:linear-gradient(135deg,#eef2ff,#e0e7ff);color:#4338ca;font-size:14px;font-weight:900}
+.spx-review-name{font-size:12.5px;font-weight:850;color:#111827;overflow-wrap:anywhere}
+.spx-review-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px}
+.spx-review-date{font-size:9.5px;color:#94a3b8}
+.spx-verified{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;background:#ecfdf5;color:#047857;font-size:8.5px;font-weight:850}
+.spx-review-rating-pill{display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:8px;background:#fffbeb;color:#b45309;font-size:10px;font-weight:900}
+.spx-review-comment{margin:12px 0 0;color:#334155;font-size:12.5px;line-height:1.7;overflow-wrap:anywhere}
+.spx-review-photos{display:flex;gap:8px;overflow-x:auto;margin-top:13px;padding:1px 1px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
+.spx-review-photos::-webkit-scrollbar{display:none}
+.spx-review-photo{position:relative;width:84px;height:84px;min-width:84px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#f8fafc;padding:0;cursor:pointer;scroll-snap-align:start}
+.spx-review-photo img{width:100%;height:100%;object-fit:cover;transition:transform .25s ease}
+.spx-review-photo:hover img{transform:scale(1.06)}
+.spx-review-photo-more{position:absolute;right:5px;bottom:5px;padding:4px 6px;border-radius:7px;background:rgba(15,23,42,.72);color:#fff;font-size:8px;font-weight:800}
+.spx-review-actions{display:flex;align-items:center;gap:7px;margin-top:13px;padding-top:11px;border-top:1px solid #f1f5f9}
+.spx-review-actions-label{font-size:9px;color:#94a3b8;font-weight:700;margin-right:2px}
+.spx-review-empty{padding:32px 18px;text-align:center;border:1px dashed #cbd5e1;border-radius:18px;background:linear-gradient(180deg,#fafbff,#fff)}
+@media(max-width:600px){
+  .spx-review-hero{grid-template-columns:1fr;gap:14px;padding:14px;border-radius:14px}
+  .spx-review-score{border-right:0;border-bottom:1px solid #e8ecf7;padding-bottom:14px}
+  .spx-review-score-num{font-size:38px}
+  .spx-review-toolbar{display:block}
+  .spx-review-filter-scroll{padding-bottom:4px;margin-bottom:8px}
+  .spx-review-sort{width:100%}
+  .spx-modern-review{padding:13px;border-radius:13px}
+  .spx-review-photo{width:72px;height:72px;min-width:72px}
+}
+
 .spx-review-preview{
   display:flex;
   flex-direction:column;
@@ -680,8 +733,6 @@ export default function SingleProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [product, setProduct] = useState(null);
-  const [related, setRelated] = useState([]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [zoomedImageIndex, setZoomedImageIndex] = useState(null);
   const [selSize, setSelSize] = useState(null);
@@ -698,6 +749,7 @@ export default function SingleProduct() {
   });
   const [reviews, setReviews] = useState([]);
   const [reviewRatingFilter, setReviewRatingFilter] = useState("all");
+  const [reviewSort, setReviewSort] = useState("relevant");
   const [selectedReview, setSelectedReview] = useState(null);
 
   const { addToCart, cartItem } = useCart();
@@ -739,6 +791,30 @@ export default function SingleProduct() {
   }, []);
   const [relatedOpen, setRelatedOpen] = useState(true);
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+  // ── Product cache: shared key keeps product navigation fast.
+  const {
+    data: product = null,
+    isLoading: productLoading,
+    isFetching: productFetching,
+    error: productError,
+    refetch: refetchProduct,
+  } = useQuery({
+    queryKey: ["product", id],
+    queryFn: async () => {
+      const res = await axios.get(`${BACKEND_URL}/api/products/${id}`);
+      const p = res.data?.product;
+      if (!p) throw new Error("Product not found");
+      return p;
+    },
+    enabled: !!id,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
   /* ── Schema-compatible variant/media helpers ── */
   const variants = product?.variants || [];
 
@@ -779,32 +855,29 @@ export default function SingleProduct() {
     product?.media?.thumbnail,
     ...(product?.media?.images || []),
   ].filter(Boolean);
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  /* fetch product */
   useEffect(() => {
     window.scrollTo(0, 0);
-    (async () => {
-      try {
-        const res = await axios.get(
-          `${BACKEND_URL}/api/products/${id}`
-        );
-        const p = res.data.product;
-        setProduct(p);
-        setReviews(p.reviews || []);
-        const firstVariant =
-          p.variants?.find((v) => v.isActive !== false) || p.variants?.[0];
-        const attrs = firstVariant?.attributes || {};
-        const readAttr = (key) => {
-          if (typeof attrs.get === "function") {
-            return attrs.get(key) || attrs.get(key.toLowerCase()) || "";
-          }
-          return attrs[key] || attrs[key.toLowerCase()] || "";
-        };
-        setSelSize(readAttr("Size"));
-        setSelColor(readAttr("Color"));
-      } catch (e) { console.error(e); }
-    })();
+    setActiveIdx(0);
+    setCurrentIndex(0);
+    setQty(1);
+    setServiceability({ checking: false, checked: false, serviceable: null, message: "" });
   }, [id]);
+
+  useEffect(() => {
+    if (!product) return;
+    setReviews(product.reviews || []);
+    const firstVariant =
+      product.variants?.find((v) => v.isActive !== false) || product.variants?.[0];
+    const attrs = firstVariant?.attributes || {};
+    const readAttr = (key) => {
+      if (typeof attrs.get === "function") {
+        return attrs.get(key) || attrs.get(key.toLowerCase()) || "";
+      }
+      return attrs[key] || attrs[key.toLowerCase()] || "";
+    };
+    setSelSize(readAttr("Size"));
+    setSelColor(readAttr("Color"));
+  }, [product]);
 /* =====================================================
    RECENTLY VIEWED
    NO AUTHENTICATION REQUIRED
@@ -924,24 +997,21 @@ useEffect(() => {
   saveRecentlyViewed();
 
 }, [id, BACKEND_URL]);
-  /* fetch related */
-  useEffect(() => {
-    if (!product?.category) return;
-    (async () => {
-      try {
-        const res = await axios.get(
-          `${BACKEND_URL}/api/products`,
-          {
-            params: {
-              category: product.category?.name,
-              limit: 6,
-            },
-          }
-        );
-        setRelated(res.data.products.filter(p => p._id !== product._id));
-      } catch (e) { console.error(e); }
-    })();
-  }, [product?.category, product?._id]);
+  // ── Similar products cache by category + product.
+  const { data: related = [], isFetching: relatedFetching } = useQuery({
+    queryKey: ["related-products", product?.category?.name, product?._id],
+    queryFn: async () => {
+      const res = await axios.get(`${BACKEND_URL}/api/products`, {
+        params: { category: product.category?.name, limit: 6 },
+      });
+      return (res.data?.products || []).filter((p) => p._id !== product._id);
+    },
+    enabled: !!product?.category?.name && !!product?._id,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
 
   const allImgs = productImages.filter(
     (img, index, arr) => arr.indexOf(img) === index
@@ -1135,30 +1205,41 @@ const handleMouseLeave = useCallback(() => {
     });
   };
 
- const handleCart = () => {
-  if (!isSignedIn) {
-    toast.error("Please login first");
-    navigate("/sign-in");
-    return;
-  }
+  const validatePurchase = () => {
+    if (!isSignedIn) {
+      toast.error("Please login first");
+      navigate("/sign-in");
+      return false;
+    }
+    if (!selectedVariant) {
+      toast.error("Please select a product variant");
+      return false;
+    }
+    if (!productStock) {
+      toast.error("Out of Stock");
+      return false;
+    }
+    if (qty < productMinQty || qty > productMaxQty) {
+      toast.error(`Quantity must be between ${productMinQty} and ${productMaxQty}`);
+      return false;
+    }
+    return true;
+  };
 
-  if (isInCart) {
+  const handleCart = () => {
+    if (!validatePurchase()) return;
+    if (isInCart) {
+      navigate("/cart");
+      return;
+    }
+    addToCart(product, selectedVariant, qty);
+  };
+
+  const handleBuyNow = async () => {
+    if (!validatePurchase()) return;
+    if (!isInCart) await addToCart(product, selectedVariant, qty);
     navigate("/cart");
-    return;
-  }
-
-  if (!selectedVariant) {
-    toast.error("Please select a product variant");
-    return;
-  }
-
-  if (!productStock) {
-    toast.error("Out of Stock");
-    return;
-  }
-
-  addToCart(product, selectedVariant, qty);
-};
+  };
   const handleWish = () => {
     if (!isSignedIn) { toast.error("Please login first"); navigate("/sign-in"); return; }
     if (isWishlisted) { removeFromWishlist(String(product._id)); toast("Removed ❌"); }
@@ -1207,11 +1288,20 @@ const handleMouseLeave = useCallback(() => {
     1: reviews.filter(r => Math.round(Number(r?.rating || 0)) === 1).length,
   };
 
-  const filteredReviews = reviewRatingFilter === "all"
-    ? reviews
-    : reviews.filter(
-        r => Math.round(Number(r?.rating || 0)) === Number(reviewRatingFilter)
-      );
+  const filteredReviews = [...reviews]
+    .filter((r) => {
+      if (reviewRatingFilter === "all") return true;
+      if (reviewRatingFilter === "photos") return getReviewImages(r).length > 0;
+      return Math.round(Number(r?.rating || 0)) === Number(reviewRatingFilter);
+    })
+    .sort((a, b) => {
+      if (reviewSort === "recent") {
+        return new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0);
+      }
+      if (reviewSort === "highest") return Number(b?.rating || 0) - Number(a?.rating || 0);
+      if (reviewSort === "lowest") return Number(a?.rating || 0) - Number(b?.rating || 0);
+      return (Number(b?.likesCount || 0) - Number(a?.likesCount || 0));
+    });
 
   const getReviewImages = (review) => {
     const images = [
@@ -1223,12 +1313,28 @@ const handleMouseLeave = useCallback(() => {
     return [...new Set(images.filter(Boolean))];
   };
 
-  /* ── Loading ── */
-  if (!product) return (
-    <div className="spx-loading sp">
-      <Spinner />
+  /* ── Loading / error ── */
+  if (productLoading && !product) return (
+    <div className="spx-loading sp" style={{ minHeight: "70vh", display: "grid", placeItems: "center", padding: 24 }}>
+      <div style={{ textAlign: "center" }}>
+        <Spinner />
+        <div style={{ marginTop: 12, fontSize: 12, color: "#64748b", fontWeight: 700 }}>Loading product…</div>
+      </div>
     </div>
   );
+
+  if (productError && !product) return (
+    <div className="spx-loading sp" style={{ minHeight: "70vh", display: "grid", placeItems: "center", padding: 24 }}>
+      <div style={{ maxWidth: 420, textAlign: "center", padding: 28, border: "1px solid #e2e8f0", borderRadius: 20, background: "#fff" }}>
+        <div style={{ fontSize: 36, marginBottom: 10 }}>🛍️</div>
+        <h2 style={{ margin: 0, color: "#111827", fontSize: 20 }}>Product unavailable</h2>
+        <p style={{ margin: "8px 0 18px", color: "#64748b", fontSize: 13 }}>{productError.message || "We couldn't load this product."}</p>
+        <button type="button" onClick={() => refetchProduct()} style={{ border: 0, borderRadius: 12, padding: "11px 18px", background: "#4f46e5", color: "#fff", fontWeight: 800, cursor: "pointer" }}>Try again</button>
+      </div>
+    </div>
+  );
+
+  if (!product) return null;
 
   const disc = Math.round(productDiscount || 0);
 
@@ -1264,9 +1370,12 @@ const handleMouseLeave = useCallback(() => {
 
         {/* ══ MAIN ══ */}
         <div className="spx-wrap">
+          {productFetching && (
+            <div style={{ position: "fixed", top: 68, right: 16, zIndex: 30, padding: "7px 10px", borderRadius: 999, background: "rgba(17,24,39,.92)", color: "#fff", fontSize: 10, fontWeight: 800, boxShadow: "0 8px 24px rgba(15,23,42,.18)" }}>Updating product…</div>
+          )}
 
           {/* ── LEFT: sticky gallery ── */}
-          <div className="spx-left sp-fr">
+          <div className="spx-left sp-fr mt-3">
 
             {/* Gallery */}
             <div
@@ -1568,6 +1677,17 @@ const handleMouseLeave = useCallback(() => {
               </button>
               <button
                 type="button"
+                onClick={handleBuyNow}
+                style={{
+                  flex: 1, border: 0, borderRadius: 14, padding: "0 18px",
+                  minHeight: 48, background: "#111827", color: "#fff",
+                  fontWeight: 900, fontSize: 13, cursor: "pointer",
+                }}
+              >
+                Buy Now
+              </button>
+              <button
+                type="button"
                 className={`spx-wb${isWishlisted ? " on" : ""}`}
                 onClick={handleWish}
                 aria-label="Wishlist"
@@ -1697,351 +1817,138 @@ const handleMouseLeave = useCallback(() => {
               </div>
 
               {/* =========================================================
-                  RATINGS & REVIEWS
+                  MODERN RATINGS & REVIEWS
                   ========================================================= */}
               <div className={`spx-accordion${openInfoSections.reviews ? " open" : ""}`}>
-                <button
-                  type="button"
-                  className="spx-accordion-head"
-                  onClick={() => toggleInfoSection("reviews")}
-                  aria-expanded={openInfoSections.reviews}
-                >
+                <button type="button" className="spx-accordion-head" onClick={() => toggleInfoSection("reviews")} aria-expanded={openInfoSections.reviews}>
                   <span className="spx-accordion-title">
                     <span className="spx-accordion-icon"><FaComments size={13} /></span>
                     <span>Ratings &amp; Reviews</span>
                   </span>
-                  <span className="spx-accordion-meta">
-                    {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
-                  </span>
+                  <span className="spx-accordion-meta">{reviews.length} {reviews.length === 1 ? "review" : "reviews"}</span>
                   <ChevronDown className="spx-accordion-chevron" size={17} />
                 </button>
 
                 {openInfoSections.reviews && (
                   <div className="spx-accordion-body">
-                    <div className="spx-review-preview">
-
-                      {/* Rating summary */}
-                      <div className="spx-rev-summary">
-                        <div style={{ textAlign: "center", flexShrink: 0 }}>
-                          <div className="spx-rev-big">{avgRating}</div>
-                          <div style={{ display: "flex", justifyContent: "center", marginTop: 6 }}>
-                            <Stars rating={parseFloat(avgRating)} size={15} />
-                          </div>
-                          <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 5 }}>
-                            {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
-                          </div>
+                    <div className="spx-reviews-modern">
+                      <div className="spx-review-hero">
+                        <div className="spx-review-score">
+                          <div className="spx-review-score-num">{avgRating}</div>
+                          <Stars rating={parseFloat(avgRating)} size={17} />
+                          <div className="spx-review-score-label">Based on {reviews.length} {reviews.length === 1 ? "review" : "reviews"}</div>
+                          {reviews.some(r => r?.verifiedPurchase) && (
+                            <span className="spx-verified" style={{marginTop:8}}><FaCheckCircle size={8}/> Verified shoppers</span>
+                          )}
                         </div>
 
-                        {/* Interactive 5★ → 1★ progress bars */}
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
-                          {[5, 4, 3, 2, 1].map(star => {
+                        <div className="spx-review-bars">
+                          {[5,4,3,2,1].map(star => {
                             const count = reviewRatingCounts[star] || 0;
-                            const percentage = reviews.length
-                              ? Math.round((count / reviews.length) * 100)
-                              : 0;
+                            const percentage = reviews.length ? Math.round((count / reviews.length) * 100) : 0;
                             const isActive = reviewRatingFilter === String(star);
-
                             return (
-                              <button
-                                key={star}
-                                type="button"
-                                onClick={() => setReviewRatingFilter(isActive ? "all" : String(star))}
-                                aria-pressed={isActive}
-                                title={`Show ${star}-star reviews`}
-                                style={{
-                                  width: "100%",
-                                  border: 0,
-                                  padding: "3px 5px",
-                                  margin: 0,
-                                  background: isActive ? "#eef2ff" : "transparent",
-                                  borderRadius: 8,
-                                  cursor: "pointer",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 7,
-                                  transition: "all .18s ease",
-                                }}
-                              >
-                                <span style={{
-                                  width: 10,
-                                  fontSize: 10.5,
-                                  fontWeight: 800,
-                                  color: isActive ? "#4f46e5" : "#8893a8",
-                                  textAlign: "right",
-                                }}>{star}</span>
-
-                                <FaStar size={9} color="#fbbf24" />
-
-                                <div className="spx-rb-w" style={{ flex: 1 }}>
-                                  <div className="spx-rb-f" style={{ width: `${percentage}%` }} />
-                                </div>
-
-                                <span style={{
-                                  width: 25,
-                                  fontSize: 10.5,
-                                  color: isActive ? "#4f46e5" : "#94a3b8",
-                                  textAlign: "right",
-                                  fontWeight: isActive ? 800 : 600,
-                                }}>{count}</span>
+                              <button key={star} type="button" className="spx-review-bar" onClick={() => setReviewRatingFilter(isActive ? "all" : String(star))} aria-pressed={isActive}>
+                                <span className="spx-review-bar-label">{star}★</span>
+                                <span className="spx-review-bar-track"><span className="spx-review-bar-fill" style={{width:`${percentage}%`}} /></span>
+                                <span className="spx-review-bar-count">{count}</span>
                               </button>
                             );
                           })}
                         </div>
                       </div>
 
-                      {/* Active filter */}
-                      {reviewRatingFilter !== "all" && (
-                        <div style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          gap: 10,
-                          padding: "8px 10px",
-                          borderRadius: 10,
-                          background: "#f8fafc",
-                          border: "1px solid #e2e8f0",
-                        }}>
-                          <span style={{ fontSize: 10.5, fontWeight: 700, color: "#64748b" }}>
-                            Showing {filteredReviews.length} {filteredReviews.length === 1 ? "review" : "reviews"} rated {reviewRatingFilter} star
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setReviewRatingFilter("all")}
-                            style={{
-                              border: 0,
-                              background: "transparent",
-                              color: "#4f46e5",
-                              fontSize: 10,
-                              fontWeight: 800,
-                              cursor: "pointer",
-                            }}
-                          >
-                            Show All
-                          </button>
+                      <div className="spx-review-toolbar">
+                        <div className="spx-review-filter-scroll">
+                          {[
+                            ["all", "All", reviews.length],
+                            ["photos", "📷 Photos", reviews.filter(r => getReviewImages(r).length > 0).length],
+                            ["5", "★ 5", reviewRatingCounts[5]],
+                            ["4", "★ 4", reviewRatingCounts[4]],
+                            ["3", "★ 3", reviewRatingCounts[3]],
+                            ["2", "★ 2", reviewRatingCounts[2]],
+                            ["1", "★ 1", reviewRatingCounts[1]],
+                          ].map(([value,label,count]) => (
+                            <button key={value} type="button" className={`spx-review-chip${reviewRatingFilter === value ? " on" : ""}`} onClick={() => setReviewRatingFilter(value)} aria-pressed={reviewRatingFilter === value}>
+                              {label} <span style={{opacity:.65}}>{count}</span>
+                            </button>
+                          ))}
                         </div>
-                      )}
+                        <select className="spx-review-sort" value={reviewSort} onChange={(e) => setReviewSort(e.target.value)} aria-label="Sort reviews">
+                          <option value="relevant">Most helpful</option>
+                          <option value="recent">Newest</option>
+                          <option value="highest">Highest rated</option>
+                          <option value="lowest">Lowest rated</option>
+                        </select>
+                      </div>
 
-                      {/* All matching reviews */}
+                      <div className="spx-review-countline">
+                        <span>{filteredReviews.length} {filteredReviews.length === 1 ? "review" : "reviews"} shown</span>
+                        {reviewRatingFilter !== "all" && (
+                          <button type="button" onClick={() => setReviewRatingFilter("all")} style={{border:0,background:"transparent",color:"#4f46e5",fontSize:10,fontWeight:850,cursor:"pointer"}}>Clear filter</button>
+                        )}
+                      </div>
+
                       {filteredReviews.length > 0 ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
-                          {filteredReviews.map((review, index) => {
+                        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                          {filteredReviews.map((review,index) => {
                             const rating = Number(review?.rating || 0);
                             const reviewImages = getReviewImages(review);
-                            const reviewerName =
-                              review?.reviewerName ||
-                              review?.userName ||
-                              review?.user?.name ||
-                              "Anonymous";
+                            const reviewerName = review?.reviewerName || review?.userName || review?.user?.name || "Anonymous";
                             const avatar = review?.reviewerAvatar || review?.user?.avatar;
-
+                            const date = review?.createdAt ? new Date(review.createdAt).toLocaleDateString("en-IN", {day:"numeric",month:"short",year:"numeric"}) : "";
                             return (
-                              <div key={review?._id || index} className="spx-review-preview-card">
-                                {/* User + rating */}
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-                                  <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                                    {avatar ? (
-                                      <img
-                                        src={avatar}
-                                        alt=""
-                                        style={{ width: 38, height: 38, borderRadius: 11, objectFit: "cover", border: "1px solid #e2e8f0", flexShrink: 0 }}
-                                      />
-                                    ) : (
-                                      <div style={{
-                                        width: 38,
-                                        height: 38,
-                                        borderRadius: 11,
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        background: "#eef2ff",
-                                        color: "#4f46e5",
-                                        fontSize: 15,
-                                        fontWeight: 800,
-                                        flexShrink: 0,
-                                      }}>
-                                        {reviewerName.charAt(0).toUpperCase()}
+                              <article key={review?._id || index} className="spx-modern-review">
+                                <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start"}}>
+                                  <div className="spx-review-user">
+                                    {avatar ? <img className="spx-review-avatar" src={avatar} alt="" /> : <div className="spx-review-avatar spx-review-avatar-fallback">{reviewerName.charAt(0).toUpperCase()}</div>}
+                                    <div style={{minWidth:0}}>
+                                      <div className="spx-review-name">{reviewerName}</div>
+                                      <div className="spx-review-meta">
+                                        {review?.verifiedPurchase && <span className="spx-verified"><FaCheckCircle size={8}/> Verified Purchase</span>}
+                                        {date && <span className="spx-review-date">{date}</span>}
                                       </div>
-                                    )}
-
-                                    <div style={{ minWidth: 0 }}>
-                                      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 5 }}>
-                                        <span style={{ fontSize: 12.5, fontWeight: 800, color: "#1a1535" }}>
-                                          {reviewerName}
-                                        </span>
-                                        {review?.verifiedPurchase && (
-                                          <span style={{
-                                            display: "inline-flex",
-                                            alignItems: "center",
-                                            gap: 3,
-                                            padding: "3px 6px",
-                                            borderRadius: 999,
-                                            background: "#ecfdf5",
-                                            color: "#059669",
-                                            fontSize: 8.5,
-                                            fontWeight: 800,
-                                          }}>
-                                            <FaCheckCircle size={8} /> Verified
-                                          </span>
-                                        )}
-                                      </div>
-
-                                      {review?.createdAt && (
-                                        <div style={{ marginTop: 2, fontSize: 9.5, color: "#94a3b8" }}>
-                                          {new Date(review.createdAt).toLocaleDateString("en-IN", {
-                                            day: "numeric",
-                                            month: "short",
-                                            year: "numeric",
-                                          })}
-                                        </div>
-                                      )}
                                     </div>
                                   </div>
-
-                                  <Stars rating={rating} size={11} />
+                                  <span className="spx-review-rating-pill"><FaStar size={9}/> {rating.toFixed(1)}</span>
                                 </div>
 
-                                {/* Comment */}
-                                {review?.comment && (
-                                  <p style={{
-                                    margin: "12px 0 0",
-                                    fontSize: 12,
-                                    color: "#64748b",
-                                    lineHeight: 1.65,
-                                    overflowWrap: "anywhere",
-                                  }}>
-                                    {review.comment}
-                                  </p>
-                                )}
+                                <div style={{marginTop:9}}><Stars rating={rating} size={12}/></div>
 
-                                {/* Review images */}
+                                {review?.comment && <p className="spx-review-comment">{review.comment}</p>}
+
                                 {reviewImages.length > 0 && (
-                                  <div style={{ marginTop: 12 }}>
-                                    <div style={{
-                                      marginBottom: 7,
-                                      fontSize: 9.5,
-                                      fontWeight: 800,
-                                      color: "#94a3b8",
-                                      textTransform: "uppercase",
-                                      letterSpacing: ".06em",
-                                    }}>
-                                      Review Photos
-                                    </div>
-
-                                    <div style={{ display: "flex", gap: 7, overflowX: "auto", paddingBottom: 2 }}>
-                                      {reviewImages.map((image, imageIndex) => (
-                                        <button
-                                          key={`${review?._id || index}-image-${imageIndex}`}
-                                          type="button"
-                                          onClick={() => {
-                                            const images = getReviewImages(review);
-                                            setSelectedReview(review);
-                                            setGalleryImages(images);
-                                            setCurrentIndex(imageIndex);
-                                            setSelectedImage(image);
-                                            onOpen();
-                                          }}
-                                          style={{
-                                            width: 78,
-                                            height: 78,
-                                            minWidth: 78,
-                                            padding: 0,
-                                            border: "1px solid #e2e8f0",
-                                            borderRadius: 10,
-                                            overflow: "hidden",
-                                            background: "#f8fafc",
-                                            cursor: "pointer",
-                                          }}
-                                        >
-                                          <img
-                                            src={image}
-                                            alt={`Review photo ${imageIndex + 1}`}
-                                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                          />
-                                        </button>
-                                      ))}
-                                    </div>
+                                  <div className="spx-review-photos">
+                                    {reviewImages.map((image,imageIndex) => (
+                                      <button key={`${review?._id || index}-image-${imageIndex}`} type="button" className="spx-review-photo" onClick={() => { setSelectedReview(review); setGalleryImages(reviewImages); setCurrentIndex(imageIndex); setSelectedImage(image); onOpen(); }} aria-label={`Open review photo ${imageIndex+1}`}>
+                                        <img src={image} alt={`Review ${imageIndex+1}`} />
+                                        {imageIndex === reviewImages.length - 1 && reviewImages.length > 1 && <span className="spx-review-photo-more">{reviewImages.length} photos</span>}
+                                      </button>
+                                    ))}
                                   </div>
                                 )}
 
-                                {/* Helpful */}
-                                <div style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 7,
-                                  marginTop: 12,
-                                  paddingTop: 10,
-                                  borderTop: "1px solid #f1f5f9",
-                                }}>
-                                  <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 700 }}>Helpful?</span>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleLike(review._id, "like")}
-                                    className="spx-lb"
-                                  >
-                                    <FaThumbsUp size={9} />
-                                    Helpful
-                                    <span>{review?.likesCount || 0}</span>
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleLike(review._id, "dislike")}
-                                    className="spx-lb"
-                                  >
-                                    <FaThumbsDown size={9} />
-                                    <span>{review?.dislikesCount || 0}</span>
-                                  </button>
+                                <div className="spx-review-actions">
+                                  <span className="spx-review-actions-label">Helpful?</span>
+                                  <button type="button" onClick={() => toggleLike(review._id,"like")} className="spx-lb"><FaThumbsUp size={9}/> Helpful <span>{review?.likesCount || 0}</span></button>
+                                  <button type="button" onClick={() => toggleLike(review._id,"dislike")} className="spx-lb"><FaThumbsDown size={9}/> <span>{review?.dislikesCount || 0}</span></button>
+                                  {review?.isOwner && <button type="button" onClick={() => deleteReview(review._id)} className="spx-lb" style={{marginLeft:"auto",color:"#dc2626"}}><FaTrash size={9}/> Delete</button>}
                                 </div>
-                              </div>
+                              </article>
                             );
                           })}
                         </div>
                       ) : (
-                        <div style={{
-                          padding: "28px 15px",
-                          textAlign: "center",
-                          border: "1px dashed #cbd5e1",
-                          borderRadius: 14,
-                          background: "#fafbff",
-                          marginTop: 4,
-                        }}>
-                          <FaRegStar size={24} color="#a5b4fc" />
-                          <div style={{ marginTop: 8, fontSize: 12, fontWeight: 800, color: "#334155" }}>
-                            {reviews.length === 0
-                              ? "No reviews yet"
-                              : `No ${reviewRatingFilter}-star reviews`}
-                          </div>
-                          {reviews.length > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => setReviewRatingFilter("all")}
-                              style={{
-                                marginTop: 10,
-                                border: 0,
-                                background: "transparent",
-                                color: "#4f46e5",
-                                fontSize: 10,
-                                fontWeight: 800,
-                                cursor: "pointer",
-                              }}
-                            >
-                              Show all reviews
-                            </button>
-                          )}
+                        <div className="spx-review-empty">
+                          <FaRegStar size={28} color="#a5b4fc" />
+                          <div style={{marginTop:9,fontSize:13,fontWeight:850,color:"#334155"}}>{reviews.length === 0 ? "No reviews yet" : "No reviews match this filter"}</div>
+                          <p style={{margin:"6px auto 0",maxWidth:320,fontSize:11,color:"#94a3b8",lineHeight:1.55}}>Be the first to share your experience and help other shoppers make a confident choice.</p>
+                          {reviews.length > 0 && <button type="button" onClick={() => setReviewRatingFilter("all")} style={{marginTop:10,border:0,background:"#eef2ff",color:"#4338ca",padding:"8px 12px",borderRadius:9,fontSize:10,fontWeight:850,cursor:"pointer"}}>Show all reviews</button>}
                         </div>
                       )}
 
-                      {/* View all reviews — no Write a Review button here */}
                       {reviews.length > 0 && (
-                        <button
-                          type="button"
-                          className="spx-view-all-reviews"
-                          onClick={() => navigate(`/product/${product._id}/reviews`)}
-                          style={{ marginTop: 10 }}
-                        >
-                          View all {reviews.length} reviews →
-                        </button>
+                        <button type="button" className="spx-view-all-reviews" onClick={() => navigate(`/product/${product._id}/reviews`)}>View all {reviews.length} reviews <span aria-hidden="true">→</span></button>
                       )}
                     </div>
                   </div>
@@ -2098,6 +2005,17 @@ const handleMouseLeave = useCallback(() => {
           >
             <FaShoppingCart size={15} />
             {isInCart ? "Go to Cart" : `Add to Cart · ₹${finalPrice.toLocaleString("en-IN")}`}
+          </button>
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            style={{
+              flex: "0 0 92px", border: 0, borderRadius: 12,
+              background: "#111827", color: "#fff", fontWeight: 900,
+              fontSize: 11.5, cursor: "pointer",
+            }}
+          >
+            Buy Now
           </button>
         </div>
 

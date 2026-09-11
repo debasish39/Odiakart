@@ -3,12 +3,15 @@ import { toast } from "sonner";
 import { AccountShell, api } from "./AccountShell";
 import { AddressForm } from "./AddAddressPage";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 export default function EditAddressPage() {
   const id = window.location.pathname
     .split("/")
     .filter(Boolean)
     .slice(-2, -1)[0];
+
+  const navigate = useNavigate();
 
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token");
@@ -18,9 +21,6 @@ export default function EditAddressPage() {
 
   // ============================================================
   // LOAD ADDRESS
-  // Uses the same cached address list as AddressesPage.
-  // This avoids another /api/addresses request when the list is
-  // already in TanStack Query cache.
   // ============================================================
 
   const {
@@ -41,7 +41,7 @@ export default function EditAddressPage() {
   });
 
   // ============================================================
-  // FIND ADDRESS FROM CACHED / FETCHED LIST
+  // FIND ADDRESS
   // ============================================================
 
   useEffect(() => {
@@ -52,9 +52,11 @@ export default function EditAddressPage() {
 
     if (addressError) {
       console.error("Load address error:", addressError);
+
       toast.error(
         addressError.message || "Failed to load address"
       );
+
       return;
     }
 
@@ -131,17 +133,27 @@ export default function EditAddressPage() {
         label: String(f.label || "Home").trim(),
         fullName: String(f.fullName || "").trim(),
         phone: String(f.phone || "").trim(),
-        alternatePhone: String(f.alternatePhone || "").trim(),
-        addressLine1: String(f.addressLine1 || "").trim(),
-        addressLine2: String(f.addressLine2 || "").trim(),
+        alternatePhone: String(
+          f.alternatePhone || ""
+        ).trim(),
+        addressLine1: String(
+          f.addressLine1 || ""
+        ).trim(),
+        addressLine2: String(
+          f.addressLine2 || ""
+        ).trim(),
         landmark: String(f.landmark || "").trim(),
         area: String(f.area || "").trim(),
         village: String(f.village || "").trim(),
         city: String(f.city || "").trim(),
         district: String(f.district || "").trim(),
         state: String(f.state || "").trim(),
-        postalCode: String(f.postalCode || "").trim(),
-        country: String(f.country || "India").trim(),
+        postalCode: String(
+          f.postalCode || ""
+        ).trim(),
+        country: String(
+          f.country || "India"
+        ).trim(),
         location: f.location || {
           latitude: null,
           longitude: null,
@@ -160,9 +172,7 @@ export default function EditAddressPage() {
         );
       }
 
-      // Important:
-      // Refresh the address list cache after a successful update.
-      // AddressesPage and this page share the same query key.
+      // Refresh address cache
       await queryClient.invalidateQueries({
         queryKey: ["addresses", token],
       });
@@ -171,10 +181,9 @@ export default function EditAddressPage() {
         d.message || "Address updated successfully"
       );
 
-      // --------------------------------------------------------
-      // Return to checkout if the user came from checkout.
-      // Otherwise return to saved addresses.
-      // --------------------------------------------------------
+      // ========================================================
+      // RETURN TO CHECKOUT OR ADDRESSES
+      // ========================================================
 
       let returnPath = "/account/addresses";
 
@@ -201,7 +210,9 @@ export default function EditAddressPage() {
         );
       }
 
-      window.location.href = returnPath;
+      // React Router navigation
+      navigate(returnPath);
+
     } catch (e) {
       console.error("Update address error:", e);
 
@@ -251,10 +262,9 @@ export default function EditAddressPage() {
           <button
             className="ok-btn ok-primary"
             style={{ marginTop: 18 }}
-            onClick={() => {
-              window.location.href =
-                "/account/addresses";
-            }}
+            onClick={() =>
+              navigate("/account/addresses")
+            }
           >
             Back to addresses
           </button>
@@ -267,16 +277,15 @@ export default function EditAddressPage() {
   // EDIT ADDRESS FORM
   // ============================================================
 
-  return (
-    <AccountShell title="Edit address">
-      <AddressForm
-        title="Edit address"
-        f={f}
-        set={set}
-        save={save}
-        saving={saving}
-        submit="Save changes"
-      />
-    </AccountShell>
-  );
+return (
+  <AddressForm
+    title="Edit address"
+    f={f}
+    set={set}
+    save={save}
+    saving={saving}
+    submit="Save changes"
+  />
+);
 }
+

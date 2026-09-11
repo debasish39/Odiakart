@@ -196,6 +196,9 @@ export default function ReviewsPage() {
   const [ratingFilter, setRatingFilter] =
     useState("all");
 
+  const [photoFilter, setPhotoFilter] =
+    useState(false);
+
   const [selectedImage, setSelectedImage] =
     useState(null);
 
@@ -411,11 +414,30 @@ export default function ReviewsPage() {
       );
     }
 
+    if (
+      sortBy ===
+      "helpful"
+    ) {
+      result.sort(
+        (a, b) =>
+          Number(b?.likesCount || 0) -
+          Number(a?.likesCount || 0)
+      );
+    }
+
+    if (photoFilter) {
+      result = result.filter(
+        (review) =>
+          getReviewImages(review).length > 0
+      );
+    }
+
     return result;
   }, [
     reviews,
     ratingFilter,
     sortBy,
+    photoFilter,
   ]);
 
   /* =======================================================
@@ -502,6 +524,29 @@ export default function ReviewsPage() {
       );
     }
   };
+
+  /* =======================================================
+     CUSTOMER PHOTO WALL
+  ======================================================= */
+
+  const customerPhotos = useMemo(() => {
+    return reviews
+      .flatMap((review) =>
+        getReviewImages(review).map((image) => ({
+          image,
+          review,
+        }))
+      )
+      .slice(0, 12);
+  }, [reviews]);
+
+  const verifiedCount = useMemo(
+    () =>
+      reviews.filter(
+        (review) => review?.verifiedPurchase
+      ).length,
+    [reviews]
+  );
 
   /* =======================================================
      LOADING
@@ -604,7 +649,7 @@ export default function ReviewsPage() {
           CONTENT
       =================================================== */}
 
-      <main className="mx-auto max-w-6xl px-3 py-4 pb-10 sm:px-5 sm:py-6">
+      <main className="mx-auto max-w-6xl px-3 py-4 pb-24 sm:px-5 sm:py-6 sm:pb-10">
 
         {/* =================================================
             PRODUCT HEADER
@@ -690,13 +735,33 @@ export default function ReviewsPage() {
 
           <div className="mb-5">
 
-            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">
-              Customer feedback
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-indigo-500">
+                Customer feedback
+              </p>
+              {verifiedCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[8px] font-black text-emerald-600">
+                  <FaCheckCircle size={8} />
+                  {verifiedCount} verified
+                </span>
+              )}
+            </div>
 
-            <h2 className="mt-1 text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
-              Ratings & Reviews
-            </h2>
+            <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
+                  Ratings & Reviews
+                </h2>
+                <p className="mt-1 text-[10px] font-semibold text-slate-400">
+                  Real experiences from shoppers who bought this product.
+                </p>
+              </div>
+              {reviews.length > 0 && (
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[9px] font-extrabold text-slate-500">
+                  {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+                </span>
+              )}
+            </div>
 
           </div>
 
@@ -816,6 +881,59 @@ export default function ReviewsPage() {
         </section>
 
         {/* =================================================
+            CUSTOMER PHOTO WALL
+        ================================================= */}
+
+        {customerPhotos.length > 0 && (
+          <section className="mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-400">
+                  Shopper gallery
+                </p>
+                <h3 className="mt-0.5 text-sm font-black text-slate-900">
+                  Customer photos
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setPhotoFilter(true);
+                  document.getElementById("review-results")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }}
+                className="rounded-xl bg-slate-100 px-3 py-2 text-[9px] font-extrabold text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-600"
+              >
+                View photo reviews
+              </button>
+            </div>
+
+            <div className="flex gap-2.5 overflow-x-auto pb-1">
+              {customerPhotos.map(({ image, review }, index) => (
+                <button
+                  key={`${review?._id || index}-wall-${index}`}
+                  type="button"
+                  onClick={() => setSelectedImage(image)}
+                  className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+                  aria-label="Open customer photo"
+                >
+                  <img
+                    src={image}
+                    alt="Customer review"
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                  />
+                  <span className="absolute inset-x-1.5 bottom-1.5 rounded-lg bg-slate-950/65 px-1.5 py-1 text-[7px] font-bold text-white backdrop-blur">
+                    {Number(review?.rating || 0).toFixed(1)} ★
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* =================================================
             FILTER / SORT
         ================================================= */}
 
@@ -835,14 +953,12 @@ export default function ReviewsPage() {
                 <button
                   key={value}
                   type="button"
-                  onClick={() =>
-                    setRatingFilter(
-                      value
-                    )
-                  }
+                  onClick={() => {
+                    setRatingFilter(value);
+                    if (value !== "all") setPhotoFilter(false);
+                  }}
                   className={`whitespace-nowrap rounded-lg px-3 py-2 text-[10px] font-extrabold transition ${
-                    ratingFilter ===
-                    value
+                    ratingFilter === value && !photoFilter
                       ? "bg-slate-900 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
@@ -851,6 +967,18 @@ export default function ReviewsPage() {
                 </button>
               )
             )}
+
+            <button
+              type="button"
+              onClick={() => setPhotoFilter((value) => !value)}
+              className={`whitespace-nowrap rounded-lg px-3 py-2 text-[10px] font-extrabold transition ${
+                photoFilter
+                  ? "bg-indigo-600 text-white"
+                  : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+              }`}
+            >
+              📷 Photos
+            </button>
 
           </div>
 
@@ -865,6 +993,10 @@ export default function ReviewsPage() {
               }
               className="h-9 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-[10px] font-bold text-slate-600 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 sm:w-40"
             >
+
+              <option value="helpful">
+                Most Helpful
+              </option>
 
               <option value="recent">
                 Most Recent
@@ -893,7 +1025,7 @@ export default function ReviewsPage() {
             RESULT COUNT
         ================================================= */}
 
-        <div className="mb-3 flex items-center justify-between px-1">
+        <div id="review-results" className="mb-3 flex items-center justify-between px-1 scroll-mt-20">
 
           <span className="text-[10px] font-bold text-slate-500">
             Showing{" "}
@@ -901,6 +1033,7 @@ export default function ReviewsPage() {
             of{" "}
             {reviews.length}{" "}
             reviews
+            {photoFilter ? " · photos only" : ""}
           </span>
 
           {ratingFilter !==
@@ -940,8 +1073,9 @@ export default function ReviewsPage() {
             </h3>
 
             <p className="mt-1 text-xs text-slate-500">
-              There are no reviews
-              matching this rating.
+              {photoFilter
+                ? "There are no customer photo reviews yet."
+                : "There are no reviews matching this filter."}
             </p>
 
             <button
@@ -1222,6 +1356,43 @@ export default function ReviewsPage() {
         )}
 
       </main>
+
+      {/* ===================================================
+          MOBILE REVIEW FILTER BAR
+      =================================================== */}
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-2.5 shadow-[0_-8px_30px_rgba(15,23,42,.08)] backdrop-blur-xl sm:hidden">
+        <div className="mx-auto flex max-w-6xl gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setRatingFilter("all");
+              setPhotoFilter(false);
+              document.getElementById("review-results")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }}
+            className="flex-1 rounded-xl bg-slate-100 py-2.5 text-[10px] font-black text-slate-700 active:scale-[.98]"
+          >
+            All Reviews
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPhotoFilter(true);
+              setRatingFilter("all");
+              document.getElementById("review-results")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }}
+            className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-[10px] font-black text-white active:scale-[.98]"
+          >
+            📷 Photo Reviews
+          </button>
+        </div>
+      </div>
 
       {/* ===================================================
           IMAGE LIGHTBOX
