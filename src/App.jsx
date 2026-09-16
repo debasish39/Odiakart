@@ -19,8 +19,8 @@ import { Toaster } from "sonner";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
+import PageSkeleton from "./components/PageSkeleton";
 import Spinner from "./components/Spinner";
-
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
 import VerifySignIn from "./pages/VerifySignIn";
@@ -43,6 +43,7 @@ import Offline from "./pages/Offline";
 import TrackOrder from "./pages/TrackOrder";
 import SingleOrderPage from "./pages/SingleOrderPage.jsx";
 import ReviewsPage from "./pages/ReviewsPage.jsx";
+import CategoryPage from "./pages/CategoryPage.jsx";
 
 /* =========================================================
    LAZY PAGES
@@ -216,6 +217,8 @@ const AppWrapper = () => {
 
   const isHomePage =
     pathname === "/";
+const isProductDetailsPage =
+  pathname.startsWith("/products/");
 
   const isAuthPage =
     pathname.startsWith("/sign-in") ||
@@ -260,16 +263,14 @@ const AppWrapper = () => {
 
   const showFullNavbar =
     isHomePage;
-
-  const showSearchNavbar =
-    !isHomePage &&
-    pathname !== "/search" &&
-    !isAuthPage &&
-    !isStandalonePage &&
-    !isProfilePage &&
-    isEcommercePage;
-
-
+const showSearchNavbar =
+  !isHomePage &&
+  pathname !== "/search" &&
+  !isAuthPage &&
+  !isStandalonePage &&
+  !isProfilePage &&
+  !isProductDetailsPage &&
+  isEcommercePage;
   /* =======================================================
      APP LOADING
   ======================================================= */
@@ -520,7 +521,6 @@ const AppWrapper = () => {
 
     };
 
-
   /* =======================================================
      INITIALIZATION
   ======================================================= */
@@ -626,9 +626,7 @@ const AppWrapper = () => {
           APP CONTAINER
       =================================================== */}
 
-      <Suspense
-        fallback={<Spinner />}
-      >
+   <Suspense fallback={<Spinner />}>
 
         <div
           className="
@@ -1041,7 +1039,7 @@ const AppWrapper = () => {
                 }
               />
 
-
+             <Route path="/categorypage" element={<CategoryPage />} />
               {/* =================================================
                   ORDER SUCCESS
               ================================================= */}

@@ -17,14 +17,116 @@ import { MdVerified } from "react-icons/md";
 const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL;
 
+
+/* =====================================================
+   CACHE
+===================================================== */
+
+const BEST_SELLERS_CACHE_KEY =
+  "odikart_best_sellers";
+
+const BEST_SELLERS_CACHE_TIME_KEY =
+  "odikart_best_sellers_cache_time";
+
+const BEST_SELLERS_CACHE_DURATION =
+  5 * 60 * 1000;
+
+
+/* =====================================================
+   CACHE HELPERS
+===================================================== */
+
+const getCachedBestSellers = () => {
+  try {
+    const cached =
+      sessionStorage.getItem(
+        BEST_SELLERS_CACHE_KEY
+      );
+
+    const cachedTime =
+      sessionStorage.getItem(
+        BEST_SELLERS_CACHE_TIME_KEY
+      );
+
+    if (!cached || !cachedTime) {
+      return null;
+    }
+
+    const age =
+      Date.now() - Number(cachedTime);
+
+    if (
+      age > BEST_SELLERS_CACHE_DURATION
+    ) {
+      return null;
+    }
+
+    const parsed =
+      JSON.parse(cached);
+
+    return Array.isArray(parsed)
+      ? parsed
+      : null;
+
+  } catch (error) {
+    console.warn(
+      "BEST SELLERS CACHE READ ERROR:",
+      error
+    );
+
+    return null;
+  }
+};
+
+
+const saveBestSellersCache = (
+  products
+) => {
+  try {
+    sessionStorage.setItem(
+      BEST_SELLERS_CACHE_KEY,
+      JSON.stringify(products)
+    );
+
+    sessionStorage.setItem(
+      BEST_SELLERS_CACHE_TIME_KEY,
+      String(Date.now())
+    );
+
+  } catch (error) {
+    console.warn(
+      "BEST SELLERS CACHE SAVE ERROR:",
+      error
+    );
+  }
+};
+
+
 export default function BestSellerProducts() {
   const navigate = useNavigate();
 
+
+  /* =====================================================
+     INITIAL CACHE
+  ===================================================== */
+
+  const cachedProducts =
+    getCachedBestSellers();
+
+
+  /* =====================================================
+     STATE
+  ===================================================== */
+
   const [products, setProducts] =
-    useState([]);
+    useState(
+      cachedProducts || []
+    );
 
   const [loading, setLoading] =
-    useState(true);
+    useState(
+      !cachedProducts
+    );
 
   const [error, setError] =
     useState("");
@@ -41,53 +143,84 @@ export default function BestSellerProducts() {
   ===================================================== */
 
   const fetchBestSellers =
-    useCallback(async () => {
-      const url =
-        `${BACKEND_URL}/api/products/best-sellers`;
+    useCallback(
+      async ({
+        showLoader = false,
+      } = {}) => {
 
-      try {
-        setLoading(true);
-        setError("");
+        const url =
+          `${BACKEND_URL}/api/products/best-sellers`;
 
-        const response =
-          await fetch(url, {
-            method: "GET",
+        try {
 
-            headers: {
-              Accept:
-                "application/json",
-            },
-          });
+          /*
+           * Cached data is already visible,
+           * so background refresh does not
+           * trigger a skeleton flash.
+           */
 
-        const data =
-          await response.json();
+          if (showLoader) {
+            setLoading(true);
+          }
 
-        if (!response.ok) {
-          throw new Error(
-            data?.message ||
-              `HTTP ${response.status}`,
+          setError("");
+
+          const response =
+            await fetch(url, {
+              method: "GET",
+              headers: {
+                Accept:
+                  "application/json",
+              },
+            });
+
+          const data =
+            await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              data?.message ||
+                `HTTP ${response.status}`
+            );
+          }
+
+          const list =
+            Array.isArray(
+              data?.products
+            )
+              ? data.products
+              : [];
+
+          setProducts(list);
+
+          saveBestSellersCache(list);
+
+        } catch (error) {
+
+          console.error(
+            "BEST SELLERS ERROR:",
+            error
           );
+
+          /*
+           * Never destroy already visible
+           * cached products because a silent
+           * background request failed.
+           */
+
+          if (!products.length) {
+            setError(
+              error?.message ||
+                "Failed to load best sellers"
+            );
+          }
+
+        } finally {
+          setLoading(false);
         }
-
-        const list =
-          Array.isArray(
-            data?.products,
-          )
-            ? data.products
-            : [];
-
-        setProducts(list);
-      } catch (error) {
-        setError(
-          error?.message ||
-            "Failed to load best sellers",
-        );
-
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    }, []);
+      },
+      []
+    );
 
 
   /* =====================================================
@@ -95,10 +228,21 @@ export default function BestSellerProducts() {
   ===================================================== */
 
   useEffect(() => {
-    fetchBestSellers();
 
-    return () => {};
-  }, [fetchBestSellers]);
+    /*
+     * No cache:
+     *   skeleton + API request
+     *
+     * Cache:
+     *   instant cached UI + silent API refresh
+     */
+
+    fetchBestSellers({
+      showLoader:
+        !cachedProducts,
+    });
+
+  }, []);
 
 
   /* =====================================================
@@ -110,21 +254,21 @@ export default function BestSellerProducts() {
       product?.media?.thumbnail,
 
       ...(Array.isArray(
-        product?.media?.images,
+        product?.media?.images
       )
         ? product.media.images
         : []),
 
       ...(Array.isArray(
-        product?.variants,
+        product?.variants
       )
         ? product.variants.flatMap(
             (variant) =>
               Array.isArray(
-                variant?.images,
+                variant?.images
               )
                 ? variant.images
-                : [],
+                : []
           )
         : []),
     ].filter(Boolean);
@@ -147,7 +291,7 @@ export default function BestSellerProducts() {
   const getVariant = (product) => {
     if (
       !Array.isArray(
-        product?.variants,
+        product?.variants
       ) ||
       product.variants.length === 0
     ) {
@@ -157,7 +301,7 @@ export default function BestSellerProducts() {
     return (
       product.variants.find(
         (variant) =>
-          variant?.isActive !== false,
+          variant?.isActive !== false
       ) ||
       product.variants[0]
     );
@@ -173,7 +317,7 @@ export default function BestSellerProducts() {
       getVariant(product);
 
     return Number(
-      variant?.price || 0,
+      variant?.price || 0
     );
   };
 
@@ -183,7 +327,7 @@ export default function BestSellerProducts() {
   ===================================================== */
 
   const getOriginalPrice = (
-    product,
+    product
   ) => {
     const variant =
       getVariant(product);
@@ -191,7 +335,7 @@ export default function BestSellerProducts() {
     return Number(
       variant?.originalPrice ||
         variant?.price ||
-        0,
+        0
     );
   };
 
@@ -201,14 +345,14 @@ export default function BestSellerProducts() {
   ===================================================== */
 
   const openProduct = (
-    product,
+    product
   ) => {
     if (!product?._id) {
       return;
     }
 
     navigate(
-      `/products/${product._id}`,
+      `/products/${product._id}`
     );
   };
 
@@ -221,7 +365,7 @@ export default function BestSellerProducts() {
     event,
     productId,
     imageCount,
-    direction,
+    direction
   ) => {
     event.stopPropagation();
 
@@ -238,12 +382,14 @@ export default function BestSellerProducts() {
           ...previous,
 
           [productId]:
-            (current +
+            (
+              current +
               direction +
-              imageCount) %
+              imageCount
+            ) %
             imageCount,
         };
-      },
+      }
     );
   };
 
@@ -255,7 +401,7 @@ export default function BestSellerProducts() {
   const goToImage = (
     event,
     productId,
-    index,
+    index
   ) => {
     event.stopPropagation();
 
@@ -264,7 +410,7 @@ export default function BestSellerProducts() {
         ...previous,
 
         [productId]: index,
-      }),
+      })
     );
   };
 
@@ -277,7 +423,7 @@ export default function BestSellerProducts() {
     useCallback(
       (
         productId,
-        imageCount,
+        imageCount
       ) => {
         if (imageCount <= 1) {
           return;
@@ -294,13 +440,15 @@ export default function BestSellerProducts() {
               ...previous,
 
               [productId]:
-                (current + 1) %
+                (
+                  current + 1
+                ) %
                 imageCount,
             };
-          },
+          }
         );
       },
-      [],
+      []
     );
 
 
@@ -317,7 +465,7 @@ export default function BestSellerProducts() {
       products.find(
         (item) =>
           item._id ===
-          hoveredCard,
+          hoveredCard
       );
 
     if (!product) {
@@ -335,12 +483,13 @@ export default function BestSellerProducts() {
       setInterval(() => {
         autoSwipe(
           product._id,
-          images.length,
+          images.length
         );
       }, 1400);
 
     return () =>
       clearInterval(timer);
+
   }, [
     hoveredCard,
     products,
@@ -351,8 +500,6 @@ export default function BestSellerProducts() {
   /* =====================================================
      LOADING
   ===================================================== */
-
-
 
 if (loading) {
   return (
@@ -567,8 +714,10 @@ if (loading) {
 
           <button
             type="button"
-            onClick={
-              fetchBestSellers
+            onClick={() =>
+              fetchBestSellers({
+                showLoader: true,
+              })
             }
             className="mt-5 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-600"
           >
@@ -1094,14 +1243,6 @@ if (loading) {
                   key={
                     product._id
                   }
-
-                  data-aos="zoom-in"
-
-                  data-aos-delay={
-                    index * 70
-                  }
-
-                  data-aos-once="true"
 
                   className="bs-card bs-product-item"
 

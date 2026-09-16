@@ -1,516 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { AiOutlineArrowRight } from "react-icons/ai";
 
 export default function Carousel() {
   const navigate = useNavigate();
-
-  const [loading, setLoading] = useState(true);
-
-  /*
-  =====================================================
-  SKELETON LOADING
-  =====================================================
-  */
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 700);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  /*
-  =====================================================
-  MODERN LOADING SKELETON
-  =====================================================
-  */
-
-  if (loading) {
-    return (
-      <section className="offer-skeleton-section mx-auto w-full max-w-7xl">
-        <div className="offer-skeleton-banner">
-          {/* Ambient glow */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -left-20 top-0 h-48 w-48 rounded-full bg-indigo-300/20 blur-3xl"
-          />
-
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute right-0 top-[-80px] h-64 w-64 rounded-full bg-purple-300/20 blur-3xl"
-          />
-
-          {/* Decorative rings */}
-          <div className="offer-skeleton-ring offer-skeleton-ring-one" />
-          <div className="offer-skeleton-ring offer-skeleton-ring-two" />
-
-          {/* =================================================
-              LEFT CONTENT
-          ================================================= */}
-
-          <div className="relative z-10 w-[65%] sm:w-[60%]">
-            {/* Badge */}
-            <div className="offer-skeleton-shimmer mb-3 h-6 w-32 rounded-full sm:h-7 sm:w-40" />
-
-            {/* Heading */}
-            <div className="space-y-2">
-              <div className="offer-skeleton-shimmer h-7 w-44 rounded-lg sm:h-10 sm:w-64" />
-
-              <div className="offer-skeleton-shimmer h-7 w-52 rounded-lg sm:h-10 sm:w-72" />
-            </div>
-
-            {/* Description */}
-            <div className="mt-4 space-y-2">
-              <div className="offer-skeleton-shimmer h-3.5 w-full max-w-[390px] rounded-md" />
-
-              <div className="offer-skeleton-shimmer h-3.5 w-[85%] max-w-[330px] rounded-md" />
-
-              <div className="offer-skeleton-shimmer h-3.5 w-[65%] max-w-[250px] rounded-md" />
-            </div>
-
-            {/* CTA */}
-            <div className="offer-skeleton-shimmer mt-5 h-10 w-28 rounded-full sm:h-11 sm:w-32" />
-          </div>
-
-          {/* =================================================
-              RIGHT VISUAL
-          ================================================= */}
-
-          <div className="offer-skeleton-visual">
-            {/* Main discount circle */}
-            <div className="offer-skeleton-circle">
-              <div className="offer-skeleton-shimmer h-3 w-12 rounded-full" />
-
-              <div className="offer-skeleton-shimmer mt-2 h-12 w-24 rounded-xl sm:h-14 sm:w-28" />
-
-              <div className="offer-skeleton-shimmer mt-2 h-3 w-10 rounded-full" />
-            </div>
-
-            {/* Floating tags */}
-
-            <div className="offer-skeleton-tag offer-skeleton-tag-one">
-              <div className="offer-skeleton-shimmer h-3 w-20 rounded-full" />
-            </div>
-
-            <div className="offer-skeleton-tag offer-skeleton-tag-two">
-              <div className="offer-skeleton-shimmer h-3 w-24 rounded-full" />
-            </div>
-
-            <div className="offer-skeleton-tag offer-skeleton-tag-three">
-              <div className="offer-skeleton-shimmer h-3 w-20 rounded-full" />
-            </div>
-          </div>
-        </div>
-
-        {/* =================================================
-            SKELETON STYLES
-        ================================================= */}
-
-        <style>{`
-          .offer-skeleton-section {
-            width: 100%;
-            padding: 12px 12px 18px;
-            background: #ffffff;
-          }
-
-          .offer-skeleton-banner {
-            position: relative;
-
-            width: 100%;
-            min-height: 280px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            overflow: hidden;
-
-            padding: 42px 55px;
-
-            border-radius: 30px;
-
-            background:
-              radial-gradient(
-                circle at 82% 30%,
-                rgba(255,255,255,.18),
-                transparent 30%
-              ),
-              linear-gradient(
-                120deg,
-                #312e81 0%,
-                #4338ca 45%,
-                #6366f1 72%,
-                #7c3aed 100%
-              );
-
-            box-shadow:
-              0 18px 50px rgba(79,70,229,.18);
-          }
-
-          /* =================================================
-             SHIMMER
-          ================================================= */
-
-          .offer-skeleton-shimmer {
-            position: relative;
-            overflow: hidden;
-
-            background:
-              linear-gradient(
-                110deg,
-                rgba(255,255,255,.16) 8%,
-                rgba(255,255,255,.28) 18%,
-                rgba(224,231,255,.52) 30%,
-                rgba(255,255,255,.28) 42%,
-                rgba(255,255,255,.14) 58%
-              );
-
-            background-size: 250% 100%;
-
-            animation:
-              offerSkeletonShimmer 1.8s ease-in-out infinite;
-
-            box-shadow:
-              inset 0 0 16px rgba(255,255,255,.08),
-              0 0 18px rgba(255,255,255,.025);
-          }
-
-          .offer-skeleton-shimmer::after {
-            content: "";
-
-            position: absolute;
-            inset: 0;
-
-            background:
-              linear-gradient(
-                90deg,
-                transparent 0%,
-                rgba(255,255,255,.08) 25%,
-                rgba(255,255,255,.5) 50%,
-                rgba(255,255,255,.08) 65%,
-                transparent 100%
-              );
-
-            transform: translateX(-120%);
-
-            animation:
-              offerSkeletonGlow 2.2s ease-in-out infinite;
-          }
-
-          /* =================================================
-             DISCOUNT CIRCLE
-          ================================================= */
-
-          .offer-skeleton-circle {
-            width: 190px;
-            height: 190px;
-
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 50%;
-
-            background:
-              radial-gradient(
-                circle at 35% 30%,
-                rgba(255,255,255,.96),
-                rgba(245,243,255,.9) 65%,
-                rgba(221,214,254,.82)
-              );
-
-            box-shadow:
-              0 18px 45px rgba(0,0,0,.18),
-              0 0 55px rgba(255,255,255,.08);
-
-            transform: rotate(-6deg);
-
-            animation:
-              offerSkeletonFloat 4s ease-in-out infinite;
-          }
-
-          /* =================================================
-             RIGHT VISUAL
-          ================================================= */
-
-          .offer-skeleton-visual {
-            position: relative;
-
-            width: 310px;
-            height: 245px;
-
-            flex-shrink: 0;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            z-index: 4;
-          }
-
-          /* =================================================
-             FLOATING TAGS
-          ================================================= */
-
-          .offer-skeleton-tag {
-            position: absolute;
-
-            padding: 8px 12px;
-
-            border:
-              1px solid
-              rgba(255,255,255,.14);
-
-            border-radius: 999px;
-
-            background:
-              rgba(255,255,255,.09);
-
-            backdrop-filter: blur(12px);
-
-            box-shadow:
-              0 7px 22px rgba(0,0,0,.10);
-          }
-
-          .offer-skeleton-tag-one {
-            top: 15px;
-            right: 0;
-
-            transform: rotate(6deg);
-          }
-
-          .offer-skeleton-tag-two {
-            bottom: 15px;
-            left: 0;
-
-            transform: rotate(-6deg);
-          }
-
-          .offer-skeleton-tag-three {
-            top: 50%;
-            right: -18px;
-
-            transform:
-              translateY(-50%)
-              rotate(4deg);
-          }
-
-          /* =================================================
-             DECORATIVE RINGS
-          ================================================= */
-
-          .offer-skeleton-ring {
-            position: absolute;
-
-            border:
-              1px solid
-              rgba(255,255,255,.08);
-
-            border-radius: 50%;
-
-            pointer-events: none;
-          }
-
-          .offer-skeleton-ring-one {
-            width: 300px;
-            height: 300px;
-
-            right: 4%;
-            top: -30px;
-          }
-
-          .offer-skeleton-ring-two {
-            width: 220px;
-            height: 220px;
-
-            right: 13%;
-            top: 40px;
-          }
-
-          /* =================================================
-             ANIMATIONS
-          ================================================= */
-
-          @keyframes offerSkeletonShimmer {
-            0% {
-              background-position: 100% 0;
-            }
-
-            50% {
-              background-position: 0% 0;
-            }
-
-            100% {
-              background-position: -100% 0;
-            }
-          }
-
-          @keyframes offerSkeletonGlow {
-            0% {
-              transform: translateX(-120%);
-            }
-
-            55%,
-            100% {
-              transform: translateX(120%);
-            }
-          }
-
-          @keyframes offerSkeletonFloat {
-            0%,
-            100% {
-              transform:
-                translateY(0)
-                rotate(-6deg);
-            }
-
-            50% {
-              transform:
-                translateY(-7px)
-                rotate(-4deg);
-            }
-          }
-
-          /* =================================================
-             TABLET
-          ================================================= */
-
-          @media (max-width: 900px) {
-            .offer-skeleton-banner {
-              min-height: 250px;
-
-              padding:
-                35px 30px;
-            }
-
-            .offer-skeleton-visual {
-              width: 240px;
-            }
-
-            .offer-skeleton-circle {
-              width: 165px;
-              height: 165px;
-            }
-
-            .offer-skeleton-tag-three {
-              right: -5px;
-            }
-          }
-
-          /* =================================================
-             MOBILE
-          ================================================= */
-
-          @media (max-width: 640px) {
-            .offer-skeleton-section {
-              padding:
-                8px 10px 14px;
-            }
-
-            .offer-skeleton-banner {
-              min-height: 210px;
-
-              padding:
-                25px 19px;
-
-              border-radius: 23px;
-            }
-
-            .offer-skeleton-circle {
-              width: 130px;
-              height: 130px;
-            }
-
-            .offer-skeleton-visual {
-              position: absolute;
-
-              right: -26px;
-
-              width: 175px;
-              height: 175px;
-            }
-
-            .offer-skeleton-tag {
-              padding:
-                5px 7px;
-            }
-
-            .offer-skeleton-tag-one {
-              top: 2px;
-            }
-
-            .offer-skeleton-tag-two {
-              bottom: 2px;
-            }
-
-            .offer-skeleton-tag-three {
-              display: none;
-            }
-
-            .offer-skeleton-ring-one {
-              width: 210px;
-              height: 210px;
-
-              right: -35px;
-              top: 0;
-            }
-
-            .offer-skeleton-ring-two {
-              width: 150px;
-              height: 150px;
-
-              right: 0;
-              top: 30px;
-            }
-          }
-
-          /* =================================================
-             SMALL PHONES
-          ================================================= */
-
-          @media (max-width: 390px) {
-            .offer-skeleton-banner {
-              min-height: 195px;
-
-              padding:
-                21px 15px;
-            }
-
-            .offer-skeleton-circle {
-              transform:
-                scale(.88)
-                rotate(-6deg);
-            }
-
-            .offer-skeleton-visual {
-              right: -34px;
-            }
-          }
-
-          /* =================================================
-             REDUCED MOTION
-          ================================================= */
-
-          @media (prefers-reduced-motion: reduce) {
-            .offer-skeleton-shimmer,
-            .offer-skeleton-shimmer::after,
-            .offer-skeleton-circle {
-              animation: none !important;
-            }
-          }
-        `}</style>
-      </section>
-    );
-  }
-
-  /*
-  =====================================================
-  NORMAL OFFER BANNER
-  =====================================================
-  */
 
   return (
     <>
@@ -534,10 +27,7 @@ export default function Carousel() {
           <div className="offer-content">
             {/* Badge */}
             <div className="offer-label">
-              <span className="offer-label-icon">
-                ⚡
-              </span>
-
+              <span className="offer-label-icon">⚡</span>
               LIMITED TIME OFFER
             </div>
 
@@ -546,15 +36,12 @@ export default function Carousel() {
               Big Savings.
               <br />
 
-              <span>
-                Better Shopping.
-              </span>
+              <span>Better Shopping.</span>
             </h1>
 
             {/* Description */}
             <p className="offer-description">
-              Discover amazing products at
-              unbeatable prices. Shop your
+              Discover amazing products at unbeatable prices. Shop your
               favourites before the offer ends.
             </p>
 
@@ -564,9 +51,7 @@ export default function Carousel() {
               onClick={() => navigate("/products")}
               className="offer-button"
             >
-              <span>
-                Shop Offers
-              </span>
+              <span>Shop Offers</span>
 
               <span className="offer-button-icon">
                 <AiOutlineArrowRight size={16} />
@@ -581,17 +66,11 @@ export default function Carousel() {
           <div className="offer-visual">
             {/* Main discount circle */}
             <div className="offer-circle">
-              <span className="offer-up-to">
-                UP TO
-              </span>
+              <span className="offer-up-to">UP TO</span>
 
-              <strong>
-                20%
-              </strong>
+              <strong>20%</strong>
 
-              <span className="offer-off">
-                OFF
-              </span>
+              <span className="offer-off">OFF</span>
             </div>
 
             {/* Floating badges */}
@@ -648,7 +127,7 @@ export default function Carousel() {
           background:
             radial-gradient(
               circle at 85% 20%,
-              rgba(255,255,255,0.20),
+              rgba(255, 255, 255, 0.20),
               transparent 28%
             ),
             linear-gradient(
@@ -661,7 +140,7 @@ export default function Carousel() {
 
           box-shadow:
             0 18px 50px
-            rgba(79,70,229,0.18);
+            rgba(79, 70, 229, 0.18);
         }
 
         /* ===================================================
@@ -685,8 +164,7 @@ export default function Carousel() {
           right: 25%;
           top: -145px;
 
-          background:
-            rgba(255,255,255,0.08);
+          background: rgba(255, 255, 255, 0.08);
         }
 
         .offer-glow-two {
@@ -696,8 +174,7 @@ export default function Carousel() {
           left: 35%;
           bottom: -125px;
 
-          background:
-            rgba(255,255,255,0.07);
+          background: rgba(255, 255, 255, 0.07);
         }
 
         /* ===================================================
@@ -709,7 +186,7 @@ export default function Carousel() {
 
           border:
             1px solid
-            rgba(255,255,255,0.08);
+            rgba(255, 255, 255, 0.08);
 
           border-radius: 50%;
 
@@ -761,15 +238,15 @@ export default function Carousel() {
 
           border:
             1px solid
-            rgba(255,255,255,0.18);
+            rgba(255, 255, 255, 0.18);
 
           border-radius: 999px;
 
           background:
-            rgba(255,255,255,0.10);
+            rgba(255, 255, 255, 0.10);
 
           color:
-            rgba(255,255,255,0.95);
+            rgba(255, 255, 255, 0.95);
 
           font-size: 10px;
 
@@ -793,7 +270,7 @@ export default function Carousel() {
           border-radius: 50%;
 
           background:
-            rgba(255,255,255,0.15);
+            rgba(255, 255, 255, 0.15);
 
           font-size: 12px;
         }
@@ -832,7 +309,7 @@ export default function Carousel() {
             14px 0 23px;
 
           color:
-            rgba(255,255,255,0.72);
+            rgba(255, 255, 255, 0.72);
 
           font-size: 13px;
 
@@ -869,7 +346,7 @@ export default function Carousel() {
 
           box-shadow:
             0 8px 22px
-            rgba(0,0,0,0.14);
+            rgba(0, 0, 0, 0.14);
 
           transition:
             transform 180ms ease,
@@ -885,7 +362,7 @@ export default function Carousel() {
 
           box-shadow:
             0 12px 28px
-            rgba(0,0,0,0.18);
+            rgba(0, 0, 0, 0.18);
         }
 
         .offer-button:active {
@@ -959,7 +436,7 @@ export default function Carousel() {
 
           box-shadow:
             0 18px 45px
-            rgba(0,0,0,0.18);
+            rgba(0, 0, 0, 0.18);
 
           transform:
             rotate(-6deg);
@@ -1011,12 +488,12 @@ export default function Carousel() {
 
           border:
             1px solid
-            rgba(255,255,255,0.20);
+            rgba(255, 255, 255, 0.20);
 
           border-radius: 999px;
 
           background:
-            rgba(255,255,255,0.12);
+            rgba(255, 255, 255, 0.12);
 
           backdrop-filter:
             blur(12px);
@@ -1031,7 +508,7 @@ export default function Carousel() {
 
           box-shadow:
             0 7px 22px
-            rgba(0,0,0,0.12);
+            rgba(0, 0, 0, 0.12);
         }
 
         .offer-tag-one {
@@ -1149,7 +626,7 @@ export default function Carousel() {
 
             font-size: 7px;
 
-            letter-spacing: .07em;
+            letter-spacing: 0.07em;
           }
 
           .offer-label-icon {
@@ -1286,7 +763,7 @@ export default function Carousel() {
             right: -34px;
 
             transform:
-              scale(.88);
+              scale(0.88);
           }
         }
 

@@ -15,69 +15,223 @@ import {
 const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL;
 
+
+
+/* =====================================================
+   CACHE
+===================================================== */
+
+const FEATURED_CACHE_KEY =
+  "odikart_featured_products";
+
+const FEATURED_CACHE_TIME_KEY =
+  "odikart_featured_products_cache_time";
+
+const FEATURED_CACHE_DURATION =
+  5 * 60 * 1000;
+
+
+/* =====================================================
+   CACHE HELPERS
+===================================================== */
+
+const getCachedFeaturedProducts = () => {
+  try {
+    const cached =
+      sessionStorage.getItem(
+        FEATURED_CACHE_KEY
+      );
+
+    const cachedTime =
+      sessionStorage.getItem(
+        FEATURED_CACHE_TIME_KEY
+      );
+
+    if (!cached || !cachedTime) {
+      return null;
+    }
+
+    const parsed =
+      JSON.parse(cached);
+
+    return Array.isArray(parsed)
+      ? parsed
+      : null;
+
+  } catch (error) {
+    console.warn(
+      "FEATURED CACHE READ ERROR:",
+      error
+    );
+
+    return null;
+  }
+};
+
+
+const saveFeaturedProductsCache = (
+  products
+) => {
+  try {
+    sessionStorage.setItem(
+      FEATURED_CACHE_KEY,
+      JSON.stringify(products)
+    );
+
+    sessionStorage.setItem(
+      FEATURED_CACHE_TIME_KEY,
+      String(Date.now())
+    );
+
+  } catch (error) {
+    console.warn(
+      "FEATURED CACHE SAVE ERROR:",
+      error
+    );
+  }
+};
+
+
 export default function FeaturedProducts() {
   const navigate = useNavigate();
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  /*
+   * Read the cache during the initial render.
+   * This lets Featured Products appear immediately
+   * when the user returns from a product page.
+   */
+  const cachedProducts =
+    getCachedFeaturedProducts();
+
+
+  const [products, setProducts] =
+    useState(
+      cachedProducts || []
+    );
+
+  /*
+   * Only show the skeleton when there is
+   * no cached content available.
+   */
+  const [loading, setLoading] =
+    useState(
+      !cachedProducts
+    );
+
+  const [error, setError] =
+    useState("");
+
 
   /* =====================================================
      FETCH FEATURED PRODUCTS
   ===================================================== */
 
-  const fetchFeaturedProducts = useCallback(async () => {
+  const fetchFeaturedProducts =
+    useCallback(
+      async ({
+        showLoader = false,
+      } = {}) => {
 
+        const url =
+          `${BACKEND_URL}/api/products/featured`;
 
-const url =
-      `${BACKEND_URL}/api/products/featured`;
-try {
-      setLoading(true);
-      setError("");
+        try {
 
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      });
+          /*
+           * Background refresh does not clear
+           * the currently visible cached products.
+           */
+          if (showLoader) {
+            setLoading(true);
+          }
 
-const data = await response.json();
-if (!response.ok) {
-        throw new Error(
-          data?.message ||
-            `HTTP ${response.status}`
-        );
-      }
+          setError("");
 
-      const list = Array.isArray(data?.products)
-        ? data.products
-        : [];
+          const response =
+            await fetch(url, {
+              method: "GET",
+              headers: {
+                Accept:
+                  "application/json",
+              },
+            });
 
-setProducts(list);
-    } catch (error) {
-setError(
-        error?.message ||
-          "Failed to load featured products"
-      );
+          const data =
+            await response.json();
 
-      setProducts([]);
-    } finally {
-      setLoading(false);
+          if (!response.ok) {
+            throw new Error(
+              data?.message ||
+                `HTTP ${response.status}`
+            );
+          }
 
-}
-  }, []);
+          const list =
+            Array.isArray(
+              data?.products
+            )
+              ? data.products
+              : [];
+
+          /*
+           * Replace visible data with
+           * the fresh API response.
+           */
+          setProducts(list);
+
+          /*
+           * Save it for the next Home visit.
+           */
+          saveFeaturedProductsCache(list);
+
+        } catch (error) {
+
+          console.error(
+            "FEATURED PRODUCTS ERROR:",
+            error
+          );
+
+          /*
+           * If cached products are visible,
+           * keep them instead of replacing the
+           * whole section with an error.
+           */
+          if (!products.length) {
+            setError(
+              error?.message ||
+                "Failed to load featured products"
+            );
+          }
+
+        } finally {
+          setLoading(false);
+        }
+      },
+      []
+    );
+
 
   /* =====================================================
      LOAD
   ===================================================== */
 
   useEffect(() => {
-fetchFeaturedProducts();
 
-    return () => {
-};
-  }, [fetchFeaturedProducts]);
+    /*
+     * No cache:
+     *   show skeleton + fetch
+     *
+     * Cache:
+     *   show cached products immediately
+     *   + refresh silently in background
+     */
+    fetchFeaturedProducts({
+      showLoader:
+        !cachedProducts,
+    });
+
+  }, []);
+
 
   /* =====================================================
      IMAGE
@@ -236,7 +390,11 @@ return;
           </p>
 
           <button
-            onClick={fetchFeaturedProducts}
+            onClick={() =>
+              fetchFeaturedProducts({
+                showLoader: true,
+              })
+            }
             className="
               mt-5
               px-5

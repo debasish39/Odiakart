@@ -15,28 +15,63 @@ import {
 const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL;
 
+const CACHE_KEY = "odikart_top_rated_products";
+const CACHE_TIME_KEY = "odikart_top_rated_products_cache_time";
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+const getCachedTopRated = () => {
+  try {
+    const cached = sessionStorage.getItem(CACHE_KEY);
+    const cachedTime = sessionStorage.getItem(CACHE_TIME_KEY);
+
+    if (!cached || !cachedTime) return null;
+
+    if (Date.now() - Number(cachedTime) > CACHE_DURATION) {
+      return null;
+    }
+
+    const parsed = JSON.parse(cached);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveTopRatedCache = (products) => {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(products));
+    sessionStorage.setItem(CACHE_TIME_KEY, String(Date.now()));
+  } catch {
+    // Ignore storage errors (private mode / quota / unavailable storage).
+  }
+};
+
 export default function TopRatedProducts() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const cachedProducts = getCachedTopRated();
+
+  const [products, setProducts] = useState(cachedProducts || []);
+  const [loading, setLoading] = useState(!cachedProducts);
   const [error, setError] = useState("");
   const [activeIndexes, setActiveIndexes] = useState({});
   const [hoveredCard, setHoveredCard] = useState(null);
   /* =====================================================
      FETCH TOP RATED
   ===================================================== */
-  const fetchTopRated = useCallback(async () => {
 
-    const url =
-      `${BACKEND_URL}/api/products/top-rated`;
+  const fetchTopRated = useCallback(async ({ showLoader = false } = {}) => {
+    const url = `${BACKEND_URL}/api/products/top-rated`;
 
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
+
       setError("");
 
       const response = await fetch(url, {
         method: "GET",
-
         headers: {
           Accept: "application/json",
         },
@@ -46,8 +81,7 @@ export default function TopRatedProducts() {
 
       if (!response.ok) {
         throw new Error(
-          data?.message ||
-            `HTTP ${response.status}`
+          data?.message || `HTTP ${response.status}`
         );
       }
 
@@ -56,18 +90,21 @@ export default function TopRatedProducts() {
         : [];
 
       setProducts(list);
+      saveTopRatedCache(list);
     } catch (error) {
+      console.error("Top Rated Products fetch error:", error);
 
-      setError(
-        error?.message ||
-          "Failed to load top rated products"
-      );
-
-      setProducts([]);
+      // Only show an error when there is no cached/visible data.
+      if (!cachedProducts?.length) {
+        setError(
+          error?.message ||
+            "Failed to load top rated products"
+        );
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cachedProducts?.length]);
 
   const changeImage = (
     event,
@@ -143,12 +180,9 @@ export default function TopRatedProducts() {
   ===================================================== */
 
   useEffect(() => {
-
-    fetchTopRated();
-
-    return () => {
-    };
-  }, [fetchTopRated]);
+    // Cached data is rendered immediately. Refresh silently in the background.
+    fetchTopRated({ showLoader: !cachedProducts?.length });
+  }, [fetchTopRated, cachedProducts?.length]);
 
   /* =====================================================
      IMAGE
@@ -465,7 +499,7 @@ if (loading) {
           </p>
 
           <button
-            onClick={fetchTopRated}
+            onClick={() => fetchTopRated({ showLoader: true })}
             className="
               mt-5
               px-5

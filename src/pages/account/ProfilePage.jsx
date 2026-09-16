@@ -17,7 +17,6 @@ import {
 import { AccountShell, api } from "./AccountShell";
 import { MdVerified } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import Spinner from "../../components/Spinner";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -75,12 +74,10 @@ export default function ProfilePage() {
     }, 350);
   };
 
-  if (loading) {
+  if (loading && !user) {
     return (
       <AccountShell title="Account">
-        <div className="profile-loading">
-          <Spinner />
-        </div>
+        <ProfileSkeleton />
       </AccountShell>
     );
   }
@@ -349,49 +346,39 @@ export default function ProfilePage() {
       ========================================== */}
       <style>{`
         /* =========================================
-           PAGE
+           MODERN FULL-WIDTH ACCOUNT PAGE
         ========================================== */
 
         .profile-page {
           width: 100%;
-          max-width: 1180px;
-          margin: 0 auto;
-          padding: 6px 0 70px;
+          max-width: none;
+          margin: 0;
+          padding: 4px 0 70px;
           box-sizing: border-box;
+          margin-top:69px;
         }
-
-        .profile-loading {
-          min-height: 300px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        /* =========================================
-           PROFILE HEADER
-        ========================================== */
 
         .ok-profile-header {
           width: 100%;
           display: flex;
           align-items: center;
-          gap: 18px;
-          padding: 20px 0 24px;
+          gap: 20px;
+          padding: 22px 20px 24px;
+          margin: 0 0 6px;
           border-bottom: 1px solid #edf0f5;
+          box-sizing: border-box;
+          background: transparent;
         }
 
         .ok-profile-image-wrap {
-          width: 76px;
-          height: 76px;
+          width: 78px;
+          height: 78px;
           padding: 3px;
           flex-shrink: 0;
           border-radius: 50%;
-          background: linear-gradient(
-            135deg,
-            #6366f1,
-            #8b5cf6,
-            #a855f7
-          );
+          background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+          box-shadow: 0 7px 20px rgba(79, 70, 229, 0.16);
+          box-sizing: border-box;
         }
 
         .ok-profile-image {
@@ -415,6 +402,7 @@ export default function ProfilePage() {
           align-items: center;
           gap: 8px;
           margin-bottom: 4px;
+          flex-wrap: wrap;
         }
 
         .ok-profile-name-row h2 {
@@ -447,6 +435,7 @@ export default function ProfilePage() {
           align-items: center;
           gap: 7px;
           margin-top: 8px;
+          flex-wrap: wrap;
         }
 
         .ok-chip {
@@ -463,52 +452,45 @@ export default function ProfilePage() {
         }
 
         /* =========================================
-           SECTIONS
+           FLAT PLAY-STORE STYLE SECTIONS
         ========================================== */
 
         .ok-section {
-          margin-top: 24px;
           width: 100%;
+          margin-top: 25px;
+          box-sizing: border-box;
         }
 
         .account-actions-section {
-          margin-top: 38px;
-          padding-top: 4px;
+          margin-top: 32px;
+          padding-top: 18px;
           border-top: 1px solid #edf0f5;
         }
 
         .ok-label {
-          margin-bottom: 10px;
+          margin: 0 20px 9px;
           font-size: 11px;
+          line-height: 1.2;
           font-weight: 800;
           color: #6b7280;
           text-transform: uppercase;
           letter-spacing: 0.09em;
         }
 
-        .ok-card.ok-list {
+        .ok-list {
           width: 100%;
           overflow: hidden;
-          border: 1px solid #e8ebf0;
-          border-radius: 16px;
-          background: #fff;
-          box-shadow:
-            0 2px 8px rgba(15, 23, 42, 0.03),
-            0 8px 24px rgba(15, 23, 42, 0.035);
+          background: transparent;
         }
-
-        /* =========================================
-           TILE
-        ========================================== */
 
         .ok-list-item {
           position: relative;
           width: 100%;
-          min-height: 72px;
+          min-height: 74px;
           display: flex;
           align-items: center;
-          gap: 13px;
-          padding: 13px 16px;
+          gap: 14px;
+          padding: 13px 20px;
           text-align: left;
           border: 0;
           border-bottom: 1px solid #eef0f4;
@@ -516,14 +498,16 @@ export default function ProfilePage() {
           color: #111827;
           cursor: pointer;
           font-family: inherit;
-          transition:
-            background 0.18s ease,
-            transform 0.18s ease;
+          transition: background 0.18s ease, transform 0.18s ease;
           box-sizing: border-box;
         }
 
+        .ok-list-item:first-child {
+          border-top: 1px solid #eef0f4;
+        }
+
         .ok-list-item:last-child {
-          border-bottom: 0;
+          border-bottom: 1px solid #eef0f4;
         }
 
         .ok-list-item:hover {
@@ -531,7 +515,7 @@ export default function ProfilePage() {
         }
 
         .ok-list-item:active {
-          transform: scale(0.995);
+          transform: scale(0.998);
         }
 
         .ok-list-item:focus-visible {
@@ -540,18 +524,16 @@ export default function ProfilePage() {
         }
 
         .ok-circle {
-          width: 40px;
-          height: 40px;
+          width: 42px;
+          height: 42px;
           display: grid;
           place-items: center;
           flex-shrink: 0;
-          border-radius: 12px;
+          border-radius: 13px;
           background: #f3f4ff;
           color: #4f46e5;
           font-size: 15px;
-          transition:
-            transform 0.18s ease,
-            background 0.18s ease;
+          transition: transform 0.18s ease, background 0.18s ease;
         }
 
         .ok-list-item:hover .ok-circle {
@@ -567,7 +549,7 @@ export default function ProfilePage() {
         .ok-grow b {
           display: block;
           margin-bottom: 3px;
-          font-size: 13px;
+          font-size: 14px;
           line-height: 1.35;
           font-weight: 700;
           color: #171923;
@@ -586,6 +568,286 @@ export default function ProfilePage() {
 
         .ok-list-item:hover > svg {
           transform: translateX(2px);
+        }
+
+        /* =========================================
+           PROFILE SKELETON
+        ========================================== */
+
+        .profile-skeleton-page {
+          width: 100%;
+          max-width: none;
+        }
+
+        .skeleton {
+          position: relative;
+          overflow: hidden;
+          background: #e9ebf0;
+        }
+
+        .skeleton::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,0.7),
+            transparent
+          );
+          animation: profileSkeletonShimmer 1.35s infinite;
+        }
+
+        @keyframes profileSkeletonShimmer {
+          100% {
+            transform: translateX(100%);
+          }
+        }
+
+        .profile-skeleton-header {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          padding: 22px 20px 24px;
+          border-bottom: 1px solid #edf0f5;
+          box-sizing: border-box;
+        }
+
+        .skeleton-avatar {
+          width: 78px;
+          height: 78px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .skeleton-profile-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .skeleton-name {
+          width: 190px;
+          height: 24px;
+          border-radius: 7px;
+          margin-bottom: 10px;
+        }
+
+        .skeleton-email {
+          width: 245px;
+          max-width: 75%;
+          height: 13px;
+          border-radius: 6px;
+          margin-bottom: 11px;
+        }
+
+        .skeleton-chips {
+          display: flex;
+          gap: 7px;
+        }
+
+        .skeleton-chip {
+          width: 92px;
+          height: 25px;
+          border-radius: 999px;
+        }
+
+        .skeleton-chip.small {
+          width: 66px;
+        }
+
+        .skeleton-section {
+          width: 100%;
+          margin-top: 25px;
+        }
+
+        .skeleton-label {
+          width: 88px;
+          height: 11px;
+          border-radius: 5px;
+          margin: 0 20px 10px;
+        }
+
+        .skeleton-label.short {
+          width: 110px;
+        }
+
+        .skeleton-list {
+          width: 100%;
+          background: #fff;
+        }
+
+        .skeleton-list-item {
+          width: 100%;
+          min-height: 74px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 13px 20px;
+          border-top: 1px solid #eef0f4;
+          box-sizing: border-box;
+        }
+
+        .skeleton-list-item:last-child {
+          border-bottom: 1px solid #eef0f4;
+        }
+
+        .skeleton-icon {
+          width: 42px;
+          height: 42px;
+          border-radius: 13px;
+          flex-shrink: 0;
+        }
+
+        .skeleton-item-content {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .skeleton-item-title {
+          width: 155px;
+          max-width: 70%;
+          height: 14px;
+          border-radius: 5px;
+          margin-bottom: 8px;
+        }
+
+        .skeleton-item-title.medium {
+          width: 135px;
+        }
+
+        .skeleton-item-subtitle {
+          width: 220px;
+          max-width: 85%;
+          height: 10px;
+          border-radius: 4px;
+        }
+
+        .skeleton-arrow {
+          width: 9px;
+          height: 13px;
+          border-radius: 4px;
+          flex-shrink: 0;
+        }
+
+        .skeleton-actions {
+          margin-top: 32px;
+          padding-top: 18px;
+          border-top: 1px solid #edf0f5;
+        }
+
+        /* =========================================
+           MOBILE
+        ========================================== */
+
+        @media (max-width: 700px) {
+          .profile-page {
+            padding: 0 0 60px;
+          }
+
+          .ok-profile-header,
+          .profile-skeleton-header {
+            padding: 16px 14px 19px;
+            gap: 13px;
+          }
+
+          .ok-profile-image-wrap,
+          .skeleton-avatar {
+            width: 62px;
+            height: 62px;
+          }
+
+          .ok-profile-name-row h2 {
+            font-size: 19px;
+          }
+
+          .verified-badge {
+            width: 21px;
+            height: 21px;
+          }
+
+          .ok-muted {
+            font-size: 12px;
+          }
+
+          .ok-section,
+          .skeleton-section {
+            margin-top: 20px;
+          }
+
+          .ok-label,
+          .skeleton-label {
+            margin-left: 14px;
+            margin-right: 14px;
+            margin-bottom: 8px;
+            font-size: 10px;
+          }
+
+          .ok-list-item,
+          .skeleton-list-item {
+            min-height: 68px;
+            padding: 11px 14px;
+            gap: 11px;
+          }
+
+          .ok-circle,
+          .skeleton-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            font-size: 14px;
+          }
+
+          .ok-grow b {
+            font-size: 13px;
+          }
+
+          .ok-small {
+            font-size: 10.5px;
+          }
+
+          .skeleton-name {
+            width: 145px;
+            height: 21px;
+          }
+
+          .skeleton-email {
+            width: 175px;
+          }
+
+          .skeleton-chip {
+            width: 75px;
+            height: 22px;
+          }
+
+          .skeleton-chip.small {
+            width: 55px;
+          }
+
+          .skeleton-item-title {
+            height: 13px;
+          }
+
+          .skeleton-item-subtitle {
+            height: 9px;
+          }
+
+          .account-actions-section,
+          .skeleton-actions {
+            margin-top: 28px;
+            padding-top: 16px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .skeleton::after,
+          .ok-list-item,
+          .ok-circle,
+          .ok-list-item > svg {
+            animation: none !important;
+            transition: none !important;
+          }
         }
 
         /* =========================================
@@ -991,6 +1253,88 @@ export default function ProfilePage() {
 }
 
 /* =====================================================
+   PROFILE SKELETON
+===================================================== */
+
+function ProfileSkeleton() {
+  return (
+    <div className="profile-page profile-skeleton-page" aria-hidden="true">
+      <section className="profile-skeleton-header">
+        <div className="skeleton skeleton-avatar" />
+
+        <div className="skeleton-profile-info">
+          <div className="skeleton skeleton-name" />
+          <div className="skeleton skeleton-email" />
+
+          <div className="skeleton-chips">
+            <div className="skeleton skeleton-chip" />
+            <div className="skeleton skeleton-chip small" />
+          </div>
+        </div>
+      </section>
+
+      <section className="skeleton-section">
+        <div className="skeleton skeleton-label" />
+
+        <div className="skeleton-list">
+          {[1, 2, 3, 4].map((item) => (
+            <div className="skeleton-list-item" key={item}>
+              <div className="skeleton skeleton-icon" />
+
+              <div className="skeleton-item-content">
+                <div className="skeleton skeleton-item-title" />
+                <div className="skeleton skeleton-item-subtitle" />
+              </div>
+
+              <div className="skeleton skeleton-arrow" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="skeleton-section">
+        <div className="skeleton skeleton-label" />
+
+        <div className="skeleton-list">
+          {[1, 2, 3].map((item) => (
+            <div className="skeleton-list-item" key={item}>
+              <div className="skeleton skeleton-icon" />
+
+              <div className="skeleton-item-content">
+                <div className="skeleton skeleton-item-title medium" />
+                <div className="skeleton skeleton-item-subtitle" />
+              </div>
+
+              <div className="skeleton skeleton-arrow" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="skeleton-section skeleton-actions">
+        <div className="skeleton skeleton-label short" />
+
+        <div className="skeleton-list">
+          {[1, 2].map((item) => (
+            <div className="skeleton-list-item" key={item}>
+              <div className="skeleton skeleton-icon" />
+
+              <div className="skeleton-item-content">
+                <div className="skeleton skeleton-item-title" />
+                <div className="skeleton skeleton-item-subtitle" />
+              </div>
+
+              <div className="skeleton skeleton-arrow" />
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+
+/* =====================================================
    ACCOUNT SECTION
 ===================================================== */
 
@@ -999,7 +1343,7 @@ function AccountSection({ title, children, extraClass = "" }) {
     <section className={`ok-section ${extraClass}`}>
       <div className="ok-label">{title}</div>
 
-      <div className="ok-card ok-list">
+      <div className="ok-list">
         {children}
       </div>
     </section>

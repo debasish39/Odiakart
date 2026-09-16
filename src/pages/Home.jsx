@@ -11,11 +11,13 @@ import Category from "../components/Category";
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen overflow-hidden text-gray-800 duration-500">
+    <main className="relative min-h-screen overflow-hidden bg-white text-gray-800 duration-500">
+
       {/* Category */}
       <section>
         <Category />
       </section>
+
       {/* Hero / Carousel */}
       <section>
         <Carousel />
@@ -54,4 +56,3 @@ export default function Home() {
     </main>
   );
 }
-

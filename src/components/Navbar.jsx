@@ -25,6 +25,7 @@ import {
   MapPinned,
   Bell,
 } from "lucide-react";
+import { TbCategory } from "react-icons/tb";
 
 import {
   Modal,
@@ -70,15 +71,15 @@ const BOTTOM_LINKS = [
   //   icon: ShoppingBag,
   // },
   {
-    name: "Orders",
-    path: "/order-history",
-    icon: Package,
+    name: "Categories",
+    path: "/categorypage",
+    icon: TbCategory,
   },
-  {
-    name: "Track",
-    path: "/track-order",
-    icon: MapPin,
-  },
+  // {
+  //   name: "Track",
+  //   path: "/track-order",
+  //   icon: MapPin,
+  // },
 ];
 
 
@@ -297,6 +298,35 @@ const normalizeSearchLocation = (
 
 
 /* =====================================================
+   LOCATION SEARCH SKELETON
+   Mobile-first modern skeleton for location results
+===================================================== */
+
+const LocationSearchSkeleton = () => {
+  return (
+    <div className="odikart-location-skeleton" aria-hidden="true">
+      {[1, 2, 3].map((item) => (
+        <div
+          key={item}
+          className="odikart-location-skeleton-item"
+        >
+          <div className="odikart-skeleton-icon" />
+
+          <div className="odikart-skeleton-content">
+            <div className="odikart-skeleton-line odikart-skeleton-title" />
+            <div className="odikart-skeleton-line odikart-skeleton-address" />
+            <div className="odikart-skeleton-line odikart-skeleton-small" />
+          </div>
+
+          <div className="odikart-skeleton-arrow" />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+
+/* =====================================================
    NAVBAR
 ===================================================== */
 
@@ -312,6 +342,10 @@ export default function Navbar({
 
 
   const [showNav, setShowNav] =
+    useState(true);
+
+  // Independent visibility state for the mobile bottom navbar.
+  const [showBottomNav, setShowBottomNav] =
     useState(true);
 
   const [scrolled, setScrolled] =
@@ -330,6 +364,22 @@ export default function Navbar({
     recentSearches,
     setRecentSearches,
   ] = useState([]);
+
+  /* =====================================================
+     LOCATION SEARCH / PICKER
+  ===================================================== */
+
+  const [locationResults, setLocationResults] =
+    useState([]);
+
+  const [locationLoading, setLocationLoading] =
+    useState(false);
+
+  const [currentLocationLoading, setCurrentLocationLoading] =
+    useState(false);
+
+  const [mapOpen, setMapOpen] =
+    useState(false);
 
   /*
    * Local copy of selected location.
@@ -444,38 +494,64 @@ export default function Navbar({
   ===================================================== */
 
   useEffect(() => {
-    let last =
-      window.scrollY;
+    let lastScrollY = Math.max(window.scrollY, 0);
+    let ticking = false;
 
-    const fn = () => {
-      const cur =
-        window.scrollY;
+    const handleScroll = () => {
+      if (ticking) return;
 
-      setShowNav(
-        cur <= last ||
-          cur < 80
-      );
+      ticking = true;
 
-      setScrolled(
-        cur > 10
-      );
+      window.requestAnimationFrame(() => {
+        const currentScrollY = Math.max(
+          window.scrollY,
+          0
+        );
 
-      last = cur;
+        const difference =
+          currentScrollY - lastScrollY;
+
+        // Always show both navbars near the top.
+        if (currentScrollY <= 80) {
+          setShowNav(true);
+          setShowBottomNav(true);
+        }
+
+        // Require a meaningful downward movement
+        // before hiding the navigation.
+        else if (difference > 8) {
+          setShowNav(false);
+          setShowBottomNav(false);
+        }
+
+        // Require a meaningful upward movement
+        // before showing the navigation again.
+        else if (difference < -8) {
+          setShowNav(true);
+          setShowBottomNav(true);
+        }
+
+        setScrolled(currentScrollY > 10);
+
+        lastScrollY = currentScrollY;
+        ticking = false;
+      });
     };
 
     window.addEventListener(
       "scroll",
-      fn,
+      handleScroll,
       {
         passive: true,
       }
     );
 
-    return () =>
+    return () => {
       window.removeEventListener(
         "scroll",
-        fn
+        handleScroll
       );
+    };
   }, []);
 
 
@@ -662,560 +738,534 @@ export default function Navbar({
      SEARCH LOCATION
   ===================================================== */
 
-  const handleAreaSearch =
-    async () => {
+  /*
+   * Same Nominatim request used by the React Native app:
+   * q + format=jsonv2 + addressdetails=1 +
+   * limit=8 + countrycodes=in
+   */
+  const searchRealLocations = async (query) => {
+    const cleanQuery = query.trim();
+
+    if (cleanQuery.length < 2) {
+      setLocationResults([]);
+      setLocationLoading(false);
+      return [];
+    }
+
+    try {
+      setLocationLoading(true);
+
+      const url =
+        "https://nominatim.openstreetmap.org/search" +
+        `?q=${encodeURIComponent(cleanQuery)}` +
+        "&format=jsonv2" +
+        "&addressdetails=1" +
+        "&limit=8" +
+        "&countrycodes=in";
+
+      const response = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Location +failed: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+
+      const results = Array.isArray(data)
+        ? data
+        : [];
+
+      setLocationResults(results);
+
+      return results;
+    } catch (error) {
+      console.error(
+        "LOCATION SEARCH ERROR:",
+        error
+      );
+
+      setLocationResults([]);
+      return [];
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  /*
+   * Same 500ms debounce used by the React Native app.
+   */
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const cleanQuery = area.trim();
+
+    if (cleanQuery.length < 2) {
+      setLocationResults([]);
+      setLocationLoading(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      searchRealLocations(cleanQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [area, isOpen]);
+
+  const selectLocationResult = (result) => {
+    const exactLocation =
+      normalizeSearchLocation(result);
+
+    setSelectedLocation(exactLocation);
+
+    if (
+      typeof onLocationChange ===
+      "function"
+    ) {
+      onLocationChange(
+        exactLocation.latitude,
+        exactLocation.longitude,
+        exactLocation
+      );
+    }
+
+    setArea("");
+    setLocationResults([]);
+    setMapOpen(false);
+
+    toast.success(
+      "Delivery location updated"
+    );
+
+    onClose();
+  };
+
+  const handleAreaSearch = async () => {
+    const query = area.trim();
+
+    if (!query) {
+      toast.warning(
+        "Please enter a location"
+      );
+      return;
+    }
+
+    const tid = toast.loading(
+      "Searching location..."
+    );
+
+    try {
+      const results =
+        await searchRealLocations(query);
+
       if (
-        !area.trim()
+        !results ||
+        results.length === 0
       ) {
-        toast.warning(
-          "Please enter a location"
+        toast.dismiss(tid);
+
+        toast.error(
+          "Location not found. Try a more specific address."
         );
 
         return;
       }
 
-      const tid =
-        toast.loading(
-          "Searching exact location..."
-        );
+      toast.dismiss(tid);
+      selectLocationResult(results[0]);
+    } catch (error) {
+      toast.dismiss(tid);
 
-      try {
-        console.log(
-          "================================="
-        );
+      console.error(
+        "❌ LOCATION SEARCH ERROR:",
+        error
+      );
 
-        console.log(
-          "🔎 LOCATION SEARCH"
-        );
-
-        console.log(
-          "Query:",
-          area
-        );
-
-        console.log(
-          "================================="
-        );
-
-        const url =
-          "https://nominatim.openstreetmap.org/search" +
-          "?format=jsonv2" +
-          `&q=${encodeURIComponent(
-            area.trim()
-          )}` +
-          "&countrycodes=in" +
-          "&addressdetails=1" +
-          "&limit=5";
-
-        const res =
-          await fetch(
-            url,
-            {
-              headers: {
-                Accept:
-                  "application/json",
-              },
-            }
-          );
-
-        if (!res.ok) {
-          throw new Error(
-            `Search failed: ${res.status}`
-          );
-        }
-
-        const results =
-          await res.json();
-
-        console.log(
-          "🌍 SEARCH RESULTS:",
-          results
-        );
-
-        if (
-          !results ||
-          results.length === 0
-        ) {
-          toast.dismiss(
-            tid
-          );
-
-          toast.error(
-            "Location not found. Try a more specific address."
-          );
-
-          return;
-        }
-
-        const result =
-          results[0];
-
-        const exactLocation =
-          normalizeSearchLocation(
-            result
-          );
-
-        console.log(
-          "================================="
-        );
-
-        console.log(
-          "📍 EXACT SEARCH LOCATION"
-        );
-
-        console.log(
-          exactLocation
-        );
-
-        console.table({
-          "Plot Number":
-            exactLocation.plotNumber,
-
-          "House Number":
-            exactLocation.houseNumber,
-
-          Building:
-            exactLocation.buildingName,
-
-          Flat:
-            exactLocation.flatNumber,
-
-          Floor:
-            exactLocation.floor,
-
-          Road:
-            exactLocation.road,
-
-          Landmark:
-            exactLocation.landmark,
-
-          Area:
-            exactLocation.area,
-
-          Locality:
-            exactLocation.locality,
-
-          City:
-            exactLocation.city,
-
-          District:
-            exactLocation.district,
-
-          State:
-            exactLocation.state,
-
-          Pincode:
-            exactLocation.pincode,
-
-          Country:
-            exactLocation.country,
-
-          Latitude:
-            exactLocation.latitude,
-
-          Longitude:
-            exactLocation.longitude,
-        });
-
-        console.log(
-          "GeoJSON:",
-          exactLocation.location
-        );
-
-        console.log(
-          "================================="
-        );
-
-        /*
-         * Update navbar immediately.
-         */
-        setSelectedLocation(
-          exactLocation
-        );
-
-        /*
-         * Send COMPLETE location
-         * to parent.
-         */
-        if (
-          typeof onLocationChange ===
-          "function"
-        ) {
-          onLocationChange(
-            exactLocation.latitude,
-            exactLocation.longitude,
-            exactLocation
-          );
-        }
-
-        setArea("");
-
-        toast.dismiss(
-          tid
-        );
-
-        toast.success(
-          "Exact location selected"
-        );
-
-        onClose();
-
-      } catch (error) {
-        console.error(
-          "❌ LOCATION SEARCH ERROR:",
-          error
-        );
-
-        toast.dismiss(
-          tid
-        );
-
-        toast.error(
-          "Unable to search location"
-        );
-      }
-    };
+      toast.error(
+        "Unable to search location"
+      );
+    }
+  };
 
 
   /* =====================================================
      REVERSE GEOCODE
   ===================================================== */
 
-  const reverseGeocode =
-    async (
-      lat,
-      lng
-    ) => {
-      try {
-        console.log(
-          "🌍 REVERSE GEOCODING:"
-        );
+const reverseGeocode = async (lat, lng) => {
+  try {
+    const latitude = Number(lat);
+    const longitude = Number(lng);
 
-        console.log(
-          "Latitude:",
-          lat
-        );
+    console.log("📍 EXACT USER LOCATION");
+    console.log("Latitude:", latitude);
+    console.log("Longitude:", longitude);
 
-        console.log(
-          "Longitude:",
-          lng
-        );
+    const url =
+      "https://nominatim.openstreetmap.org/reverse" +
+      `?format=jsonv2` +
+      `&lat=${latitude}` +
+      `&lon=${longitude}` +
+      `&zoom=18` +
+      `&addressdetails=1`;
 
-        const url =
-          "https://nominatim.openstreetmap.org/reverse" +
-          `?format=jsonv2` +
-          `&lat=${lat}` +
-          `&lon=${lng}` +
-          "&addressdetails=1";
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
-        const res =
-          await fetch(
-            url,
-            {
-              headers: {
-                Accept:
-                  "application/json",
-              },
-            }
-          );
+    if (!res.ok) {
+      throw new Error(
+        `Reverse geocoding failed: ${res.status}`
+      );
+    }
 
-        if (!res.ok) {
-          throw new Error(
-            `Reverse geocoding failed: ${res.status}`
-          );
-        }
+    const result = await res.json();
+    const addr = result?.address || {};
 
-        const result =
-          await res.json();
+    /*
+     * GPS coordinates are the EXACT location.
+     * Address is only the human-readable representation.
+     */
+    const exactLocation = {
+      latitude,
+      longitude,
 
-        const exactLocation =
-          normalizeSearchLocation(
-            {
-              ...result,
+      location: {
+        type: "Point",
+        coordinates: [
+          longitude,
+          latitude,
+        ],
+      },
 
-              lat:
-                lat,
+      formattedAddress:
+        result?.display_name || "",
 
-              lon:
-                lng,
-            }
-          );
+      address:
+        result?.display_name || "",
 
-        /*
-         * Ensure selected map coordinates
-         * are authoritative.
-         */
-        exactLocation.latitude =
-          Number(lat);
+      plotNumber:
+        addr.plot_number ||
+        addr.plot ||
+        "",
 
-        exactLocation.longitude =
-          Number(lng);
+      houseNumber:
+        addr.house_number ||
+        "",
 
-        exactLocation.location = {
-          type: "Point",
+      buildingName:
+        addr.building ||
+        addr.building_name ||
+        "",
 
-          coordinates: [
-            Number(lng),
-            Number(lat),
-          ],
-        };
+      flatNumber:
+        addr.unit ||
+        addr.flat ||
+        "",
 
-        console.log(
-          "================================="
-        );
+      floor:
+        addr.floor ||
+        "",
 
-        console.log(
-          "📍 EXACT MAP LOCATION"
-        );
+      road:
+        addr.road ||
+        "",
 
-        console.log(
-          exactLocation
-        );
+      street:
+        addr.street ||
+        addr.road ||
+        "",
 
-        console.table({
-          "Latitude":
-            exactLocation.latitude,
+      landmark:
+        addr.landmark ||
+        "",
 
-          "Longitude":
-            exactLocation.longitude,
+      neighbourhood:
+        addr.neighbourhood ||
+        "",
 
-          "Plot":
-            exactLocation.plotNumber,
+      area:
+        addr.quarter ||
+        addr.residential ||
+        addr.subdivision ||
+        "",
 
-          "House":
-            exactLocation.houseNumber,
+      locality:
+        addr.locality ||
+        addr.city_district ||
+        "",
 
-          "Building":
-            exactLocation.buildingName,
+      suburb:
+        addr.suburb ||
+        "",
 
-          "Flat":
-            exactLocation.flatNumber,
+      city:
+        addr.city ||
+        addr.town ||
+        addr.village ||
+        "",
 
-          "Floor":
-            exactLocation.floor,
+      district:
+        addr.county ||
+        addr.district ||
+        "",
 
-          "Road":
-            exactLocation.road,
+      stateDistrict:
+        addr.state_district ||
+        "",
 
-          "Area":
-            exactLocation.area,
+      state:
+        addr.state ||
+        "",
 
-          "Locality":
-            exactLocation.locality,
+      pincode:
+        addr.postcode ||
+        "",
 
-          "City":
-            exactLocation.city,
+      country:
+        addr.country ||
+        "",
 
-          "District":
-            exactLocation.district,
+      countryCode:
+        (
+          addr.country_code ||
+          ""
+        ).toUpperCase(),
 
-          "State":
-            exactLocation.state,
+      placeName:
+        result?.name ||
+        "",
 
-          "Pincode":
-            exactLocation.pincode,
-        });
+      osmType:
+        result?.osm_type ||
+        "",
 
-        console.log(
-          "GeoJSON:",
-          exactLocation.location
-        );
+      osmId:
+        result?.osm_id ||
+        null,
 
-        console.log(
-          "================================="
-        );
-
-        setSelectedLocation(
-          exactLocation
-        );
-
-        if (
-          typeof onLocationChange ===
-          "function"
-        ) {
-          onLocationChange(
-            Number(lat),
-            Number(lng),
-            exactLocation
-          );
-        }
-
-        return exactLocation;
-
-      } catch (error) {
-        console.error(
-          "❌ REVERSE GEOCODING ERROR:",
-          error
-        );
-
-        /*
-         * Even if reverse geocoding fails,
-         * preserve exact coordinates.
-         */
-        const fallback = {
-          latitude:
-            Number(lat),
-
-          longitude:
-            Number(lng),
-
-          location: {
-            type: "Point",
-
-            coordinates: [
-              Number(lng),
-              Number(lat),
-            ],
-          },
-
-          formattedAddress:
-            `${Number(lat).toFixed(
-              6
-            )}, ${Number(lng).toFixed(
-              6
-            )}`,
-        };
-
-        setSelectedLocation(
-          fallback
-        );
-
-        if (
-          typeof onLocationChange ===
-          "function"
-        ) {
-          onLocationChange(
-            fallback.latitude,
-            fallback.longitude,
-            fallback
-          );
-        }
-
-        return fallback;
-      }
+      placeId:
+        result?.place_id ||
+        null,
     };
+
+    console.log(
+      "================================"
+    );
+
+    console.log(
+      "📍 EXACT LOCATION SELECTED"
+    );
+
+    console.log({
+      latitude:
+        exactLocation.latitude,
+
+      longitude:
+        exactLocation.longitude,
+
+      address:
+        exactLocation.formattedAddress,
+
+      house:
+        exactLocation.houseNumber,
+
+      road:
+        exactLocation.road,
+
+      area:
+        exactLocation.neighbourhood ||
+        exactLocation.area,
+
+      city:
+        exactLocation.city,
+
+      district:
+        exactLocation.district,
+
+      state:
+        exactLocation.state,
+
+      pincode:
+        exactLocation.pincode,
+    });
+
+    console.log(
+      "================================"
+    );
+
+    setSelectedLocation(
+      exactLocation
+    );
+
+    if (
+      typeof onLocationChange ===
+      "function"
+    ) {
+      onLocationChange(
+        latitude,
+        longitude,
+        exactLocation
+      );
+    }
+
+    return exactLocation;
+
+  } catch (error) {
+    console.error(
+      "❌ REVERSE GEOCODING ERROR:",
+      error
+    );
+
+    /*
+     * Even when address lookup fails,
+     * NEVER lose the exact GPS coordinates.
+     */
+    const fallback = {
+      latitude: Number(lat),
+      longitude: Number(lng),
+
+      location: {
+        type: "Point",
+
+        coordinates: [
+          Number(lng),
+          Number(lat),
+        ],
+      },
+
+      formattedAddress:
+        `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`,
+    };
+
+    setSelectedLocation(fallback);
+
+    if (
+      typeof onLocationChange ===
+      "function"
+    ) {
+      onLocationChange(
+        fallback.latitude,
+        fallback.longitude,
+        fallback
+      );
+    }
+
+    return fallback;
+  }
+};
 
 
   /* =====================================================
      USE MY LOCATION
   ===================================================== */
 
-  const handleUseMyLocation =
-    () => {
-      if (
-        !navigator.geolocation
-      ) {
-        toast.error(
-          "Geolocation not supported"
-        );
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error(
+        "Geolocation not supported"
+      );
+      return;
+    }
 
-        return;
-      }
+    setCurrentLocationLoading(true);
 
-      const tid =
-        toast.loading(
-          "Getting your exact location..."
-        );
+    const tid = toast.loading(
+      "Getting your exact location..."
+    );
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const lat =
-              position.coords
-                .latitude;
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const lat =
+            position.coords.latitude;
 
-            const lng =
-              position.coords
-                .longitude;
+          const lng =
+            position.coords.longitude;
 
-            console.log(
-              "================================="
-            );
-
-            console.log(
-              "📍 DEVICE GPS LOCATION"
-            );
-
-            console.log(
-              "Latitude:",
-              lat
-            );
-
-            console.log(
-              "Longitude:",
-              lng
-            );
-
-            console.log(
-              "Accuracy:",
-              position.coords
-                .accuracy,
-              "meters"
-            );
-
-            console.log(
-              "================================="
-            );
-
-            await reverseGeocode(
-              lat,
-              lng
-            );
-
-            toast.dismiss(
-              tid
-            );
-
-            toast.success(
-              "Exact location detected"
-            );
-
-            onClose();
-
-          } catch (error) {
-            toast.dismiss(
-              tid
-            );
-
-            console.error(
-              "❌ GPS LOCATION ERROR:",
-              error
-            );
-
-            toast.error(
-              "Unable to detect location"
-            );
-          }
-        },
-
-        (error) => {
-          toast.dismiss(
-            tid
+          console.log(
+            "================================="
+          );
+          console.log(
+            "📍 DEVICE GPS LOCATION"
+          );
+          console.log(
+            "Latitude:",
+            lat
+          );
+          console.log(
+            "Longitude:",
+            lng
+          );
+          console.log(
+            "Accuracy:",
+            position.coords.accuracy,
+            "meters"
+          );
+          console.log(
+            "================================="
           );
 
+          await reverseGeocode(
+            lat,
+            lng
+          );
+
+          toast.dismiss(tid);
+
+          toast.success(
+            "Exact location detected"
+          );
+
+          setArea("");
+          setLocationResults([]);
+          setMapOpen(false);
+
+          onClose();
+        } catch (error) {
+          toast.dismiss(tid);
+
           console.error(
-            "❌ GEOLOCATION ERROR:",
+            "❌ GPS LOCATION ERROR:",
             error
           );
 
           toast.error(
-            "Failed: " +
-              error.message
+            "Unable to detect location"
           );
-        },
-
-        {
-          enableHighAccuracy:
-            true,
-
-          timeout:
-            15000,
-
-          maximumAge:
-            0,
+        } finally {
+          setCurrentLocationLoading(false);
         }
-      );
-    };
+      },
+      (error) => {
+        toast.dismiss(tid);
+
+        console.error(
+          "❌ GEOLOCATION ERROR:",
+          error
+        );
+
+        toast.error(
+          "Failed: " + error.message
+        );
+
+        setCurrentLocationLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    );
+  };
 
 
   /* =====================================================
@@ -1252,6 +1302,155 @@ export default function Navbar({
           0%, 100% { box-shadow: 0 8px 25px rgba(15,23,42,.05); }
           50% { box-shadow: 0 14px 38px rgba(79,70,229,.12); }
         }
+        /* =====================================================
+           LOCATION SEARCH SKELETON
+           Mobile-first + shimmer + stagger animation
+        ===================================================== */
+
+        @keyframes odikartSkeletonShimmer {
+          0% {
+            background-position: -450px 0;
+          }
+          100% {
+            background-position: 450px 0;
+          }
+        }
+
+        @keyframes odikartSkeletonItemIn {
+          from {
+            opacity: 0;
+            transform: translateY(7px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .odikart-location-skeleton {
+          padding: 7px;
+          background: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
+        }
+
+        .odikart-location-skeleton-item {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          min-height: 66px;
+          padding: 11px 10px;
+          margin-bottom: 3px;
+          border-radius: 18px;
+          animation: odikartSkeletonItemIn .4s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        .odikart-location-skeleton-item:last-child {
+          margin-bottom: 0;
+        }
+
+        .odikart-location-skeleton-item:nth-child(1) {
+          animation-delay: 0ms;
+        }
+
+        .odikart-location-skeleton-item:nth-child(2) {
+          animation-delay: 70ms;
+        }
+
+        .odikart-location-skeleton-item:nth-child(3) {
+          animation-delay: 140ms;
+        }
+
+        .odikart-skeleton-icon,
+        .odikart-skeleton-line,
+        .odikart-skeleton-arrow {
+          background: linear-gradient(
+            90deg,
+            #edf0f6 0%,
+            #f7f8fb 35%,
+            #ffffff 50%,
+            #f7f8fb 65%,
+            #edf0f6 100%
+          );
+          background-size: 450px 100%;
+          animation: odikartSkeletonShimmer 1.45s ease-in-out infinite;
+        }
+
+        .odikart-skeleton-icon {
+          width: 40px;
+          height: 40px;
+          flex: 0 0 40px;
+          border-radius: 13px;
+        }
+
+        .odikart-skeleton-content {
+          min-width: 0;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 7px;
+        }
+
+        .odikart-skeleton-line {
+          height: 8px;
+          border-radius: 999px;
+        }
+
+        .odikart-skeleton-title {
+          width: 42%;
+          height: 10px;
+        }
+
+        .odikart-skeleton-address {
+          width: 88%;
+        }
+
+        .odikart-skeleton-small {
+          width: 62%;
+        }
+
+        .odikart-skeleton-arrow {
+          width: 15px;
+          height: 15px;
+          flex: 0 0 15px;
+          border-radius: 5px;
+        }
+
+        @media (min-width: 641px) {
+          .odikart-location-skeleton {
+            padding: 8px;
+          }
+
+          .odikart-location-skeleton-item {
+            min-height: 70px;
+            padding: 12px;
+            gap: 12px;
+          }
+
+          .odikart-skeleton-icon {
+            width: 42px;
+            height: 42px;
+            flex-basis: 42px;
+            border-radius: 14px;
+          }
+
+          .odikart-skeleton-title {
+            width: 34%;
+          }
+
+          .odikart-skeleton-address {
+            width: 82%;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .odikart-location-skeleton-item,
+          .odikart-skeleton-icon,
+          .odikart-skeleton-line,
+          .odikart-skeleton-arrow {
+            animation: none !important;
+          }
+        }
+
         .odikart-navbar-shell { animation: odikartNavIn .45s cubic-bezier(.22,1,.36,1) both; }
         .odikart-search:hover { animation: odikartSearchFocus 1.6s ease-in-out infinite; }
         .odikart-location-dot::after {
@@ -1262,12 +1461,11 @@ export default function Navbar({
         .odikart-icon-btn { transition: transform .22s cubic-bezier(.22,1,.36,1), background .22s ease, box-shadow .22s ease; }
         .odikart-icon-btn:hover { transform: translateY(-2px) scale(1.035); box-shadow: 0 10px 22px rgba(79,70,229,.10); }
         .odikart-icon-btn:active { transform: translateY(0) scale(.96); }
-        .odikart-bottom-dock { animation: odikartDockIn .5s cubic-bezier(.22,1,.36,1) .08s both; }
         .odikart-bottom-item { transition: transform .22s cubic-bezier(.22,1,.36,1), color .2s ease; }
         .odikart-bottom-item:hover { transform: translateY(-3px); }
         .odikart-bottom-item:active { transform: scale(.94); }
         @media (prefers-reduced-motion: reduce) {
-          .odikart-navbar-shell, .odikart-search, .odikart-bottom-dock, .odikart-location-dot::after { animation: none !important; transition: none !important; }
+          .odikart-navbar-shell, .odikart-search, .odikart-location-dot::after { animation: none !important; transition: none !important; }
         }
       `}</style>
 
@@ -1469,46 +1667,29 @@ export default function Navbar({
 
       <header
         className={`fixed inset-x-0 top-0 z-40 px-2 pt-2 transition-transform duration-300 sm:px-3 ${
-          showNav
-            ? "translate-y-0"
-            : "-translate-y-full"
+          showNav ? "translate-y-0" : "-translate-y-full"
         }`}
       >
-        <div
-          className={`mx-auto flex min-h-[66px] max-w-7xl items-center justify-between gap-3 rounded-[20px] border px-3.5 shadow-sm backdrop-blur-xl transition-all duration-300 sm:px-4 ${
+      <div
+  className={`mx-auto max-w-7xl overflow-visible rounded-[24px] border backdrop-blur-xl transition-all duration-300 ${
             scrolled
-              ? "border-indigo-100/80 bg-white/95 shadow-[0_12px_35px_rgba(15,23,42,0.09)]"
-              : "border-slate-200/70 bg-white/90 shadow-[0_8px_25px_rgba(15,23,42,0.06)]"
+              ? "border-indigo-100/80 bg-white/95 shadow-[0_14px_40px_rgba(15,23,42,.10)]"
+              : "border-slate-200/70 bg-white/92 shadow-[0_8px_28px_rgba(15,23,42,.07)]"
           }`}
         >
-          <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-indigo-400/70 to-transparent" />
-
-          {/* =================================================
-              LOGO + LOCATION
-          ================================================= */}
-
-          <div className="flex min-w-0 items-center gap-1 sm:gap-3">
+          <div className="flex min-h-[70px] items-center gap-2 px-3 py-2.5 sm:px-4">
             <Link
               to="/"
-              className="group flex h-12 w-[76px] shrink-0 items-center justify-center overflow-hidden md:hidden"
+              className="group flex h-12 w-[78px] shrink-0 items-center justify-center overflow-hidden md:w-[105px]"
             >
               <img
                 src="/logo.png"
-                alt="Logo"
-                className="w-auto object-contain transition-transform duration-300 group-hover:scale-105 "
+                alt="Odikart"
+                className="max-h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />
             </Link>
 
-            <Link
-              to="/"
-              className="group hidden h-10 items-center justify-center px-1 transition-transform duration-200 hover:scale-[1.03] md:flex"
-            >
-              <img
-                src="/logo.png"
-                alt="Logo"
-                className="h-12 w-auto object-contain"
-              />
-            </Link>
+            <div className="h-10 w-px shrink-0 bg-slate-200" />
 
             <button
               type="button"
@@ -1517,911 +1698,611 @@ export default function Navbar({
                 e.stopPropagation();
                 onOpen();
               }}
-              className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-indigo-600 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:shadow-lg sm:w-auto sm:max-w-[260px] sm:gap-2 sm:rounded-xl sm:bg-slate-50/80 sm:px-3"
+              className="group flex min-w-0 flex-1 items-center gap-2 rounded-2xl px-2 py-1.5 text-left transition-all duration-200 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
             >
-              <span className="odikart-location-dot relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 transition group-hover:bg-white">
-                <MapPinned
-                  size={16}
-                />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-100">
+                <MapPin size={18} />
               </span>
 
-              <span className="hidden min-w-0 truncate text-[11px] font-bold text-slate-600 sm:block">
-                {locationLabel}
+              <span className="min-w-0 flex-1">
+                <span className="block text-[9px] font-bold uppercase tracking-[.08em] text-slate-400">
+                  Deliver to
+                </span>
+
+                <span className="mt-0.5 block max-w-[190px] truncate text-[12px] font-extrabold text-slate-800 sm:max-w-[300px]">
+                  {locationLabel}
+                </span>
               </span>
 
               <ChevronDown
-                size={13}
-                className="hidden shrink-0 text-slate-400 sm:block"
+                size={15}
+                className="shrink-0 text-slate-400 transition group-hover:text-indigo-600"
               />
             </button>
+
+            <div className="ml-auto flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                onClick={openSearchPage}
+                aria-label="Search products"
+                className="odikart-icon-btn flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+              >
+                <Search size={20} />
+              </button>
+
+              <NotificationBell />
+
+              <Link
+                to="/cart"
+                aria-label="Cart"
+                className="odikart-icon-btn relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
+              >
+                <ShoppingCart size={20} />
+
+                {cartItem.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-indigo-600 px-1 text-[8px] font-black text-white shadow-md">
+                    {cartItem.length}
+                  </span>
+                )}
+              </Link>
+            </div>
           </div>
 
-
-          {/* =================================================
-              DESKTOP SEARCH
-          ================================================= */}
-
-          <div className="hidden max-w-[480px] flex-1 md:flex">
+          {/* <div className="px-3 pb-3 sm:px-4 sm:pb-3.5">
             <button
+              type="button"
               onClick={openSearchPage}
-              className="odikart-search group flex h-12 w-full items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/95 px-3.5 text-left text-slate-500 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+              className="group flex h-[54px] w-full items-center gap-3 rounded-[19px] border border-slate-200 bg-slate-50 px-3.5 text-left transition-all duration-300 hover:border-indigo-200 hover:bg-white hover:shadow-[0_10px_30px_rgba(79,70,229,.08)] focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-100">
-                <Search
-                  size={15}
-                />
+                <Search size={18} />
               </span>
 
-              <span
-                className="text-sm"
-                style={{
-                  color:
-                    "#9B98A8",
-                }}
-              >
+              <span className="flex-1 truncate text-[14px] font-medium text-slate-400">
                 Search products...
               </span>
 
-              <div className="ml-auto hidden h-6 min-w-8 items-center justify-center rounded-md border border-slate-200 bg-white px-1.5 text-[9px] font-extrabold text-slate-500 shadow-sm lg:flex">
-                ⌘K
-              </div>
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-500 shadow-sm">
+                <span className="text-[11px]">☷</span>
+              </span>
             </button>
-          </div>
+          </div> */}
 
-
-          {/* =================================================
-              DESKTOP NAV
-          ================================================= */}
-
-          <nav className="hidden items-center gap-1 md:flex">
-            {NAV_LINKS.map(
-              ({
-                name,
-                path,
-                icon,
-              }) => (
-                <NavLink
-                  key={path}
-                  to={path}
-                  className={({
-                    isActive,
-                  }) =>
-                    `group relative inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[11px] font-extrabold transition-all duration-200 ${
-                      isActive
-                        ? "bg-indigo-50 text-indigo-700"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-indigo-600"
-                    }`
-                  }
-                >
-                  {icon}
-                  {name}
-                </NavLink>
-              )
-            )}
-
-            <NotificationBell />
-
-            <div className="mx-2 h-6 w-px bg-slate-200" />
-
-            <Link
-              to="/cart"
-              className="odikart-icon-btn relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 hover:bg-indigo-50 hover:text-indigo-600"
-            >
-              <ShoppingCart
-                size={19}
-              />
-
-              {cartItem.length >
-                0 && (
-                <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-indigo-600 px-1 text-[8px] font-black leading-none text-white shadow-md shadow-indigo-200">
-                  {
-                    cartItem.length
-                  }
-                </span>
-              )}
-            </Link>
-
-            <Link
-              to="/wishlist"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
-            >
-              <Heart size={21} />
-
-              {wishlist.length >
-                0 && (
-                <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-indigo-600 px-1 text-[8px] font-black leading-none text-white shadow-md shadow-indigo-200">
-                  {
-                    wishlist.length
-                  }
-                </span>
-              )}
-            </Link>
-
-            <div className="ml-2">
-              {!authUser ? (
-                <button
-                  onClick={() =>
-                    navigate(
-                      "/sign-in"
-                    )
-                  }
-                  className="group flex h-10 items-center gap-2 rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-violet-50 px-4 text-xs font-extrabold text-indigo-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg"
-                >
-                  <User
-                    size={15}
-                  />
-                  Sign in
-                </button>
-              ) : (
-                <Dropdown placement="bottom-end">
-                  <DropdownTrigger>
-                    <button className="group flex h-10 items-center gap-2 rounded-full border border-slate-200/90 bg-white/95 py-1 pl-1 pr-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:shadow-md">
-                      <img
-                        src={
-                          authUser?.image
-                        }
-                        alt={
-                          `${authUser?.firstName || ""} ${authUser?.lastName || ""}`.trim() || "Profile"
-                        }
-                        className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
-                      />
-
-                      <span className="hidden max-w-[110px] truncate text-xs font-bold text-slate-900 lg:block">
-                        {authUser?.firstName || "Account"}
-                      </span>
-
-                      <ChevronDown
-                        size={14}
-                        className="text-slate-500"
-                      />
-                    </button>
-                  </DropdownTrigger>
-
-                  <DropdownMenu
-                    aria-label="Profile Actions"
-                    variant="flat"
-                    classNames={{
-                      base: "min-w-[240px] rounded-[20px] border p-2",
-                      list: "gap-1",
-                    }}
-                    style={{
-                      borderColor:
-                        "#e2e8f0",
-                      background:
-                        "#ffffff",
-                      boxShadow:
-                        "0 10px 30px rgba(15,23,42,.08)",
-                    }}
+          <div className="hidden items-center justify-between border-t border-slate-100 px-4 py-2 md:flex">
+            <nav className="flex items-center gap-1">
+              {NAV_LINKS.map(
+                ({ name, path, icon }) => (
+                  <NavLink
+                    key={path}
+                    to={path}
+                    className={({ isActive }) =>
+                      `group inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[11px] font-extrabold transition ${
+                        isActive
+                          ? "bg-indigo-50 text-indigo-700"
+                          : "text-slate-500 hover:bg-slate-50 hover:text-indigo-600"
+                      }`
+                    }
                   >
-                    <DropdownItem
-                      key="profile"
-                      onPress={() =>
-                        navigate(
-                          "/profile"
-                        )
-                      }
-                      startContent={
-                        <User
-                          size={
-                            16
-                          }
-                        />
-                      }
-                    >
-                     Account
-                    </DropdownItem>
-
-                    <DropdownItem
-                      key="orders"
-                      onPress={() =>
-                        navigate(
-                          "/order-history"
-                        )
-                      }
-                      startContent={
-                        <Package
-                          size={
-                            16
-                          }
-                        />
-                      }
-                    >
-                      Orders
-                    </DropdownItem>
-
-                    <DropdownItem
-                      key="track"
-                      onPress={() =>
-                        navigate(
-                          "/track-order"
-                        )
-                      }
-                      startContent={
-                        <Truck
-                          size={
-                            16
-                          }
-                        />
-                      }
-                    >
-                      Track order
-                    </DropdownItem>
-
-                    <DropdownItem
-                      key="logout"
-                      className="text-red-600"
-                      color="danger"
-                      onPress={
-                        logout
-                      }
-                      startContent={
-                        <LogOut
-                          size={
-                            16
-                          }
-                        />
-                      }
-                    >
-                      Logout
-                    </DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
+                    {icon}
+                    {name}
+                  </NavLink>
+                )
               )}
-            </div>
-          </nav>
 
+              <NavLink
+                to="/wishlist"
+                className={({ isActive }) =>
+                  `inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[11px] font-extrabold transition ${
+                    isActive
+                      ? "bg-indigo-50 text-indigo-700"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-indigo-600"
+                  }`
+                }
+              >
+                <Heart size={16} />
+                Wishlist
+              </NavLink>
+            </nav>
 
-          {/* =================================================
-              MOBILE RIGHT
-          ================================================= */}
+            {!authUser ? (
+              <button
+                onClick={() => navigate("/sign-in")}
+                className="flex h-9 items-center gap-1.5 rounded-xl bg-indigo-50 px-3.5 text-[11px] font-extrabold text-indigo-700 transition hover:bg-indigo-100"
+              >
+                <User size={14} />
+                Sign in
+              </button>
+            ) : (
+              <Dropdown placement="bottom-end">
+                <DropdownTrigger>
+                  <button className="flex h-9 items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50">
+                    {authUser?.image ? (
+                      <img
+                        src={authUser.image}
+                        alt="Profile"
+                        className="h-7 w-7 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                        <User size={14} />
+                      </span>
+                    )}
+                    <span className="max-w-[100px] truncate text-[11px] font-bold text-slate-800">
+                      {authUser?.firstName || "Account"}
+                    </span>
+                    <ChevronDown size={13} className="text-slate-400" />
+                  </button>
+                </DropdownTrigger>
 
-          <div className="flex flex-1 items-center justify-end gap-1 sm:hidden">
-            <button
-              onClick={openSearchPage}
-              className="odikart-search flex h-9 min-w-0 flex-1 items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/95 px-3 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200"
-            >
-              <span className="shrink-0 text-indigo-600">
-                <Search
-                  size={14}
-                />
-              </span>
+                <DropdownMenu
+                  aria-label="Profile Actions"
+                  variant="flat"
+                  classNames={{
+                    base: "min-w-[240px] rounded-[20px] border p-2",
+                    list: "gap-1",
+                  }}
+                >
+                  <DropdownItem
+                    key="profile"
+                    onPress={() => navigate("/profile")}
+                    startContent={<User size={16} />}
+                  >
+                    Account
+                  </DropdownItem>
 
-              <span className="truncate text-xs text-slate-400">
-                Search...
-              </span>
-            </button>
+                  <DropdownItem
+                    key="orders"
+                    onPress={() => navigate("/order-history")}
+                    startContent={<Package size={16} />}
+                  >
+                    Orders
+                  </DropdownItem>
 
-            {/* <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpen();
-              }}
-              aria-label="Choose delivery location"
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-indigo-600 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50"
-            >
-              <MapPinned
-                size={18}
-              />
-            </button> */}
+                  <DropdownItem
+                    key="track"
+                    onPress={() => navigate("/track-order")}
+                    startContent={<Truck size={16} />}
+                  >
+                    Track order
+                  </DropdownItem>
 
-            <Link
-              to="/cart"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
-            >
-              <ShoppingCart
-                size={19}
-              />
-
-              {cartItem.length >
-                0 && (
-                <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-indigo-600 px-1 text-[8px] font-black leading-none text-white shadow-md shadow-indigo-200">
-                  {
-                    cartItem.length
-                  }
-                </span>
-              )}
-            </Link>
-
-            <NotificationBell />
-
-            {/* <Link
-              to="/wishlist"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
-            >
-              <Heart
-                size={19}
-              />
-
-              {wishlist.length >
-                0 && (
-                <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-indigo-600 px-1 text-[8px] font-black leading-none text-white shadow-md shadow-indigo-200">
-                  {
-                    wishlist.length
-                  }
-                </span>
-              )}
-            </Link> */}
+                  <DropdownItem
+                    key="logout"
+                    className="text-red-600"
+                    color="danger"
+                    onPress={logout}
+                    startContent={<LogOut size={16} />}
+                  >
+                    Logout
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            )}
           </div>
         </div>
       </header>
 
 
+<div className="sm:h-[91px] md:h-[139px]" />
       {/* =================================================
-          LOCATION MODAL
+          LOCATION MODAL — RN STYLE + EXACT NOMINATIM FLOW
       ================================================= */}
 
-    
-{/* =====================================================
-    MODERN ECOMMERCE LOCATION MODAL
-===================================================== */}
+      <Modal
+        isOpen={isOpen}
+        onClose={() => {
+          setArea("");
+          setLocationResults([]);
+          setMapOpen(false);
+          onClose();
+        }}
+        placement="center"
+        backdrop="blur"
+        hideCloseButton
+        classNames={{
+          backdrop: "bg-slate-950/45 backdrop-blur-md",
+          wrapper: "p-0 sm:p-4 items-end sm:items-center",
+        }}
+      >
+        <ModalContent
+          className="w-full max-w-2xl max-h-[94vh] overflow-hidden rounded-t-[32px] rounded-b-none border border-white/80 bg-white shadow-[0_30px_100px_rgba(15,23,42,.25)] sm:rounded-[28px]"
+        >
+          {(onModalClose) => (
+            <div className="flex max-h-[94vh] flex-col">
 
-<Modal
-  isOpen={isOpen}
-  onClose={onClose}
-  placement="center"
-  backdrop="blur"
-  hideCloseButton
-  classNames={{
-    backdrop:
-      "bg-slate-950/55 backdrop-blur-md",
-    wrapper:
-      "p-2 sm:p-4",
-  }}
->
-  <ModalContent
-    className="
-      w-full
-      max-w-2xl
-      overflow-hidden
-      rounded-[28px]
-      border
-      border-white/70
-      bg-white
-      shadow-[0_30px_100px_rgba(15,23,42,0.25)]
-    "
-  >
-    {(onModalClose) => (
-      <div className="flex max-h-[92vh] flex-col">
+              <div className="flex justify-center pt-2 sm:hidden">
+                <span className="h-1.5 w-14 rounded-full bg-slate-200" />
+              </div>
 
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
-        <ModalHeader className="relative flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
-
-          <div className="flex min-w-0 items-center gap-3">
-
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-50">
-              <MapPinned
-                size={18}
-                strokeWidth={2.2}
-                className="text-indigo-600"
-              />
-            </div>
-
-            <div className="min-w-0">
-
-              <h2 className="truncate text-[15px] font-extrabold tracking-tight text-slate-900 sm:text-base">
-                Choose delivery location
-              </h2>
-
-              <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                Get your order delivered to the right place
-              </p>
-
-            </div>
-
-          </div>
-
-          <button
-            type="button"
-            onClick={onModalClose}
-            aria-label="Close location picker"
-            className="
-              ml-3
-              flex
-              h-9
-              w-9
-              shrink-0
-              items-center
-              justify-center
-              rounded-full
-              bg-slate-100
-              text-slate-500
-              transition
-              hover:bg-slate-200
-              hover:text-slate-900
-            "
-          >
-            <X size={16} />
-          </button>
-
-        </ModalHeader>
-
-
-        {/* =================================================
-            BODY
-        ================================================= */}
-
-        <ModalBody className="min-h-0 overflow-y-auto p-0">
-
-          <div className="space-y-4 p-4 sm:p-5">
-
-            {/* =================================================
-                SEARCH BAR
-            ================================================= */}
-
-            <div className="relative z-20">
-
-              {/* <div
-                className="
-                  flex
-                  h-12
-                  items-center
-                  gap-3
-                  rounded-2xl
-                  border
-                  border-slate-200
-                  bg-white
-                  px-3.5
-                  shadow-[0_8px_30px_rgba(15,23,42,0.08)]
-                  transition
-                  focus-within:border-indigo-300
-                  focus-within:ring-4
-                  focus-within:ring-indigo-500/10
-                "
-              >
-
-                <Search
-                  size={17}
-                  className="shrink-0 text-slate-400"
-                />
-
-                <input
-                  type="text"
-                  value={area}
-                  onChange={(e) =>
-                    setArea(e.target.value)
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleAreaSearch();
-                    }
-                  }}
-                  placeholder="Search area, street, landmark or pincode"
-                  className="
-                    min-w-0
-                    flex-1
-                    bg-transparent
-                    text-sm
-                    font-semibold
-                    text-slate-800
-                    outline-none
-                    placeholder:text-slate-400
-                  "
-                />
-
-                {area && (
-                  <button
-                    type="button"
-                    onClick={() => setArea("")}
-                    className="
-                      flex
-                      h-7
-                      w-7
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-full
-                      bg-slate-100
-                      text-slate-400
-                      hover:bg-slate-200
-                      hover:text-slate-700
-                    "
-                  >
-                    <X size={13} />
-                  </button>
-                )}
+              <ModalHeader className="flex shrink-0 items-start justify-between border-b border-slate-100 px-5 py-4 sm:px-6 sm:py-5">
+                <div className="min-w-0">
+                  <h2 className="text-[21px] font-black tracking-tight text-slate-900 sm:text-2xl">
+                    Select delivery address
+                  </h2>
+                  <p className="mt-1 text-[12px] font-medium text-slate-500 sm:text-sm">
+                    Search or choose a delivery address
+                  </p>
+                </div>
 
                 <button
                   type="button"
-                  onClick={handleAreaSearch}
-                  className="
-                    hidden
-                    h-9
-                    shrink-0
-                    items-center
-                    gap-1.5
-                    rounded-xl
-                    bg-indigo-600
-                    px-3
-                    text-xs
-                    font-extrabold
-                    text-white
-                    shadow-sm
-                    transition
-                    hover:bg-indigo-700
-                    sm:flex
-                  "
+                  onClick={onModalClose}
+                  aria-label="Close delivery address"
+                  className="ml-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-700 transition hover:bg-slate-100 active:scale-95"
                 >
-                  <Search size={13} />
-                  Search
+                  <X size={21} />
                 </button>
+              </ModalHeader>
 
-              </div> */}
+              <ModalBody className="min-h-0 overflow-y-auto p-0">
+                <div className="space-y-3.5 px-4 py-4 sm:space-y-4 sm:px-5 sm:py-5">
 
-            </div>
+                  {/* SEARCH — same Nominatim request as RN */}
+                  <div className="flex h-[58px] items-center gap-3 rounded-[19px] border border-slate-200 bg-slate-50 px-4 transition focus-within:border-indigo-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-500/10">
+                    <Search size={20} className="shrink-0 text-slate-400" />
 
+                    <input
+                      type="text"
+                      value={area}
+                      onChange={(e) => setArea(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleAreaSearch();
+                        }
+                      }}
+                      placeholder="Search by name, area, street, pincode"
+                      className="min-w-0 flex-1 bg-transparent text-[14px] font-semibold text-slate-800 outline-none placeholder:text-slate-400"
+                      autoComplete="street-address"
+                    />
 
-            {/* =================================================
-                MAP
-            ================================================= */}
-
-            <div
-              className="
-                relative
-                overflow-hidden
-                rounded-[12px]
-                border
-                p-3
-                border-slate-200
-                bg-slate-100
-                shadow-inner
-              "
-            >
-
-              <div className="h-[350px] w-full sm:h-[390px]">
-
-                <LocationMap
-                  initialLocation={selectedLocation}
-                  onSelect={async (
-                    lat,
-                    lng,
-                    locationData
-                  ) => {
-
-                    const exactLocation =
-                      locationData
-                        ? {
-                            ...locationData,
-
-                            latitude:
-                              Number(lat),
-
-                            longitude:
-                              Number(lng),
-
-                            location: {
-                              type: "Point",
-
-                              // GeoJSON:
-                              // longitude first
-                              coordinates: [
-                                Number(lng),
-                                Number(lat),
-                              ],
-                            },
-                          }
-                        : await reverseGeocode(
-                            Number(lat),
-                            Number(lng)
-                          );
-
-                    setSelectedLocation(
-                      exactLocation
-                    );
-
-                    if (
-                      typeof onLocationChange ===
-                      "function"
-                    ) {
-                      onLocationChange(
-                        Number(lat),
-                        Number(lng),
-                        exactLocation
-                      );
-                    }
-
-                    toast.success(
-                      "Delivery location updated"
-                    );
-
-                    onModalClose();
-                  }}
-                />
-
-              </div>
-
-
-              {/* =================================================
-                  CURRENT LOCATION FLOATING BUTTON
-              ================================================= */}
-
-              <button
-                type="button"
-                onClick={
-                  handleUseMyLocation
-                }
-                className="
-                  absolute
-                  bottom-4
-                  right-4
-                  z-10
-                  flex
-                  items-center
-                  gap-2
-                  rounded-full
-                  border
-                  border-slate-200
-                  bg-white
-                  px-3.5
-                  py-2.5
-                  text-xs
-                  font-extrabold
-                  text-slate-700
-                  shadow-[0_8px_25px_rgba(15,23,42,0.15)]
-                  transition
-                  hover:-translate-y-0.5
-                  hover:border-indigo-200
-                  hover:text-indigo-600
-                "
-              >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-50">
-                  <LocateFixed
-                    size={13}
-                    className="text-indigo-600"
-                  />
-                </span>
-
-                Use my location
-              </button>
-
-            </div>
-
-
-            {/* =================================================
-                SELECTED ADDRESS
-            ================================================= */}
-
-            <div
-              className="
-                rounded-[20px]
-                border
-                border-slate-200
-                bg-white
-                p-3.5
-                shadow-sm
-              "
-            >
-
-              <div className="flex items-start gap-3">
-
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50">
-                  <MapPin
-                    size={17}
-                    className="text-indigo-600"
-                  />
-                </div>
-
-                <div className="min-w-0 flex-1">
-
-                  <div className="flex items-center gap-2">
-
-                    <p className="text-[10px] font-black uppercase tracking-[0.08em] text-slate-400">
-                      Delivering to
-                    </p>
-
-                    {selectedLocation && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-extrabold text-emerald-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        Selected
-                      </span>
-                    )}
-
+                    {area ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setArea("");
+                          setLocationResults([]);
+                        }}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm hover:bg-slate-100"
+                      >
+                        <X size={15} />
+                      </button>
+                    ) : null}
                   </div>
 
-                  <p className="mt-1 break-words text-sm font-bold leading-5 text-slate-900">
-                    {locationLabel}
-                  </p>
+                  {/* LIVE SEARCH RESULTS */}
+                  {area.trim().length >= 2 ? (
+                    <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-sm">
+                      {locationLoading ? (
+                        <LocationSearchSkeleton />
+                      ) : locationResults.length > 0 ? (
+                        <div className="max-h-64 overflow-y-auto p-2">
+                          {locationResults.map((result) => {
+                            const addr = result?.address || {};
 
-                  {selectedLocation && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
+                            const local =
+                              addr.neighbourhood ||
+                              addr.suburb ||
+                              addr.village;
 
-                      {[
-                        selectedLocation.area ||
-                          selectedLocation.suburb,
+                            const city =
+                              addr.city ||
+                              addr.town ||
+                              addr.village;
 
-                        selectedLocation.locality,
+                            const shortName =
+                              local &&
+                              city &&
+                              local.toLowerCase() !== city.toLowerCase()
+                                ? `${local}, ${city}`
+                                : city ||
+                                  local ||
+                                  result.display_name
+                                    ?.split(",")
+                                    .slice(0, 2)
+                                    .join(", ")
+                                    .trim();
 
-                        selectedLocation.city,
+                            return (
+                              <button
+                                key={String(result.place_id)}
+                                type="button"
+                                onClick={() =>
+                                  selectLocationResult(result)
+                                }
+                                className="flex w-full items-center gap-3 rounded-2xl p-3 text-left transition hover:bg-indigo-50 active:scale-[.99]"
+                              >
+                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50">
+                                  <MapPin
+                                    size={18}
+                                    className="text-indigo-600"
+                                  />
+                                </span>
 
-                        selectedLocation.pincode,
-                      ]
-                        .filter(Boolean)
-                        .slice(0, 4)
-                        .map(
-                          (item, index) => (
-                            <span
-                              key={`${item}-${index}`}
-                              className="
-                                rounded-lg
-                                bg-slate-50
-                                px-2
-                                py-1
-                                text-[10px]
-                                font-semibold
-                                text-slate-500
-                              "
-                            >
-                              {item}
-                            </span>
-                          )
-                        )}
+                                <span className="min-w-0 flex-1">
+                                  <span className="block truncate text-[13px] font-extrabold text-slate-900">
+                                    {shortName}
+                                  </span>
 
+                                  <span className="mt-0.5 block line-clamp-2 text-[11px] font-medium leading-4 text-slate-500">
+                                    {result.display_name}
+                                  </span>
+                                </span>
+
+                                <ChevronDown
+                                  size={17}
+                                  className="-rotate-90 shrink-0 text-slate-300"
+                                />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="px-4 py-5 text-center">
+                          <MapPin
+                            size={20}
+                            className="mx-auto text-slate-300"
+                          />
+                          <p className="mt-2 text-xs font-bold text-slate-600">
+                            No matching locations found
+                          </p>
+                          <p className="mt-1 text-[10px] text-slate-400">
+                            Try a more specific area, street or pincode.
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ) : null}
 
+                  {!area.trim() ? (
+                    <>
+                      {/* CURRENT LOCATION */}
+                      <button
+                        type="button"
+                        disabled={currentLocationLoading}
+                        onClick={handleUseMyLocation}
+                        className="group flex w-full items-center gap-4 rounded-[20px] border border-indigo-100 bg-indigo-50/70 px-4 py-3.5 text-left transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:shadow-[0_10px_30px_rgba(79,70,229,.10)] disabled:cursor-wait disabled:opacity-70"
+                      >
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm">
+                          <LocateFixed
+                            size={21}
+                            className="text-indigo-600"
+                          />
+                        </span>
+
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[14px] font-black text-indigo-700">
+                            {currentLocationLoading
+                              ? "Detecting location..."
+                              : "Use current location"}
+                          </span>
+
+                          <span className="mt-0.5 block text-[11px] font-medium text-slate-500">
+                            {currentLocationLoading
+                              ? "Getting your exact address"
+                              : "Allow access to your location"}
+                          </span>
+                        </span>
+
+                        <ChevronDown
+                          size={20}
+                          className="-rotate-90 shrink-0 text-slate-400"
+                        />
+                      </button>
+
+                      {/* ADD NEW + PICK MAP */}
+                      <div className="grid grid-cols-1 gap-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate("/account/addresses/add")
+                          }
+                          className="flex items-center gap-4 rounded-[20px] border border-indigo-100 bg-indigo-50/55 px-4 py-3.5 text-left transition hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50"
+                        >
+                          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm">
+                            <span className="text-[28px] font-light leading-none text-indigo-600">
+                              +
+                            </span>
+                          </span>
+
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[14px] font-black text-indigo-700">
+                              Add New
+                            </span>
+                            <span className="mt-0.5 block text-[11px] font-medium text-slate-500">
+                              Add a delivery address
+                            </span>
+                          </span>
+
+                          <ChevronDown
+                            size={19}
+                            className="-rotate-90 shrink-0 text-indigo-600"
+                          />
+                        </button>
+
+                        {/* <button
+                          type="button"
+                          onClick={() =>
+                            setMapOpen((value) => !value)
+                          }
+                          className="flex items-center gap-4 rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3.5 text-left transition hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50/60"
+                        >
+                          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm">
+                            <MapPinned
+                              size={23}
+                              className="text-indigo-600"
+                            />
+                          </span>
+
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[14px] font-black text-slate-800">
+                              {mapOpen
+                                ? "Hide map"
+                                : "Pick on map"}
+                            </span>
+                            <span className="mt-0.5 block text-[11px] font-medium text-slate-500">
+                              Select an exact location
+                            </span>
+                          </span>
+
+                          <ChevronDown
+                            size={19}
+                            className={`shrink-0 text-slate-400 transition-transform ${
+                              mapOpen
+                                ? "rotate-180"
+                                : "-rotate-90"
+                            }`}
+                          />
+                        </button> */}
+                      </div>
+
+                      {/* MAP */}
+                      {mapOpen ? (
+                        <div className="overflow-hidden rounded-[22px] border border-slate-200 bg-slate-100 shadow-inner">
+                          <div className="relative h-[300px] w-full sm:h-[360px]">
+                            <LocationMap
+                              initialLocation={selectedLocation}
+                              onSelect={async (
+                                lat,
+                                lng,
+                                locationData
+                              ) => {
+                                const exactLocation =
+                                  locationData
+                                    ? {
+                                        ...locationData,
+                                        latitude:
+                                          Number(lat),
+                                        longitude:
+                                          Number(lng),
+                                        location: {
+                                          type: "Point",
+                                          coordinates: [
+                                            Number(lng),
+                                            Number(lat),
+                                          ],
+                                        },
+                                      }
+                                    : await reverseGeocode(
+                                        Number(lat),
+                                        Number(lng)
+                                      );
+
+                                setSelectedLocation(
+                                  exactLocation
+                                );
+
+                                if (
+                                  typeof onLocationChange ===
+                                  "function"
+                                ) {
+                                  onLocationChange(
+                                    Number(lat),
+                                    Number(lng),
+                                    exactLocation
+                                  );
+                                }
+
+                                setMapOpen(false);
+
+                                toast.success(
+                                  "Delivery location updated"
+                                );
+
+                                onModalClose();
+                              }}
+                            />
+
+                            <button
+                              type="button"
+                              onClick={handleUseMyLocation}
+                              disabled={
+                                currentLocationLoading
+                              }
+                              className="absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2.5 text-[11px] font-black text-slate-700 shadow-[0_8px_25px_rgba(15,23,42,.15)] transition hover:text-indigo-600 disabled:opacity-60"
+                            >
+                              <LocateFixed
+                                size={14}
+                                className="text-indigo-600"
+                              />
+                              Use my location
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+
+                  {/* SELECTED LOCATION */}
+                  <div className="rounded-[20px] border border-slate-200 bg-white p-3.5 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-50">
+                        <MapPin
+                          size={19}
+                          className="text-indigo-600"
+                        />
+                      </span>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-[9px] font-black uppercase tracking-[.12em] text-slate-400">
+                            Delivering to
+                          </p>
+
+                          {selectedLocation ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[8px] font-black text-emerald-600">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                              Selected
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <p className="mt-1 break-words text-[13px] font-extrabold leading-5 text-slate-900">
+                          {locationLabel}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BENEFITS */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      [Truck, "Accurate delivery"],
+                      [MapPin, "Exact location"],
+                      [LocateFixed, "GPS supported"],
+                    ].map(([Icon, label]) => (
+                      <div
+                        key={label}
+                        className="rounded-2xl bg-slate-50 px-2 py-2.5 text-center"
+                      >
+                        <span className="mx-auto flex h-8 w-8 items-center justify-center rounded-xl bg-white shadow-sm">
+                          <Icon
+                            size={14}
+                            className="text-indigo-600"
+                          />
+                        </span>
+                        <p className="mt-1.5 text-[8px] font-bold text-slate-500">
+                          {label}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              </ModalBody>
 
+              <div className="shrink-0 border-t border-slate-100 bg-white px-4 py-3.5 sm:px-5">
+                <button
+                  type="button"
+                  onClick={onModalClose}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 text-xs font-black text-white shadow-[0_8px_22px_rgba(79,70,229,.22)] transition hover:-translate-y-0.5 hover:bg-indigo-700 active:scale-[.99]"
+                >
+                  <MapPin size={14} />
+                  Done
+                </button>
               </div>
-
             </div>
-
-
-            {/* =================================================
-                LOCATION BENEFITS
-            ================================================= */}
-
-            <div className="grid grid-cols-3 gap-2">
-
-              <div className="rounded-xl bg-slate-50 px-2.5 py-2.5 text-center">
-
-                <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-lg bg-white shadow-sm">
-                  <Truck
-                    size={13}
-                    className="text-indigo-600"
-                  />
-                </div>
-
-                <p className="mt-1.5 text-[9px] font-bold text-slate-500">
-                  Accurate delivery
-                </p>
-
-              </div>
-
-              <div className="rounded-xl bg-slate-50 px-2.5 py-2.5 text-center">
-
-                <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-lg bg-white shadow-sm">
-                  <MapPin
-                    size={13}
-                    className="text-indigo-600"
-                  />
-                </div>
-
-                <p className="mt-1.5 text-[9px] font-bold text-slate-500">
-                  Exact location
-                </p>
-
-              </div>
-
-              <div className="rounded-xl bg-slate-50 px-2.5 py-2.5 text-center">
-
-                <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-lg bg-white shadow-sm">
-                  <LocateFixed
-                    size={13}
-                    className="text-indigo-600"
-                  />
-                </div>
-
-                <p className="mt-1.5 text-[9px] font-bold text-slate-500">
-                  GPS supported
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </ModalBody>
-
-
-        {/* =================================================
-            FOOTER
-        ================================================= */}
-
-        <div
-          className="
-            shrink-0
-            border-t
-            border-slate-100
-            bg-white
-            px-4
-            py-3.5
-            sm:px-5
-          "
-        >
-
-          <div className="flex items-center gap-3">
-
-            <div className="hidden min-w-0 flex-1 sm:block">
-
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                Delivery location
-              </p>
-
-              <p className="truncate text-xs font-bold text-slate-700">
-                {locationLabel}
-              </p>
-
-            </div>
-
-            <button
-              type="button"
-              onClick={onModalClose}
-              className="
-                flex
-                h-11
-                shrink-0
-                items-center
-                justify-center
-                rounded-xl
-                border
-                border-slate-200
-                bg-white
-                px-4
-                text-xs
-                font-extrabold
-                text-slate-600
-                transition
-                hover:bg-slate-50
-              "
-            >
-              Cancel
-            </button>
-
-            <button
-              type="button"
-              onClick={onModalClose}
-              disabled={!selectedLocation}
-              className="
-                flex
-                h-11
-                flex-1
-                items-center
-                justify-center
-                gap-2
-                rounded-xl
-                bg-indigo-600
-                px-5
-                text-xs
-                font-extrabold
-                text-white
-                shadow-[0_8px_20px_rgba(79,70,229,0.25)]
-                transition
-                hover:-translate-y-0.5
-                hover:bg-indigo-700
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-                sm:flex-none
-                sm:min-w-[190px]
-              "
-            >
-              <MapPin size={14} />
-
-              Confirm location
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-    )}
-  </ModalContent>
-</Modal>
-
-
+          )}
+        </ModalContent>
+      </Modal>
 
 
       {/* =================================================
@@ -2429,15 +2310,18 @@ export default function Navbar({
       ================================================= */}
 
       <div
-        className="fixed inset-x-2 bottom-2 z-40 rounded-[24px] border border-white/80 bg-white/90 shadow-[0_12px_45px_rgba(15,23,42,0.16)] backdrop-blur-2xl sm:hidden odikart-bottom-dock"
+        className="fixed inset-x-2 bottom-2 z-40 rounded-[24px] border border-white/80 bg-white/90 shadow-[0_12px_45px_rgba(15,23,42,0.16)] backdrop-blur-2xl sm:hidden"
         style={{
           transform:
-            showNav
+            showBottomNav
               ? "translateY(0)"
-              : "translateY(100%)",
+              : "translateY(calc(100% + 30px))",
 
           transition:
-            "transform 0.3s ease",
+            "transform 0.32s cubic-bezier(.22,1,.36,1)",
+
+          willChange:
+            "transform",
         }}
       >
         <div className="flex items-center justify-around gap-1 px-1.5 py-2">
@@ -2516,4 +2400,3 @@ export default function Navbar({
     </>
   );
 }
-

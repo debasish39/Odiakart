@@ -16,61 +16,210 @@ import {
 const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL;
 
+
+/* =====================================================
+   CACHE
+===================================================== */
+
+const POPULAR_PRODUCTS_CACHE_KEY =
+  "odikart_popular_products";
+
+const POPULAR_PRODUCTS_CACHE_TIME_KEY =
+  "odikart_popular_products_cache_time";
+
+const POPULAR_PRODUCTS_CACHE_DURATION =
+  5 * 60 * 1000;
+
+
+/* =====================================================
+   CACHE HELPERS
+===================================================== */
+
+const getCachedPopularProducts = () => {
+  try {
+    const cached =
+      sessionStorage.getItem(
+        POPULAR_PRODUCTS_CACHE_KEY
+      );
+
+    const cachedTime =
+      sessionStorage.getItem(
+        POPULAR_PRODUCTS_CACHE_TIME_KEY
+      );
+
+    if (!cached || !cachedTime) {
+      return null;
+    }
+
+    const age =
+      Date.now() - Number(cachedTime);
+
+    if (
+      age > POPULAR_PRODUCTS_CACHE_DURATION
+    ) {
+      return null;
+    }
+
+    const parsed =
+      JSON.parse(cached);
+
+    return Array.isArray(parsed)
+      ? parsed
+      : null;
+
+  } catch (error) {
+    console.warn(
+      "POPULAR PRODUCTS CACHE READ ERROR:",
+      error
+    );
+
+    return null;
+  }
+};
+
+
+const savePopularProductsCache = (
+  products
+) => {
+  try {
+    sessionStorage.setItem(
+      POPULAR_PRODUCTS_CACHE_KEY,
+      JSON.stringify(products)
+    );
+
+    sessionStorage.setItem(
+      POPULAR_PRODUCTS_CACHE_TIME_KEY,
+      String(Date.now())
+    );
+
+  } catch (error) {
+    console.warn(
+      "POPULAR PRODUCTS CACHE SAVE ERROR:",
+      error
+    );
+  }
+};
+
+
 export default function PopularProducts() {
   const navigate = useNavigate();
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [activeIndexes, setActiveIndexes] = useState({});
-  const [hoveredCard, setHoveredCard] = useState(null);
+
+  /* =====================================================
+     INITIAL CACHE
+  ===================================================== */
+
+  const cachedProducts =
+    getCachedPopularProducts();
+
+
+  /* =====================================================
+     STATE
+  ===================================================== */
+
+  const [products, setProducts] =
+    useState(
+      cachedProducts || []
+    );
+
+  const [loading, setLoading] =
+    useState(
+      !cachedProducts
+    );
+
+  const [error, setError] =
+    useState("");
+
+  const [activeIndexes, setActiveIndexes] =
+    useState({});
+
+  const [hoveredCard, setHoveredCard] =
+    useState(null);
+
 
   /* =====================================================
      FETCH POPULAR PRODUCTS
   ===================================================== */
 
-  const fetchPopularProducts = useCallback(async () => {
+  const fetchPopularProducts =
+    useCallback(
+      async ({
+        showLoader = false,
+      } = {}) => {
 
-    const url =
-      `${BACKEND_URL}/api/products/popular`;
+        const url =
+          `${BACKEND_URL}/api/products/popular`;
 
-    try {
-      setLoading(true);
-      setError("");
+        try {
 
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      });
+          /*
+           * When cached products exist,
+           * refresh silently without showing
+           * the skeleton again.
+           */
 
-      const data = await response.json();
+          if (showLoader) {
+            setLoading(true);
+          }
 
-      if (!response.ok) {
-        throw new Error(
-          data?.message ||
-            `HTTP ${response.status}`
-        );
-      }
+          setError("");
 
-      const list = Array.isArray(data?.products)
-        ? data.products
-        : [];
+          const response =
+            await fetch(url, {
+              method: "GET",
+              headers: {
+                Accept:
+                  "application/json",
+              },
+            });
 
-      setProducts(list);
-    } catch (error) {
+          const data =
+            await response.json();
 
-      setError(
-        error?.message ||
-          "Failed to load popular products"
-      );
+          if (!response.ok) {
+            throw new Error(
+              data?.message ||
+                `HTTP ${response.status}`
+            );
+          }
 
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+          const list =
+            Array.isArray(
+              data?.products
+            )
+              ? data.products
+              : [];
+
+          setProducts(list);
+
+          savePopularProductsCache(list);
+
+        } catch (error) {
+
+          console.error(
+            "POPULAR PRODUCTS ERROR:",
+            error
+          );
+
+          /*
+           * Keep cached products visible if
+           * the background refresh fails.
+           */
+
+          if (!products.length) {
+            setError(
+              error?.message ||
+                "Failed to load popular products"
+            );
+          }
+
+        } finally {
+          setLoading(false);
+        }
+      },
+      []
+    );
+
 
   /* =====================================================
      LOAD
@@ -78,11 +227,21 @@ export default function PopularProducts() {
 
   useEffect(() => {
 
-    fetchPopularProducts();
+    /*
+     * No cache:
+     *   skeleton + API request
+     *
+     * Cache:
+     *   instant UI + silent refresh
+     */
 
-    return () => {
-    };
-  }, [fetchPopularProducts]);
+    fetchPopularProducts({
+      showLoader:
+        !cachedProducts,
+    });
+
+  }, []);
+
 
   /* =====================================================
      IMAGE
@@ -91,19 +250,29 @@ export default function PopularProducts() {
   const getImages = (product) => {
     const images = [
       product?.media?.thumbnail,
-      ...(Array.isArray(product?.media?.images)
+
+      ...(Array.isArray(
+        product?.media?.images
+      )
         ? product.media.images
         : []),
-      ...(Array.isArray(product?.variants)
-        ? product.variants.flatMap((variant) =>
-            Array.isArray(variant?.images)
-              ? variant.images
-              : []
+
+      ...(Array.isArray(
+        product?.variants
+      )
+        ? product.variants.flatMap(
+            (variant) =>
+              Array.isArray(
+                variant?.images
+              )
+                ? variant.images
+                : []
           )
         : []),
     ].filter(Boolean);
 
-    const uniqueImages = [...new Set(images)];
+    const uniqueImages =
+      [...new Set(images)];
 
     return uniqueImages.length
       ? uniqueImages
@@ -112,13 +281,16 @@ export default function PopularProducts() {
         ];
   };
 
+
   /* =====================================================
      ACTIVE VARIANT
   ===================================================== */
 
   const getVariant = (product) => {
     if (
-      !Array.isArray(product?.variants) ||
+      !Array.isArray(
+        product?.variants
+      ) ||
       product.variants.length === 0
     ) {
       return null;
@@ -133,24 +305,30 @@ export default function PopularProducts() {
     );
   };
 
+
   /* =====================================================
      PRICE
   ===================================================== */
 
   const getPrice = (product) => {
-    const variant = getVariant(product);
+    const variant =
+      getVariant(product);
 
     return Number(
       variant?.price || 0
     );
   };
 
+
   /* =====================================================
      ORIGINAL PRICE
   ===================================================== */
 
-  const getOriginalPrice = (product) => {
-    const variant = getVariant(product);
+  const getOriginalPrice = (
+    product
+  ) => {
+    const variant =
+      getVariant(product);
 
     return Number(
       variant?.originalPrice ||
@@ -159,14 +337,16 @@ export default function PopularProducts() {
     );
   };
 
+
   /* =====================================================
      OPEN PRODUCT
   ===================================================== */
 
-  const openProduct = (product) => {
+  const openProduct = (
+    product
+  ) => {
 
     if (!product?._id) {
-
       return;
     }
 
@@ -175,78 +355,156 @@ export default function PopularProducts() {
     );
   };
 
+
+  /* =====================================================
+     CHANGE IMAGE
+  ===================================================== */
+
   const changeImage = (
     event,
     productId,
     imageCount,
     direction
   ) => {
+
     event.stopPropagation();
 
-    if (imageCount <= 1) return;
+    if (imageCount <= 1) {
+      return;
+    }
 
-    setActiveIndexes((previous) => {
-      const current = previous[productId] || 0;
+    setActiveIndexes(
+      (previous) => {
+        const current =
+          previous[productId] || 0;
 
-      return {
-        ...previous,
-        [productId]:
-          (current + direction + imageCount) %
-          imageCount,
-      };
-    });
+        return {
+          ...previous,
+
+          [productId]:
+            (
+              current +
+              direction +
+              imageCount
+            ) %
+            imageCount,
+        };
+      }
+    );
   };
+
+
+  /* =====================================================
+     GO TO IMAGE
+  ===================================================== */
 
   const goToImage = (
     event,
     productId,
     index
   ) => {
+
     event.stopPropagation();
 
-    setActiveIndexes((previous) => ({
-      ...previous,
-      [productId]: index,
-    }));
+    setActiveIndexes(
+      (previous) => ({
+        ...previous,
+
+        [productId]: index,
+      })
+    );
   };
 
-  const autoSwipe = useCallback((productId, imageCount) => {
-    if (imageCount <= 1) return;
 
-    setActiveIndexes((previous) => {
-      const current = previous[productId] || 0;
+  /* =====================================================
+     AUTO SWIPE
+  ===================================================== */
 
-      return {
-        ...previous,
-        [productId]:
-          (current + 1) % imageCount,
-      };
-    });
-  }, []);
+  const autoSwipe =
+    useCallback(
+      (
+        productId,
+        imageCount
+      ) => {
 
-  useEffect(() => {
-    if (!hoveredCard) return;
+        if (imageCount <= 1) {
+          return;
+        }
 
-    const product = products.find(
-      (item) => item._id === hoveredCard
+        setActiveIndexes(
+          (previous) => {
+
+            const current =
+              previous[
+                productId
+              ] || 0;
+
+            return {
+              ...previous,
+
+              [productId]:
+                (
+                  current + 1
+                ) %
+                imageCount,
+            };
+          }
+        );
+      },
+      []
     );
 
-    if (!product) return;
 
-    const images = getImages(product);
+  /* =====================================================
+     AUTO SWIPE TIMER
+  ===================================================== */
 
-    if (images.length <= 1) return;
+  useEffect(() => {
 
-    const timer = setInterval(() => {
-      autoSwipe(product._id, images.length);
-    }, 1400);
+    if (!hoveredCard) {
+      return;
+    }
 
-    return () => clearInterval(timer);
-  }, [hoveredCard, products, autoSwipe]);
+    const product =
+      products.find(
+        (item) =>
+          item._id ===
+          hoveredCard
+      );
+
+    if (!product) {
+      return;
+    }
+
+    const images =
+      getImages(product);
+
+    if (images.length <= 1) {
+      return;
+    }
+
+    const timer =
+      setInterval(() => {
+        autoSwipe(
+          product._id,
+          images.length
+        );
+      }, 1400);
+
+    return () =>
+      clearInterval(timer);
+
+  }, [
+    hoveredCard,
+    products,
+    autoSwipe,
+  ]);
+
 
   /* =====================================================
      LOADING
   ===================================================== */
+
 
 if (loading) {
   return (
@@ -516,7 +774,11 @@ if (loading) {
           </p>
 
           <button
-            onClick={fetchPopularProducts}
+            onClick={() =>
+              fetchPopularProducts({
+                showLoader: true,
+              })
+            }
             className="
               mt-5
               px-5

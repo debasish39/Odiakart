@@ -17,7 +17,7 @@ import {
 import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
 import {
-  FaShoppingCart, FaHeart, FaRegHeart,
+  FaShoppingCart, FaHeart, FaRegHeart, FaArrowLeft, 
   FaStar, FaStarHalfAlt, FaRegStar,
   FaTag, FaTruck, FaUndoAlt, FaLock,
   FaIndustry, FaListAlt, FaRupeeSign,
@@ -25,6 +25,7 @@ import {
   FaUser, FaThumbsUp, FaThumbsDown, FaTrash,
   FaBoxOpen, FaLayerGroup, FaInfoCircle, FaCog, FaComments,
 } from "react-icons/fa";
+import { IoShareOutline } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
 import { SlActionRedo } from "react-icons/sl";
 import { AiOutlineZoomIn } from "react-icons/ai";
@@ -61,7 +62,7 @@ const Stars = ({ rating = 0, size = 13, interactive = false, onRate, hover = 0, 
 
 /* ─── CSS (no :root changes) ─── */
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=Roboto:wght@400;500;600;700&display=swap');
 
 .sp {
   --sp-primary:#4f46e5;
@@ -74,6 +75,218 @@ const CSS = `
   font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   color:var(--sp-text);
 }
+.sp-product-navbar{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:2000;
+  width:100%;
+  height:63px;
+  display:flex;
+  align-items:center;
+  background:rgba(255,255,255,.97);
+  border-bottom:1px solid #e9edf2;
+  box-shadow:0 2px 16px rgba(15,23,42,.07);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+.sp-product-navbar-inner{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 14px;
+}
+
+.sp-product-navbar-left{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  flex:1;
+}
+
+.sp-product-navbar-back,
+.sp-product-navbar-action{
+  width:40px;
+  height:40px;
+  flex:0 0 40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:#f4f6f9;
+  color:#18202b;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:background .18s ease,transform .18s ease,box-shadow .18s ease,color .18s ease;
+}
+
+.sp-product-navbar-back:hover,
+.sp-product-navbar-action:hover{
+  background:#e9edf3;
+  box-shadow:0 4px 12px rgba(15,23,42,.08);
+}
+
+.sp-product-navbar-back:active,
+.sp-product-navbar-action:active{
+  transform:scale(.94);
+}
+
+.sp-product-navbar-back:focus-visible,
+.sp-product-navbar-action:focus-visible{
+  outline:2px solid #94a3b8;
+  outline-offset:2px;
+}
+
+/* Initial state */
+.sp-product-navbar-title{
+  margin-left:11px;
+  color:#171a1f;
+  font-size:17px;
+  font-weight:600;
+  letter-spacing:-.02em;
+  white-space:nowrap;
+}
+
+/* Scrolled state: thumbnail + price only */
+.sp-product-navbar-product{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-width:0;
+  flex-wrap:no-wrap;
+  margin-left:10px;
+  animation:spNavbarIn .22s ease both;
+}
+
+@keyframes spNavbarIn{
+  from{opacity:0;transform:translateX(-7px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+.sp-product-navbar-thumb{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  object-fit:contain;
+  border-radius:9px;
+  background:#f8fafc;
+  border:1px solid #e7ebf0;
+}
+
+.sp-product-navbar-price{
+  color:#1769e0;
+  font-size:17px;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:-.025em;
+  white-space:nowrap;
+}
+
+.sp-product-navbar-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left:10px;
+}
+
+.sp-product-navbar-wishlist.active{
+  color:#e11d48;
+  background:#fff1f2;
+}
+
+.sp-product-navbar-icon{
+  display:block;
+  flex-shrink:0;
+}
+
+.sp-bg{
+  padding-top:55px;
+}
+
+@media(max-width:600px){
+  .sp-product-navbar{height:58px}
+
+  .sp-product-navbar-inner{
+    padding:0 12px;
+  }
+
+  .sp-product-navbar-back,
+  .sp-product-navbar-action{
+    width:40px;
+    height:40px;
+    flex-basis:40px;
+  }
+
+  .sp-product-navbar-title{
+    margin-left:10px;
+    font-size:17px;
+  }
+
+  .sp-product-navbar-product{
+    gap:9px;
+    margin-left:9px;
+  }
+
+  .sp-product-navbar-thumb{
+    width:38px;
+    height:38px;
+    flex-basis:38px;
+  }
+
+  .sp-product-navbar-price{
+    font-size:16px;
+  }
+
+  .sp-product-navbar-actions{
+    gap:7px;
+    margin-left:8px;
+  }
+}
+
+@media(max-width:360px){
+  .sp-product-navbar-inner{padding:0 9px}
+
+  .sp-product-navbar-back,
+  .sp-product-navbar-action{
+    width:38px;
+    height:38px;
+    flex-basis:38px;
+  }
+
+  .sp-product-navbar-title{
+    margin-left:9px;
+    font-size:16px;
+  }
+
+  .sp-product-navbar-product{
+    gap:8px;
+    margin-left:8px;
+  }
+
+  .sp-product-navbar-thumb{
+    width:36px;
+    height:36px;
+    flex-basis:36px;
+  }
+
+  .sp-product-navbar-price{
+    font-size:15px;
+  }
+
+  .sp-product-navbar-actions{
+    gap:5px;
+    margin-left:5px;
+  }
+}
+
 .sp-bg {
   min-height:100vh;
   background:
@@ -195,8 +408,8 @@ const CSS = `
   box-shadow:none;transition:.18s ease;
 }
 .spx-thumb:after{content:"";position:absolute;left:8px;right:8px;bottom:0;height:3px;border-radius:99px;background:transparent;transition:.2s ease}
-.spx-thumb:hover:after{background:#c7d2fe}
-.spx-thumb.on:after{background:var(--sp-primary)}
+// .spx-thumb:hover:after{background:#c7d2fe}
+
 .spx-thumb.on{transform:translateY(-1px)}
 .spx-thumb img{width:100%;height:100%;object-fit:contain}
 .spx-seller{
@@ -726,6 +939,961 @@ const CSS = `
 @media (min-width: 769px){
   .spx-gallery{min-width:0}
 }
+
+/* =========================================================
+   MODERN PRODUCT UI/UX — FINAL OVERRIDES
+   ========================================================= */
+.sp-mobile-product-summary,.sp-mobile-about{display:none}
+
+@media (min-width:769px){
+  .sp-bg{
+    background:
+      radial-gradient(circle at 10% 5%,rgba(79,70,229,.055),transparent 26%),
+      radial-gradient(circle at 90% 12%,rgba(37,99,235,.045),transparent 24%),
+      #f7f9fc;
+  }
+  .spx-wrap{
+    width:min(1380px,100%);
+    grid-template-columns:minmax(0,600px) minmax(420px,1fr);
+    gap:42px;
+    padding:32px 28px 110px;
+  }
+  .spx-gallery{border-radius:28px;box-shadow:0 18px 55px rgba(15,23,42,.08)}
+  .spx-slide{min-height:560px;padding:50px}
+  .spx-right{gap:14px}
+  .spx-card{border-radius:22px;box-shadow:0 8px 30px rgba(15,23,42,.045)}
+  .spx-title{font-size:clamp(1.8rem,2.7vw,2.55rem);line-height:1.1}
+  .spx-price{font-size:clamp(2.2rem,3vw,3rem)}
+  .spx-btn{min-height:56px;border-radius:16px}
+}
+
+@media (max-width:768px){
+  html,body{background:#fff}
+  .sp-bg{
+    min-height:100dvh;
+    padding-top:58px !important;
+    background:#fff !important;
+  }
+  .spx-wrap{
+    width:100%;
+    display:flex !important;
+    flex-direction:column;
+    gap:0 !important;
+    padding:0 0 calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+  .spx-left,.spx-right{width:100%;display:contents !important}
+
+  /* NAVBAR */
+  .sp-product-navbar{
+    height:58px !important;
+    background:rgba(255,255,255,.94) !important;
+    border-bottom:1px solid #eceff3 !important;
+    box-shadow:0 4px 18px rgba(15,23,42,.06) !important;
+    backdrop-filter:blur(20px) !important;
+  }
+  .sp-product-navbar-inner{padding:0 14px !important}
+  .sp-product-navbar-back,.sp-product-navbar-action{
+    width:40px !important;height:40px !important;flex-basis:40px !important;
+    background:#f4f6f8 !important;color:#17202b !important;box-shadow:none !important;
+  }
+  .sp-product-navbar-title{margin-left:11px !important;font-size:16px !important;font-weight:750 !important}
+  .sp-product-navbar-product{margin-left:10px !important;gap:9px !important}
+  .sp-product-navbar-thumb{width:39px !important;height:39px !important;flex-basis:39px !important;border-radius:11px !important}
+  .sp-product-navbar-product > div:nth-child(2){
+    max-width:125px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-size:12px !important;font-weight:750 !important;color:#20242a !important;
+  }
+  .sp-product-navbar-price{font-size:12px !important;font-weight:900 !important;color:#2563eb !important}
+  .sp-product-navbar-actions{gap:7px !important;margin-left:8px !important}
+
+  /* GALLERY */
+  .spx-gallery{width:100%;border:0 !important;border-radius:0 !important;box-shadow:none !important;background:#fff !important}
+  .spx-slide{
+    height:365px !important;min-height:365px !important;
+    padding:16px 34px !important;background:#fff !important;
+  }
+  .spx-img{width:100% !important;max-height:340px !important;filter:none !important}
+  .spx-disc{
+    top:14px !important;left:14px !important;padding:6px 9px !important;
+    border:0 !important;border-radius:999px !important;background:#eff6ff !important;
+    color:#2563eb !important;font-size:9px !important;
+  }
+  .spx-cnt{
+    right:14px !important;bottom:13px !important;padding:5px 8px !important;
+    border:0 !important;border-radius:999px !important;background:#f3f4f6 !important;color:#6b7280 !important;
+  }
+  .spx-thumbs{
+    width:100%;padding:9px 14px !important;
+    border-top:1px solid #eef0f3 !important;border-bottom:1px solid #eef0f3 !important;
+    background:#fff !important;gap:8px !important;
+  }
+  .spx-thumb{
+    width:58px !important;height:58px !important;flex-basis:58px !important;
+    border-radius:11px !important;border:1px solid #e8ebef !important;background:#fff !important;
+  }
+  .spx-thumb.on{border:2px solid #2563eb !important;transform:none !important}
+
+  /* MOBILE PRODUCT SUMMARY */
+  .sp-mobile-product-summary{
+    display:block;width:100%;padding:17px 28px 16px;background:#fff;border-bottom:1px solid #e7eaee;
+  }
+  .sp-mobile-product-summary-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+  .sp-mobile-product-summary-title-wrap{min-width:0;flex:1}
+  .sp-mobile-product-summary h1{
+    margin:0;color:#171a1f;font-family:Manrope,Inter,system-ui,sans-serif;
+    font-size:20px;line-height:1.25;font-weight:800;letter-spacing:-.025em;overflow-wrap:anywhere;
+  }
+  .sp-mobile-product-summary p{
+    margin:7px 0 0 !important;color:#7b818b !important;font-family:Inter,system-ui,sans-serif !important;
+    font-size:12px !important;line-height:1.55 !important;display:-webkit-box;
+    -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .sp-mobile-summary-wish{
+    width:42px;height:42px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;
+    border:1px solid #e4e7eb;border-radius:50%;background:#fff;color:#27303a;transition:.18s ease;
+  }
+  .sp-mobile-summary-wish.is-active{color:#e11d48;background:#fff1f2;border-color:#fecdd3}
+  .sp-mobile-summary-wish:active{transform:scale(.91)}
+  .sp-mobile-summary-rating{
+    display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:14px;
+    font-size:11px;font-weight:650;color:#7b818a;
+  }
+  .sp-mobile-rating-badge{
+    display:inline-flex;align-items:center;gap:4px;padding:6px 9px;border-radius:9px;
+    background:#22c55e;color:#fff;font-size:11px;font-weight:850;
+  }
+  .sp-mobile-rating-separator{color:#d1d5db}
+  .sp-mobile-summary-price-row{display:flex;align-items:baseline;flex-wrap:wrap;gap:9px;margin-top:17px}
+  .sp-mobile-summary-price{
+    display:flex;align-items:baseline;gap:2px;color:#111827;font-size:30px;line-height:1;
+    font-weight:900;letter-spacing:-.045em;
+  }
+  .sp-mobile-summary-old-price{color:#9ca3af;font-size:13px;font-weight:600;text-decoration:line-through}
+  .sp-mobile-summary-discount{padding:4px 7px;border-radius:6px;background:#ecfdf3;color:#07883b;font-size:10px;font-weight:850}
+  .sp-mobile-stock-row{
+    display:flex;align-items:center;gap:8px;margin-top:13px;color:#169447;font-size:13px;font-weight:750;
+  }
+  .sp-mobile-stock-row.out{color:#dc2626}
+  .sp-mobile-stock-dot{
+    width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:#22c55e;
+    box-shadow:0 0 0 4px #dcfce7;
+  }
+  .sp-mobile-stock-row.out .sp-mobile-stock-dot{background:#ef4444;box-shadow:0 0 0 4px #fee2e2}
+
+  /* HIDE DUPLICATES */
+  .spx-right > .spx-card[style*="22px 24px"],
+  .spx-right > .spx-card[style*="20px 24px"]{display:none !important}
+  .spx-seller,.spx-inline-cta{display:none !important}
+
+  /* VARIANTS */
+  .spx-right > .spx-card[style*="display: flex"]{
+    display:flex !important;flex-direction:column !important;gap:0 !important;
+    width:100%;padding:0 28px !important;border:0 !important;border-radius:0 !important;
+    box-shadow:none !important;background:#fff !important;
+  }
+  .spx-right > .spx-card[style*="display: flex"] > div{
+    padding:22px 0;border-bottom:1px solid #e8ebef;
+  }
+  .spx-right > .spx-card[style*="display: flex"] > div:last-child{border-bottom:0}
+  .spx-label{
+    margin-bottom:13px !important;color:#1d232a !important;font-family:Manrope,Inter,sans-serif !important;
+    font-size:17px !important;font-weight:800 !important;letter-spacing:-.02em !important;text-transform:none !important;
+  }
+  .spx-label span{color:#2563eb !important;font-size:12px !important;font-family:Inter,sans-serif !important}
+  .spx-size{
+    min-width:104px !important;min-height:70px !important;padding:0 20px !important;
+    border:2px solid #3b82f6 !important;border-radius:16px !important;background:#eff6ff !important;
+    color:#2563eb !important;font-size:16px !important;font-weight:800 !important;box-shadow:none !important;
+  }
+  .spx-size.on{background:#eff6ff !important;color:#2563eb !important;border-color:#2563eb !important;box-shadow:none !important}
+  .spx-size.on::after{
+    content:"✓";display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+    margin-left:8px;border-radius:50%;background:#2563eb;color:#fff;font-size:12px;font-weight:900;
+  }
+  .spx-cd{
+    width:auto !important;min-width:112px;height:70px !important;padding:0 18px !important;
+    border:2px solid #3b82f6 !important;border-radius:16px !important;box-shadow:none !important;
+  }
+  .spx-cd.on{box-shadow:none !important}
+  .spx-cd.on::after{
+    content:"✓";display:flex;align-items:center;justify-content:center;position:absolute;
+    width:22px;height:22px;border-radius:50%;background:#2563eb;color:#fff;font-size:12px;font-weight:900;
+  }
+  .spx-right > .spx-card[style*="display: flex"] > div:last-child{
+    display:flex !important;align-items:center !important;justify-content:space-between !important;gap:12px;
+  }
+  .spx-right > .spx-card[style*="display: flex"] > div:last-child .spx-label{margin:0 !important}
+  .spx-qty{height:54px !important;border:1px solid #e1e5ea !important;border-radius:15px !important;background:#f7f8fa !important}
+  .spx-qb{width:52px !important;height:54px !important;color:#111827 !important;font-size:23px !important}
+  .spx-qn{width:58px !important;height:54px !important;display:flex;align-items:center;justify-content:center;background:#fff;font-size:16px !important}
+
+  /* DELIVERY */
+  .spx-right > .spx-card[style*="serviceability"]{
+    margin-top:0 !important;border-top:1px solid #e8ebef !important;border-bottom:1px solid #e8ebef !important;
+    border-radius:0 !important;box-shadow:none !important;padding:18px 28px !important;
+  }
+
+  /* ABOUT */
+  .sp-mobile-about{
+    display:block;padding:23px 28px 22px;background:#fff;border-top:1px solid #e8ebef;border-bottom:1px solid #e8ebef;
+  }
+  .sp-mobile-section-heading h2{
+    margin:0;color:#1d232a;font-family:Manrope,Inter,sans-serif;font-size:23px;line-height:1.2;
+    font-weight:850;letter-spacing:-.03em;
+  }
+  .sp-mobile-about p{
+    margin:12px 0 0 !important;color:#737983 !important;font-size:13.5px !important;line-height:1.7 !important;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .sp-mobile-read-more{
+    margin-top:10px;padding:0;border:0;background:transparent;color:#2563eb;font-size:12px;font-weight:850;cursor:pointer;
+  }
+
+  /* ACCORDIONS */
+  .spx-right > .spx-card[style*="padding: 0"]{border-radius:0 !important;box-shadow:none !important;background:#fff !important}
+  .spx-accordion{border-left:0 !important;border-right:0 !important;border-radius:0 !important;border-color:#e7eaee !important}
+  .spx-accordion-head{min-height:58px !important;padding:12px 28px !important}
+  .spx-accordion-body{padding:0 28px 18px !important}
+
+  /* RELATED */
+  .spx-related-accordion{width:100%;padding:0 0 calc(82px + env(safe-area-inset-bottom)) !important;margin:0 !important}
+  .spx-related-accordion .spx-accordion-head{padding-left:28px !important;padding-right:28px !important}
+  .spx-related-body{padding:5px 14px 14px !important}
+  .spx-related-grid{gap:10px !important}
+
+  /* BOTTOM ACTIONS */
+  .sp-mobile-buybar{
+    position:fixed !important;left:0 !important;right:0 !important;bottom:0 !important;z-index:2500 !important;
+    display:flex !important;align-items:center;gap:10px !important;
+    padding:9px 18px calc(9px + env(safe-area-inset-bottom)) !important;
+    background:rgba(255,255,255,.96) !important;border-top:1px solid #e5e7eb !important;
+    box-shadow:0 -8px 30px rgba(15,23,42,.10) !important;backdrop-filter:blur(20px) !important;
+  }
+  .sp-mobile-cart,.sp-mobile-buy{
+    min-height:56px !important;border-radius:17px !important;font-size:13px !important;font-weight:900 !important;
+    transition:transform .18s ease,box-shadow .18s ease !important;
+  }
+  .sp-mobile-cart{
+    flex:1 !important;display:flex !important;align-items:center;justify-content:center;gap:8px;
+    border:2px solid #2563eb !important;background:#fff !important;color:#2563eb !important;
+  }
+  .sp-mobile-buy{
+    flex:1 !important;display:flex !important;align-items:center;justify-content:center;gap:7px;
+    border:0 !important;background:linear-gradient(135deg,#2563eb,#1d4ed8) !important;color:#fff !important;
+    box-shadow:0 8px 20px rgba(37,99,235,.24);
+  }
+  .sp-mobile-buy-price{opacity:.9;font-size:11px;font-weight:750}
+  .sp-mobile-cart:active,.sp-mobile-buy:active{transform:scale(.97)}
+}
+
+@media(max-width:420px){
+  .spx-slide{height:340px !important;min-height:340px !important;padding-left:25px !important;padding-right:25px !important}
+  .spx-img{max-height:320px !important}
+  .sp-mobile-product-summary{padding-left:24px;padding-right:24px}
+  .sp-mobile-product-summary h1{font-size:19px}
+  .sp-mobile-summary-price{font-size:28px}
+  .spx-right > .spx-card[style*="display: flex"]{padding-left:24px !important;padding-right:24px !important}
+  .sp-mobile-about{padding-left:24px;padding-right:24px}
+  .sp-mobile-buybar{padding-left:14px !important;padding-right:14px !important}
+}
+
+
+/* =========================================================
+   PLAY-STORE STYLE POLISH
+   Compact typography, calm surfaces, consistent touch targets
+   ========================================================= */
+
+.sp{
+  font-family:Roboto,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* Desktop typography */
+.spx-title{
+  font-family:Roboto,Inter,sans-serif !important;
+  font-size:25px !important;
+  line-height:1.30 !important;
+  font-weight:500 !important;
+  letter-spacing:-.012em !important;
+}
+
+.spx-price{
+  font-family:Roboto,Inter,sans-serif !important;
+  font-size:31px !important;
+  line-height:38px !important;
+  font-weight:500 !important;
+  letter-spacing:-.025em !important;
+}
+
+.spx-label{
+  font-family:Roboto,Inter,sans-serif !important;
+  font-size:13px !important;
+  line-height:18px !important;
+  font-weight:600 !important;
+  letter-spacing:0 !important;
+  text-transform:none !important;
+}
+
+.spx-card{
+  border-color:#e5e7eb;
+  border-radius:16px;
+  box-shadow:0 1px 2px rgba(60,64,67,.05),0 5px 16px rgba(60,64,67,.045);
+}
+
+.spx-card:hover{
+  transform:none !important;
+  box-shadow:0 2px 10px rgba(60,64,67,.07);
+}
+
+.spx-btn{
+  min-height:48px;
+  border-radius:12px;
+  font-size:14px;
+  line-height:20px;
+  font-weight:600;
+}
+
+/* Keep all icon buttons comfortably tappable */
+.sp-product-navbar-back,
+.sp-product-navbar-action{
+  width:42px;
+  height:42px;
+  min-width:42px;
+}
+
+@media(max-width:768px){
+
+  /* ---- overall app rhythm ---- */
+  .sp-bg{
+    padding-top:58px !important;
+    background:#fff !important;
+  }
+
+  .spx-wrap{
+    padding-bottom:88px !important;
+  }
+
+  /* ---- navbar ---- */
+  .sp-product-navbar{
+    height:58px !important;
+    background:rgba(255,255,255,.97) !important;
+    border-bottom:1px solid #e8eaed !important;
+    box-shadow:0 1px 8px rgba(60,64,67,.10) !important;
+  }
+
+  .sp-product-navbar-inner{
+    padding:0 10px !important;
+  }
+
+  .sp-product-navbar-back,
+  .sp-product-navbar-action{
+    width:40px !important;
+    height:40px !important;
+    min-width:40px !important;
+    flex-basis:40px !important;
+    background:transparent !important;
+    color:#3c4043 !important;
+  }
+
+  .sp-product-navbar-back:hover,
+  .sp-product-navbar-action:hover{
+    background:#f1f3f4 !important;
+  }
+
+  .sp-product-navbar-title{
+    margin-left:5px !important;
+    color:#202124 !important;
+    font-size:15px !important;
+    line-height:20px !important;
+    font-weight:500 !important;
+    letter-spacing:0 !important;
+  }
+
+  .sp-product-navbar-product{
+    gap:8px !important;
+    margin-left:5px !important;
+  }
+
+  .sp-product-navbar-thumb{
+    width:36px !important;
+    height:36px !important;
+    flex-basis:36px !important;
+    border-radius:9px !important;
+  }
+
+  .sp-product-navbar-product > div:nth-child(2){
+    display:none !important;
+  }
+
+  .sp-product-navbar-price{
+    color:#1a73e8 !important;
+    font-size:13px !important;
+    line-height:18px !important;
+    font-weight:700 !important;
+  }
+
+  .sp-product-navbar-actions{
+    gap:0 !important;
+    margin-left:3px !important;
+  }
+
+  /* ---- product image ---- */
+  .spx-gallery{
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+
+  .spx-slide{
+    height:365px !important;
+    min-height:365px !important;
+    padding:18px 28px !important;
+    background:#fff !important;
+  }
+
+  .spx-img{
+    max-height:335px !important;
+    filter:none !important;
+  }
+
+  .spx-disc{
+    top:12px !important;
+    left:12px !important;
+    padding:5px 8px !important;
+    border:0 !important;
+    border-radius:999px !important;
+    background:#fce8e6 !important;
+    color:#c5221f !important;
+    font-size:9px !important;
+    line-height:12px !important;
+    font-weight:600 !important;
+  }
+
+  .spx-cnt{
+    right:12px !important;
+    bottom:12px !important;
+    padding:4px 7px !important;
+    border:0 !important;
+    border-radius:999px !important;
+    background:rgba(32,33,36,.70) !important;
+    color:#fff !important;
+    font-size:9px !important;
+    line-height:13px !important;
+  }
+
+  /* ---- thumbnails ---- */
+  .spx-thumbs{
+    padding:8px 12px !important;
+    gap:7px !important;
+    border-top:1px solid #f1f3f4 !important;
+    border-bottom:1px solid #f1f3f4 !important;
+    background:#fff !important;
+  }
+
+  .spx-thumb{
+    width:54px !important;
+    height:54px !important;
+    flex-basis:54px !important;
+    border:1px solid #dadce0 !important;
+    border-radius:9px !important;
+    box-shadow:none !important;
+  }
+
+  .spx-thumb.on{
+    border:2px solid #1a73e8 !important;
+  }
+
+  /* ---- title / rating / price hierarchy ---- */
+  .sp-mobile-product-summary{
+    display:block !important;
+    padding:16px !important;
+    background:#fff !important;
+    border-bottom:7px solid #f1f3f4 !important;
+  }
+
+  .sp-mobile-product-summary h1{
+    font-family:Roboto,Inter,sans-serif !important;
+    font-size:18px !important;
+    line-height:24px !important;
+    font-weight:500 !important;
+    letter-spacing:-.008em !important;
+    color:#202124 !important;
+  }
+
+  .sp-mobile-product-summary p{
+    margin-top:6px !important;
+    color:#5f6368 !important;
+    font-size:12px !important;
+    line-height:18px !important;
+    font-weight:400 !important;
+  }
+
+  .sp-mobile-summary-wish{
+    width:40px !important;
+    height:40px !important;
+    flex-basis:40px !important;
+    border:1px solid #dadce0 !important;
+    background:#fff !important;
+  }
+
+  .sp-mobile-summary-rating{
+    margin-top:11px !important;
+    gap:7px !important;
+    color:#5f6368 !important;
+    font-size:11px !important;
+    line-height:16px !important;
+    font-weight:400 !important;
+  }
+
+  .sp-mobile-rating-badge{
+    padding:4px 7px !important;
+    border-radius:6px !important;
+    background:#188038 !important;
+    font-size:10px !important;
+    line-height:14px !important;
+    font-weight:600 !important;
+  }
+
+  .sp-mobile-summary-price-row{
+    margin-top:12px !important;
+    gap:8px !important;
+  }
+
+  .sp-mobile-summary-price{
+    font-family:Roboto,Inter,sans-serif !important;
+    font-size:26px !important;
+    line-height:32px !important;
+    font-weight:500 !important;
+    letter-spacing:-.025em !important;
+    color:#202124 !important;
+  }
+
+  .sp-mobile-summary-price svg{
+    width:13px !important;
+    height:13px !important;
+  }
+
+  .sp-mobile-summary-old-price{
+    font-size:12px !important;
+    line-height:16px !important;
+    color:#80868b !important;
+    font-weight:400 !important;
+  }
+
+  .sp-mobile-summary-discount{
+    padding:3px 6px !important;
+    border-radius:5px !important;
+    background:#e6f4ea !important;
+    color:#188038 !important;
+    font-size:9px !important;
+    line-height:13px !important;
+    font-weight:600 !important;
+  }
+
+  .sp-mobile-stock-row{
+    margin-top:9px !important;
+    gap:7px !important;
+    color:#188038 !important;
+    font-size:11px !important;
+    line-height:16px !important;
+    font-weight:500 !important;
+  }
+
+  .sp-mobile-stock-dot{
+    width:7px !important;
+    height:7px !important;
+    flex-basis:7px !important;
+    box-shadow:none !important;
+  }
+
+  /* ---- variant controls ---- */
+  .spx-right > .spx-card[style*="display: flex"]{
+    padding:0 16px !important;
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+
+  .spx-right > .spx-card[style*="display: flex"] > div{
+    padding:17px 0 !important;
+    border-bottom:1px solid #f1f3f4 !important;
+  }
+
+  .spx-label{
+    margin-bottom:9px !important;
+    font-size:14px !important;
+    line-height:19px !important;
+    font-weight:600 !important;
+    color:#3c4043 !important;
+  }
+
+  .spx-label span{
+    color:#1a73e8 !important;
+    font-size:12px !important;
+    font-weight:500 !important;
+  }
+
+  .spx-size{
+    min-width:58px !important;
+    min-height:42px !important;
+    padding:0 13px !important;
+    border:1px solid #dadce0 !important;
+    border-radius:9px !important;
+    background:#fff !important;
+    color:#3c4043 !important;
+    font-size:13px !important;
+    line-height:18px !important;
+    font-weight:500 !important;
+    box-shadow:none !important;
+  }
+
+  .spx-size.on{
+    border-color:#1a73e8 !important;
+    background:#e8f0fe !important;
+    color:#174ea6 !important;
+    box-shadow:inset 0 0 0 1px #1a73e8 !important;
+  }
+
+  .spx-size.on::after{
+    width:15px !important;
+    height:15px !important;
+    margin-left:6px !important;
+    background:#1a73e8 !important;
+    font-size:9px !important;
+  }
+
+  .spx-cd{
+    width:30px !important;
+    min-width:30px !important;
+    height:30px !important;
+  }
+
+  .spx-qty{
+    height:42px !important;
+    border-radius:9px !important;
+  }
+
+  .spx-qb{
+    width:39px !important;
+    height:42px !important;
+    font-size:18px !important;
+  }
+
+  .spx-qn{
+    width:40px !important;
+    height:42px !important;
+    font-size:13px !important;
+  }
+
+  /* ---- delivery ---- */
+  .spx-right > .spx-card[style*="serviceability"]{
+    margin-top:7px !important;
+    padding:16px !important;
+    border:0 !important;
+    border-top:7px solid #f1f3f4 !important;
+    border-bottom:1px solid #f1f3f4 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+
+  .spx-right > .spx-card[style*="serviceability"] input{
+    min-height:44px !important;
+    font-size:13px !important;
+  }
+
+  /* ---- trust row ---- */
+  .spx-right > div[style*="gridTemplateColumns"]{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:0 !important;
+    border-top:7px solid #f1f3f4;
+    border-bottom:7px solid #f1f3f4;
+  }
+
+  .spx-tr{
+    min-height:50px !important;
+    padding:9px 12px !important;
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+    background:#fff !important;
+    color:#3c4043 !important;
+    font-size:11px !important;
+    line-height:15px !important;
+    font-weight:500 !important;
+  }
+
+  .spx-right > div[style*="gridTemplateColumns"] .spx-tr:nth-child(odd){
+    border-right:1px solid #f1f3f4 !important;
+  }
+
+  .spx-right > div[style*="gridTemplateColumns"] .spx-tr:nth-child(-n+2){
+    border-bottom:1px solid #f1f3f4 !important;
+  }
+
+  /* ---- about section ---- */
+  .sp-mobile-about{
+    display:block !important;
+    padding:18px 16px !important;
+    border-bottom:7px solid #f1f3f4 !important;
+    background:#fff !important;
+  }
+
+  .sp-mobile-section-heading h2{
+    font-family:Roboto,Inter,sans-serif !important;
+    margin:0 !important;
+    color:#202124 !important;
+    font-size:16px !important;
+    line-height:22px !important;
+    font-weight:600 !important;
+  }
+
+  .sp-mobile-about p{
+    margin:8px 0 0 !important;
+    color:#5f6368 !important;
+    font-size:12.5px !important;
+    line-height:19px !important;
+  }
+
+  .sp-mobile-read-more{
+    margin-top:8px !important;
+    color:#1a73e8 !important;
+    font-size:12px !important;
+    line-height:18px !important;
+    font-weight:600 !important;
+  }
+
+  /* ---- information ---- */
+  .spx-right > .spx-card[style*="padding: 0"]{
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+
+  .spx-accordion{
+    border-left:0 !important;
+    border-right:0 !important;
+    border-radius:0 !important;
+    border-color:#e8eaed !important;
+  }
+
+  .spx-accordion-head{
+    min-height:54px !important;
+    padding:10px 16px !important;
+    color:#202124 !important;
+    font-size:14px !important;
+    line-height:20px !important;
+    font-weight:600 !important;
+  }
+
+  .spx-accordion-icon{
+    width:30px !important;
+    height:30px !important;
+    flex-basis:30px !important;
+    border-radius:8px !important;
+    background:#e8f0fe !important;
+    color:#1967d2 !important;
+  }
+
+  .spx-accordion-meta{
+    font-size:10px !important;
+    line-height:14px !important;
+  }
+
+  .spx-accordion-body{
+    padding:0 16px 16px !important;
+  }
+
+  /* ---- reviews ---- */
+  .spx-review-hero{
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+    padding:13px !important;
+    border-radius:12px !important;
+  }
+
+  .spx-review-score{
+    border-right:0 !important;
+    border-bottom:1px solid #e8eaed !important;
+    padding-bottom:12px !important;
+  }
+
+  .spx-review-score-num{
+    font-size:34px !important;
+    line-height:38px !important;
+    font-weight:500 !important;
+  }
+
+  .spx-review-toolbar{
+    display:block !important;
+  }
+
+  .spx-review-filter-scroll{
+    margin-bottom:7px !important;
+  }
+
+  .spx-review-chip{
+    padding:6px 9px !important;
+    font-size:10px !important;
+    line-height:14px !important;
+  }
+
+  .spx-review-sort{
+    width:100% !important;
+    min-height:38px !important;
+    font-size:11px !important;
+  }
+
+  .spx-modern-review{
+    padding:12px !important;
+    border-radius:11px !important;
+    box-shadow:none !important;
+  }
+
+  .spx-review-name{
+    font-size:12px !important;
+    line-height:16px !important;
+  }
+
+  .spx-review-comment{
+    font-size:11.5px !important;
+    line-height:18px !important;
+  }
+
+  .spx-review-photo{
+    width:68px !important;
+    height:68px !important;
+    min-width:68px !important;
+    border-radius:8px !important;
+  }
+
+  /* ---- related products ---- */
+  .spx-related-accordion{
+    padding:0 0 calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .spx-related-accordion .spx-accordion-head{
+    padding-left:16px !important;
+    padding-right:16px !important;
+  }
+
+  .spx-related-body{
+    padding:4px 12px 12px !important;
+  }
+
+  .spx-related-grid{
+    display:flex !important;
+    overflow-x:auto;
+    gap:9px !important;
+    padding:2px 0 7px;
+  }
+
+  .spx-related-grid > *{
+    flex:0 0 168px;
+    min-width:168px;
+  }
+
+  /* ---- sticky checkout bar ---- */
+  .sp-mobile-buybar{
+    position:fixed !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    z-index:3500 !important;
+    display:flex !important;
+    gap:8px !important;
+    padding:8px 12px calc(8px + env(safe-area-inset-bottom)) !important;
+    background:rgba(255,255,255,.97) !important;
+    border-top:1px solid #dadce0 !important;
+    box-shadow:0 -3px 14px rgba(60,64,67,.12) !important;
+    backdrop-filter:blur(18px) !important;
+  }
+
+  .sp-mobile-cart,
+  .sp-mobile-buy{
+    min-height:50px !important;
+    border-radius:12px !important;
+    font-size:13px !important;
+    line-height:18px !important;
+    font-weight:600 !important;
+  }
+
+  .sp-mobile-cart{
+    flex:1 !important;
+    background:#fff !important;
+    border:1px solid #1a73e8 !important;
+    color:#1a73e8 !important;
+  }
+
+  .sp-mobile-buy{
+    flex:1 !important;
+    background:#1a73e8 !important;
+    color:#fff !important;
+    box-shadow:0 2px 7px rgba(26,115,232,.24) !important;
+  }
+
+  .sp-mobile-buy-price{
+    font-size:11px !important;
+    line-height:15px !important;
+    font-weight:500 !important;
+  }
+}
+
+@media(max-width:380px){
+  .spx-slide{
+    height:340px !important;
+    min-height:340px !important;
+    padding-left:22px !important;
+    padding-right:22px !important;
+  }
+
+  .spx-img{
+    max-height:315px !important;
+  }
+
+  .sp-mobile-product-summary{
+    padding-left:14px !important;
+    padding-right:14px !important;
+  }
+
+  .sp-mobile-product-summary h1{
+    font-size:17px !important;
+    line-height:23px !important;
+  }
+
+  .sp-mobile-summary-price{
+    font-size:24px !important;
+    line-height:30px !important;
+  }
+
+  .spx-right > .spx-card[style*="display: flex"]{
+    padding-left:14px !important;
+    padding-right:14px !important;
+  }
+
+  .sp-mobile-about{
+    padding-left:14px !important;
+    padding-right:14px !important;
+  }
+
+  .sp-mobile-buybar{
+    padding-left:10px !important;
+    padding-right:10px !important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .sp *,
+  .sp *::before,
+  .sp *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
 `;
 
 
@@ -734,6 +1902,7 @@ export default function SingleProduct() {
   const navigate = useNavigate();
 
   const [activeIdx, setActiveIdx] = useState(0);
+  const [showScrollNavbar, setShowScrollNavbar] = useState(false);
   const [zoomedImageIndex, setZoomedImageIndex] = useState(null);
   const [selSize, setSelSize] = useState(null);
   const [selColor, setSelColor] = useState(null);
@@ -855,6 +2024,27 @@ export default function SingleProduct() {
     product?.media?.thumbnail,
     ...(product?.media?.images || []),
   ].filter(Boolean);
+
+  // One navbar only: its content changes after the product gallery scrolls away.
+  useEffect(() => {
+    const gallery = document.querySelector(".spx-gallery");
+    if (!gallery) return;
+
+    const updateNavbar = () => {
+      const rect = gallery.getBoundingClientRect();
+      setShowScrollNavbar(rect.bottom <= 60);
+    };
+
+    updateNavbar();
+    window.addEventListener("scroll", updateNavbar, { passive: true });
+    window.addEventListener("resize", updateNavbar);
+
+    return () => {
+      window.removeEventListener("scroll", updateNavbar);
+      window.removeEventListener("resize", updateNavbar);
+    };
+  }, [product]);
+  /* sp-one-navbar-observer */
   useEffect(() => {
     window.scrollTo(0, 0);
     setActiveIdx(0);
@@ -1360,6 +2550,188 @@ const handleMouseLeave = useCallback(() => {
   return (
     <>
       <style>{CSS}</style>
+  <div
+  className="
+    fixed inset-x-0 top-0 z-[2000]
+    h-[60px] w-full
+    border-b border-gray-200
+    bg-white/95
+    shadow-[0_3px_18px_rgba(15,23,42,0.07)]
+    backdrop-blur-xl
+  "
+>
+  <div
+    className="
+      mx-auto flex h-full w-full
+      items-center justify-between
+      px-3 sm:px-4
+    "
+  >
+    {/* LEFT SIDE */}
+    <div className="flex min-w-0 flex-1 items-center">
+      
+      {/* Back Button */}
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        aria-label="Go back"
+        title="Go back"
+        className="
+          flex h-11 w-11 shrink-0
+          items-center justify-center
+          rounded-full
+          bg-gray-100
+          text-gray-900
+          transition-all duration-200
+          hover:bg-gray-200
+          hover:shadow-md
+          active:scale-90
+          focus:outline-none
+          focus:ring-2 focus:ring-blue-300
+        "
+      >
+        <FaArrowLeft size={15} />
+      </button>
+
+      {/* PRODUCT / TITLE */}
+      {!showScrollNavbar ? (
+        <div
+          className="
+            ml-3
+            truncate
+            text-[16px]
+            font-semibold
+            tracking-[-0.02em]
+            text-gray-900
+          "
+        >
+          Product Details
+        </div>
+      ) : (
+        <div
+          className="
+            ml-2.5
+            flex min-w-0
+            items-center
+            gap-2.5
+            animate-[fadeIn_.2s_ease]
+          "
+        >
+          {/* Product Thumbnail */}
+          {product?.media?.images[0] && (
+            <img
+              src={product.media.images[0]}
+              alt=""
+              className="
+                h-11 w-11
+                shrink-0
+                rounded-xl
+                border border-gray-200
+                bg-gray-50
+                object-contain
+                shadow-sm
+              "
+            />
+          )}
+
+          {/* Title + Price */}
+          <div className="flex min-w-0 flex-col justify-center gap-0.5">
+            <div
+              className="
+                max-w-[150px]
+                truncate
+                text-[12px]
+                font-semibold
+                leading-tight
+                tracking-[-0.02em]
+                text-gray-900
+                sm:max-w-[220px]
+              "
+            >
+              {product?.title || "Product"}
+            </div>
+
+            <div
+              className="
+                text-[11px]
+                font-extrabold
+                leading-none
+                tracking-[-0.02em]
+                text-indigo-900 flex
+              "
+            >
+              <FaRupeeSign size={9} />{Number(productPrice || 0).toLocaleString("en-IN")}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* RIGHT SIDE */}
+    <div className="ml-2 flex shrink-0 items-center gap-2">
+      
+      {/* Share */}
+      <button
+        type="button"
+        onClick={handleShare}
+        aria-label="Share product"
+        title="Share"
+        className="
+          flex h-11 w-11
+          items-center justify-center
+          rounded-full
+          bg-gray-100
+          text-gray-900
+          transition-all duration-200
+          hover:bg-gray-200
+          hover:shadow-md
+          active:scale-90
+          focus:outline-none
+          focus:ring-2 focus:ring-blue-300
+        "
+      >
+        <IoShareOutline size={24} />
+      </button>
+
+      {/* Wishlist */}
+      <button
+        type="button"
+        onClick={handleWish}
+        aria-label={
+          isWishlisted
+            ? "Remove from wishlist"
+            : "Add to wishlist"
+        }
+        title={
+          isWishlisted
+            ? "Remove from wishlist"
+            : "Add to wishlist"
+        }
+        className={`
+          flex h-11 w-11
+          items-center justify-center
+          rounded-full
+          transition-all duration-200
+          active:scale-90
+          focus:outline-none
+          focus:ring-2 focus:ring-blue-300
+          ${
+            isWishlisted
+              ? "bg-rose-50 text-rose-600"
+              : "bg-gray-100 text-gray-900 hover:bg-gray-200 hover:shadow-md"
+          }
+        `}
+      >
+        {isWishlisted ? (
+          <FaHeart size={19} />
+        ) : (
+          <FaRegHeart size={21} />
+        )}
+      </button>
+    </div>
+  </div>
+</div>
+
       <div className="sp sp-bg">
 
 
@@ -1375,7 +2747,7 @@ const handleMouseLeave = useCallback(() => {
           )}
 
           {/* ── LEFT: sticky gallery ── */}
-          <div className="spx-left sp-fr mt-3">
+          <div className="spx-left sp-fr ">
 
             {/* Gallery */}
             <div
@@ -1391,12 +2763,12 @@ const handleMouseLeave = useCallback(() => {
                 {/* <button className={`spx-act${isWishlisted ? " wl" : ""}`} onClick={handleWish} title="Wishlist">
                   {isWishlisted ? <FaHeart size={14} /> : <FaRegHeart size={14} />}
                 </button> */}
-                <button className="spx-act" onClick={handleShare} title="Share">
+                {/* <button className="spx-act" onClick={handleShare} title="Share">
                   <SlActionRedo size={13} />
                 </button>
                 <button className="spx-act" type="button" onClick={() => setZoomedImageIndex(activeIdx)} title="Zoom image">
                   <AiOutlineZoomIn size={15} />
-                </button>
+                </button> */}
               </div>
 
               <div ref={mainGalleryRef} className="spx-track spx-main-track" onScroll={handleMainGalleryScroll}>
@@ -1440,6 +2812,59 @@ const handleMouseLeave = useCallback(() => {
                 </div>
               ))}
             </div>
+
+            {/* =========================================================
+                MOBILE PRODUCT SUMMARY
+            ========================================================= */}
+            <section className="sp-mobile-product-summary">
+              <div className="sp-mobile-product-summary-top">
+                <div className="sp-mobile-product-summary-title-wrap">
+                  <h1>{product.title}</h1>
+                  {product.shortDescription && <p>{product.shortDescription}</p>}
+                </div>
+                {/* <button
+                  type="button"
+                  onClick={handleWish}
+                  aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                  className={`sp-mobile-summary-wish${isWishlisted ? " is-active" : ""}`}
+                >
+                  {isWishlisted ? <FaHeart size={17} /> : <FaRegHeart size={18} />}
+                </button> */}
+              </div>
+
+              <div className="sp-mobile-summary-rating">
+                <span className="sp-mobile-rating-badge">
+                  {avgRating} <FaStar size={11} />
+                </span>
+                <span>{reviews.length} ratings</span>
+                <span className="sp-mobile-rating-separator">•</span>
+                <span>SKU {selectedVariant?.sku || "—"}</span>
+              </div>
+
+              <div className="sp-mobile-summary-price-row">
+                <div className="sp-mobile-summary-price">
+                  <FaRupeeSign size={16} />
+                  <span>{finalPrice.toLocaleString("en-IN")}</span>
+                </div>
+                {origPrice > finalPrice && (
+                  <>
+                    <span className="sp-mobile-summary-old-price">
+                      ₹{origPrice.toLocaleString("en-IN")}
+                    </span>
+                    <span className="sp-mobile-summary-discount">{disc}% OFF</span>
+                  </>
+                )}
+              </div>
+
+              <div className={`sp-mobile-stock-row${productStock > 0 ? "" : " out"}`}>
+                <span className="sp-mobile-stock-dot" />
+                <span>
+                  {productStock > 0
+                    ? `In stock${productStock ? ` · ${productStock} available` : ""}`
+                    : "Out of stock"}
+                </span>
+              </div>
+            </section>
 
             {/* seller */}
             {product.seller && (
@@ -1514,61 +2939,235 @@ const handleMouseLeave = useCallback(() => {
             </div>
 
             {/* ── Size + Color + Qty card ── */}
-            <div className="spx-card" style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 20 }}>
+      <div className="w-full  bg-white p-5 shadow-sm sm:p-6">
 
-              {sizeOptions.length > 0 && (
-                <div>
-                  <div className="spx-label">
-                    Size — <span style={{ color: "#5046e4", textTransform: "none", letterSpacing: 0, fontFamily: "var(--fb)" }}>{selSize}</span>
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {sizeOptions.map((size) => {
-                      const sizeVariant = variants.find(
-                        (v) => variantSize(v) === size && v.isActive !== false
-                      );
-                      return (
-                        <button key={size}
-                          className={`spx-size${selSize === size ? " on" : ""}`}
-                          disabled={!sizeVariant || sizeVariant.stock === 0}
-                          onClick={() => setSelSize(size)}>
-                          {size}
-                          {sizeVariant?.price != null && sizeVariant.price !== productPrice && (
-                            <span style={{ fontSize: 10, opacity: .7, marginLeft: 4 }}>₹{sizeVariant.price}</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+  {/* SIZE */}
+  {sizeOptions.length > 0 && (
+    <div className="w-full space-y-2">
+      <div className="flex w-full items-center justify-between">
+        <div className="text-[15px] font-bold tracking-tight text-slate-900">
+          Size
+        </div>
+
+        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">
+          {selSize || "Select"}
+        </span>
+      </div>
+
+      <div className="flex w-full flex-wrap gap-2.5">
+        {sizeOptions.map((size) => {
+          const sizeVariant = variants.find(
+            (v) =>
+              variantSize(v) === size &&
+              v.isActive !== false
+          );
+
+          const isSelected = selSize === size;
+          const isDisabled =
+            !sizeVariant || sizeVariant.stock === 0;
+
+          return (
+            <button
+              key={size}
+              type="button"
+              disabled={isDisabled}
+              onClick={() => setSelSize(size)}
+              className={`
+                relative
+                min-h-[33px]
+                min-w-[63px]
+                rounded-xl
+                border
+                px-3
+                py-2
+                text-[10px]
+                font-bold
+                transition-all
+                duration-200
+                ${
+                  isSelected
+                    ? "border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                    : isDisabled
+                    ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+                }
+              `}
+            >
+              {size}
+
+              {sizeVariant?.price != null &&
+                sizeVariant.price !== productPrice && (
+                  <span
+                    className={`ml-1 text-[10px] ${
+                      isSelected
+                        ? "text-indigo-100"
+                        : "text-slate-400"
+                    }`}
+                  >
+                    ₹{sizeVariant.price}
+                  </span>
+                )}
+
+              {isSelected && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-black text-white ring-2 ring-white">
+                  ✓
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  )}
+
+  {/* COLOR */}
+  {colorOptions.length > 0 && (
+    <div className="mt-2 w-full space-y-2 border-t border-slate-100 pt-2">
+
+      <div className="flex w-full items-center justify-between">
+        <div className="text-[15px] font-bold tracking-tight text-slate-900">
+          Color
+        </div>
+
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-600">
+          {selColor || "Select"}
+        </span>
+      </div>
+
+      <div className="flex w-full flex-wrap items-center gap-5">
+        {colorOptions.map((c) => {
+          const isSelected = selColor === c;
+
+          return (
+            <button
+              key={c}
+              type="button"
+              title={c}
+              aria-label={`Select ${c}`}
+              onClick={() => setSelColor(c)}
+              style={{
+                backgroundColor:
+                  COLOR_MAP[c] || "#9ca3af",
+              }}
+              className={`
+                relative
+                flex
+                h-6
+                w-6
+                shrink-0
+                items-center
+                justify-center
+                rounded-full
+                transition-all
+                duration-200
+                ${
+                  isSelected
+                    ? "scale-110 ring-2 ring-indigo-600 ring-offset-2"
+                    : "ring-1 ring-slate-200 hover:scale-110 hover:ring-slate-300"
+                }
+              `}
+            >
+              {isSelected && (
+                <span
+                  className={`text-sm font-black ${
+                    c === "White" || c === "Yellow"
+                      ? "text-slate-800"
+                      : "text-white"
+                  }`}
+                >
+                  ✓
+                </span>
               )}
 
-              {colorOptions.length > 0 && (
-                <div>
-                  <div className="spx-label">
-                    Color — <span style={{ color: "#5046e4", textTransform: "none", letterSpacing: 0, fontFamily: "var(--fb)" }}>{selColor}</span>
-                  </div>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                    {colorOptions.map((c) => (
-                      <button key={c}
-                        className={`spx-cd${selColor === c ? " on" : ""}`}
-                        style={{ background: COLOR_MAP[c] || "#9ca3af", outline: c === "White" ? "1.5px solid #e2e8f0" : "none" }}
-                        onClick={() => setSelColor(c)} title={c} />
-                    ))}
-                  </div>
-                </div>
+              {c === "White" && (
+                <span className="absolute inset-0 rounded-full border border-slate-200" />
               )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  )}
 
-              {/* qty */}
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <div className="spx-label" style={{ marginBottom: 0 }}>Quantity</div>
-                <div className="spx-qty">
-                  <button className="spx-qb" onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
-                  <span className="spx-qn">{qty}</span>
-                  <button className="spx-qb" onClick={() => setQty(q => Math.min(productMaxQty, q + 1))}>+</button>
-                </div>
-                <span style={{ fontSize: 11, color: "#c4cce0" }}>Max {productMaxQty}</span>
-              </div>
-            </div>
+  {/* QUANTITY */}
+  <div className="mt-1 flex w-full flex-col gap-4 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+
+    <div>
+      <div className="text-[15px] font-bold tracking-tight text-slate-900">
+        Quantity
+      </div>
+
+      <div className="mt-1 text-xs text-slate-400">
+        Maximum {productMaxQty} item
+        {productMaxQty > 1 ? "s" : ""}
+      </div>
+    </div>
+
+    <div className="flex w-full items-center justify-between sm:w-auto sm:justify-end">
+
+      <div className="flex h-9 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 justify-center items-center">
+
+        <button
+          type="button"
+          disabled={qty <= 1}
+          onClick={() =>
+            setQty((q) => Math.max(1, q - 1))
+          }
+          className="
+            flex h-11 w-12
+            items-center justify-center
+            text-lg font-bold text-slate-600
+            transition-colors
+            hover:bg-slate-200
+            disabled:cursor-not-allowed
+            disabled:text-slate-300
+          "
+        >
+          −
+        </button>
+
+        <span
+          className="
+            flex h-11 min-w-[52px]
+            items-center justify-center
+            border-x border-slate-200
+            bg-white
+            text-sm font-extrabold
+            text-slate-900
+          "
+        >
+          {qty}
+        </span>
+
+        <button
+          type="button"
+          disabled={qty >= productMaxQty}
+          onClick={() =>
+            setQty((q) =>
+              Math.min(productMaxQty, q + 1)
+            )
+          }
+          className="
+            flex h-11 w-12
+            items-center justify-center
+            text-lg font-bold text-indigo-600
+            transition-colors
+            hover:bg-indigo-50
+            disabled:cursor-not-allowed
+            disabled:text-slate-300
+          "
+        >
+          +
+        </button>
+      </div>
+
+      <span className="ml-3 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-500">
+        Max {productMaxQty}
+      </span>
+    </div>
+  </div>
+
+</div>
 
             {/* ── Desktop CTA row ──
                  On mobile these actions are shown only in the fixed bottom bar,
@@ -1590,17 +3189,23 @@ const handleMouseLeave = useCallback(() => {
                   : "#fff",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
-                <FaTruck size={14} style={{ color: "#5046e4" }} />
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#111827" }}>
-                    Check delivery availability
-                  </div>
-                  <div style={{ fontSize: 10.5, color: "#64748b", marginTop: 2 }}>
-                    Enter your PIN code to check whether this product is deliverable.
-                  </div>
-                </div>
-              </div>
+            <div className="mb-4 flex w-full items-start gap-3">
+  {/* Delivery Icon */}
+  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+    <FaTruck size={15} />
+  </div>
+
+  {/* Content */}
+  <div className="min-w-0 flex-1">
+    <div className="text-sm font-bold leading-5 tracking-tight text-slate-900">
+      Check delivery availability
+    </div>
+
+    <div className="mt-1 text-xs leading-5 text-slate-500">
+      Enter your PIN code to check whether this product is deliverable.
+    </div>
+  </div>
+</div>
 
               <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
                 <input
@@ -1680,7 +3285,7 @@ const handleMouseLeave = useCallback(() => {
                 onClick={handleBuyNow}
                 style={{
                   flex: 1, border: 0, borderRadius: 14, padding: "0 18px",
-                  minHeight: 48, background: "#111827", color: "#fff",
+                  minHeight: 48, background: "blue", color: "#fff",
                   fontWeight: 900, fontSize: 13, cursor: "pointer",
                 }}
               >
@@ -1709,6 +3314,28 @@ const handleMouseLeave = useCallback(() => {
                 <div key={text} className="spx-tr">{icon}<span>{text}</span></div>
               ))}
             </div>
+
+            {/* =========================================================
+                MOBILE ABOUT PRODUCT
+            ========================================================= */}
+            <section className="sp-mobile-about">
+              <div className="sp-mobile-section-heading">
+                <h2>About this product</h2>
+              </div>
+              <p>
+                {product.description || product.shortDescription || "No product description available."}
+              </p>
+              <button
+                type="button"
+                className="sp-mobile-read-more"
+                onClick={() => {
+                  const el = document.querySelector(".spx-accordion");
+                  el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+              >
+                View more <span>→</span>
+              </button>
+            </section>
 
             {/* ══ PRODUCT INFORMATION ACCORDIONS ══ */}
             <div className="spx-card" style={{ padding: 0, overflow: "hidden" }}>
@@ -1957,7 +3584,8 @@ const handleMouseLeave = useCallback(() => {
 
             </div>
 
-          </div>{/* end right */}
+          </div>
+          {/* end right */}
         </div>{/* end main */}
 
         {/* ── Related products dropdown ── */}
@@ -1990,32 +3618,13 @@ const handleMouseLeave = useCallback(() => {
 
         {/* ── Mobile sticky purchase bar ── */}
         <div className="sp-mobile-buybar">
-          <button
-            type="button"
-            className="sp-mobile-wish"
-            onClick={handleWish}
-            aria-label="Wishlist"
-          >
-            {isWishlisted ? <FaHeart size={18} /> : <FaRegHeart size={18} />}
+          <button type="button" className="sp-mobile-cart" onClick={handleCart}>
+            <FaShoppingCart size={17} />
+            <span>{isInCart ? "Go to Cart" : "Add to Cart"}</span>
           </button>
-          <button
-            type="button"
-            className="sp-mobile-cart"
-            onClick={handleCart}
-          >
-            <FaShoppingCart size={15} />
-            {isInCart ? "Go to Cart" : `Add to Cart · ₹${finalPrice.toLocaleString("en-IN")}`}
-          </button>
-          <button
-            type="button"
-            onClick={handleBuyNow}
-            style={{
-              flex: "0 0 92px", border: 0, borderRadius: 12,
-              background: "#111827", color: "#fff", fontWeight: 900,
-              fontSize: 11.5, cursor: "pointer",
-            }}
-          >
-            Buy Now
+          <button type="button" className="sp-mobile-buy" onClick={handleBuyNow}>
+            <span>Buy Now</span>
+            <span className="sp-mobile-buy-price">₹{finalPrice.toLocaleString("en-IN")}</span>
           </button>
         </div>
 
