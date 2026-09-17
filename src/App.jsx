@@ -626,7 +626,7 @@ const showSearchNavbar =
           APP CONTAINER
       =================================================== */}
 
-   <Suspense fallback={<Spinner />}>
+   <Suspense >
 
         <div
           className="
@@ -969,12 +969,12 @@ const showSearchNavbar =
 
               <Route
                 path="/sign-in/*"
-                element={<PhoneLogin />}
+                element={<SignInPage />}
               />
 
               <Route
                 path="/sign-up/*"
-                element={<PhoneLogin/>}
+                element={<SignUpPage />}
               />
 
 

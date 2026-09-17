@@ -740,7 +740,7 @@ export default function OrderDetailsPage() {
 
     return (
         <AccountShell title="Order details">
-            <div className="od-page">
+            <div className="od-page w-full max-w-none">
                 <div className="od-ambient od-ambient-one" />
                 <div className="od-ambient od-ambient-two" />
 
@@ -1252,6 +1252,306 @@ export default function OrderDetailsPage() {
 }
 
 const styles = `
+  /* ============================================================
+     FLAT / NO-CARD ORDER DETAILS DESIGN
+     ============================================================ */
+/* React-Native-like typography */
+.od-page {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+/* Main order number */
+.od-hero h1 {
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+/* Small supporting text */
+.od-hero p {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Section titles */
+.od-section-heading h2 {
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 750;
+}
+
+/* Section subtitles */
+.od-section-heading p {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* Tiny labels */
+.od-eyebrow,
+.od-mini-label {
+  font-size: 8px;
+  letter-spacing: 0.8px;
+}
+
+/* Status */
+.od-status {
+  font-size: 10px;
+  padding: 7px 10px;
+}
+
+/* Timeline */
+.od-timeline-header h3 {
+  font-size: 14px;
+}
+
+.od-timeline-header p {
+  font-size: 10px;
+}
+
+/* Timeline steps */
+.od-step {
+  font-size: 8px;
+}
+
+/* History */
+.od-history-top strong {
+  font-size: 11px;
+}
+
+.od-history-body p {
+  font-size: 10px;
+}
+
+.od-history-top time {
+  font-size: 9px;
+}
+
+/* Tracking */
+.od-track strong {
+  font-size: 12px;
+}
+
+.od-track span {
+  font-size: 9px;
+}
+
+.od-track small {
+  font-size: 8px;
+}
+
+/* Products */
+.od-product-title h3 {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.od-product-title strong {
+  font-size: 12px;
+}
+
+.od-product-meta span {
+  font-size: 8px;
+  padding: 3px 6px;
+}
+
+/* Delivery */
+.od-delivery-head strong {
+  font-size: 12px;
+}
+
+.od-delivery-head span {
+  font-size: 9px;
+}
+
+.od-address {
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.od-contact span {
+  font-size: 9px;
+}
+
+/* Payment */
+.od-summary span {
+  font-size: 10px;
+}
+
+.od-summary strong {
+  font-size: 10px;
+}
+
+.od-total span {
+  font-size: 13px;
+}
+
+.od-total strong {
+  font-size: 16px;
+}
+
+.od-payment-method span {
+  font-size: 9px;
+}
+
+.od-payment-method span strong {
+  font-size: 9px;
+}
+
+.od-payment-method em {
+  font-size: 8px;
+}
+
+/* Shipping */
+.od-shipping-mini small {
+  font-size: 8px;
+}
+
+.od-shipping-mini strong {
+  font-size: 11px;
+}
+
+.od-shipping-mini span {
+  font-size: 9px;
+}
+
+.od-shipping-mini a {
+  font-size: 9px;
+}
+
+/* Buttons */
+.od-primary-btn,
+.od-secondary-btn {
+  font-size: 11px;
+  min-height: 42px;
+}
+
+/* Money */
+.od-money {
+  font-size: inherit;
+}
+  .od-page .glow-card {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-radius: 0 !important;
+  }
+
+  .od-page .glow-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+  }
+
+  .od-page .od-hero {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 18px 0 22px !important;
+  }
+
+  .od-page .od-hero::after {
+    display: none !important;
+  }
+
+  .od-page .od-timeline-card {
+    padding: 20px 0 !important;
+    border-top: 1px solid rgba(79,70,229,.12) !important;
+    border-bottom: 1px solid rgba(79,70,229,.12) !important;
+    border-radius: 0 !important;
+  }
+
+  .od-page .od-track {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 14px 0 !important;
+  }
+
+  .od-page .od-product {
+    border: 0 !important;
+    border-bottom: 1px solid #eeeef5 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 14px 0 !important;
+  }
+
+  .od-page .od-product:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .od-page .od-product.clickable:hover {
+    transform: none !important;
+    border-color: #eeeef5 !important;
+    box-shadow: none !important;
+    background: rgba(79,70,229,.025) !important;
+  }
+
+  .od-page .od-delivery {
+    border: 0 !important;
+    border-top: 1px solid #eeeef5 !important;
+    border-bottom: 1px solid #eeeef5 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 17px 0 !important;
+  }
+
+  .od-page .od-address {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    padding: 13px 0 !important;
+  }
+
+  .od-page .od-summary {
+    border: 0 !important;
+    border-top: 1px solid #eeeef5 !important;
+    border-bottom: 1px solid #eeeef5 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 17px 0 !important;
+  }
+
+  .od-page .od-shipping-mini {
+    border: 0 !important;
+    border-top: 1px solid #eeeef5 !important;
+    border-bottom: 1px solid #eeeef5 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 12px 0 !important;
+  }
+
+  /* Keep only small functional icon containers visually compact,
+     not as large surrounding cards. */
+  .od-page .od-product-image,
+  .od-page .od-address-icon,
+  .od-page .od-shipping-icon,
+  .od-page .od-track-icon {
+    box-shadow: none !important;
+  }
+
+  @media (max-width: 640px) {
+    .od-page .od-hero {
+      padding: 12px 0 18px !important;
+    }
+
+    .od-page .od-product {
+      padding: 12px 0 !important;
+    }
+  }
+
   :root {
     --od-primary: #4f46e5;
     --od-primary-dark: #3730a3;
@@ -1269,12 +1569,33 @@ const styles = `
     position: relative;
     isolation: isolate;
     width: 100%;
-    max-width: none;
-    margin: 0;
+    max-width: none !important;
+    margin: 0 !important;
     padding: 10px 24px 70px;
     color: var(--od-text);
     box-sizing: border-box;
     overflow: hidden;
+  }
+
+  /* Full-width order details layout */
+  .od-page > * {
+    width: 100%;
+    max-width: none;
+  }
+
+  .od-hero,
+  .od-section,
+  .od-track,
+  .od-shipping-mini,
+  .od-bottom {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 640px) {
+    .od-page {
+      padding: 8px 12px 50px;
+    }
   }
 
   .od-page::before {

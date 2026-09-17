@@ -21,6 +21,93 @@ import {
 import { toast } from "react-hot-toast";
 
 /* =========================================================
+   PREMIUM SHINE / GLOW UI
+   Scoped to ReviewsPage so it won't affect other screens.
+========================================================= */
+const REVIEWS_SHINE_CSS = `
+.reviews-page .shine-card,
+.reviews-page .glass-card {
+  position: relative;
+  isolation: isolate;
+}
+.reviews-page .shine-card::before,
+.reviews-page .glass-card::before {
+  content: "";
+  position: absolute;
+  inset: -120% -45%;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 42%,
+    rgba(255,255,255,.10) 47%,
+    rgba(255,255,255,.72) 50%,
+    rgba(255,255,255,.10) 53%,
+    transparent 58%
+  );
+  transform: translateX(-45%);
+  transition: transform .8s ease;
+}
+.reviews-page .shine-card:hover::before {
+  transform: translateX(45%);
+}
+.reviews-page .shine-button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.reviews-page .shine-button::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  bottom: -60%;
+  left: -80%;
+  width: 45%;
+  pointer-events: none;
+  transform: rotate(22deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+  transition: left .7s ease;
+}
+.reviews-page .shine-button:hover::after {
+  left: 140%;
+}
+.reviews-page .shine-bar {
+  position: relative;
+  overflow: hidden;
+  background-size: 200% 100%;
+  animation: reviewsBarShine 2.8s linear infinite;
+}
+.reviews-page .shine-image {
+  transition: transform .35s ease, box-shadow .35s ease;
+}
+.reviews-page .shine-image:hover {
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 12px 28px rgba(15,23,42,.12);
+}
+.reviews-page .shimmer-text {
+  background: linear-gradient(110deg, #0f172a 20%, #6366f1 45%, #0f172a 70%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: reviewsTextShine 3.5s linear infinite;
+}
+@keyframes reviewsBarShine {
+  to { background-position: -200% 0; }
+}
+@keyframes reviewsTextShine {
+  to { background-position: -220% center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reviews-page .shine-bar,
+  .reviews-page .shimmer-text {
+    animation: none;
+  }
+}
+`;
+
+
+/* =========================================================
    BACKEND
 ========================================================= */
 
@@ -173,6 +260,7 @@ function formatReviewDate(review) {
 ========================================================= */
 
 export default function ReviewsPage() {
+  useEffect(() => { const style = document.createElement("style"); style.dataset.reviewsShine = "true"; style.textContent = REVIEWS_SHINE_CSS; document.head.appendChild(style); return () => style.remove(); }, []);
   const navigate = useNavigate();
 
   const { id } = useParams();
@@ -554,8 +642,8 @@ export default function ReviewsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f6f8fc]">
-        <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
+      <div className="min-h-screen bg-[#f1f3f6]">
+        <header className="fixed top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
           <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
             <button
               onClick={() =>
@@ -574,7 +662,7 @@ export default function ReviewsPage() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-6xl space-y-4 px-4 py-5">
+        <main className="w-full space-y-4 px-4 py-5">
           <div className="h-24 animate-pulse rounded-2xl bg-white" />
 
           <div className="h-64 animate-pulse rounded-2xl bg-white" />
@@ -592,22 +680,22 @@ export default function ReviewsPage() {
   ======================================================= */
 
   return (
-    <div className="min-h-screen bg-[#f6f8fc] text-slate-900">
+    <div className="reviews-page min-h-screen bg-[radial-gradient(circle_at_10%_0%,rgba(99,102,241,0.08),transparent_28%),radial-gradient(circle_at_90%_10%,rgba(14,165,233,0.07),transparent_25%),#f8fafc] text-slate-900">
 
       {/* ===================================================
           NAVBAR
       =================================================== */}
 
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-xl">
+      <header className="fixed w-full top-0 z-50 border-b border-white/70 bg-white/80 shadow-[0_8px_30px_rgba(15,23,42,0.07)] backdrop-blur-2xl">
 
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-3 sm:px-5">
+        <div className="flex h-16 w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
 
           <button
             type="button"
             onClick={() =>
               navigate(-1)
             }
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 active:scale-90"
+            className="shine-button flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-white text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:text-indigo-600 active:scale-90"
             aria-label="Go back"
           >
             <FaArrowLeft
@@ -633,7 +721,7 @@ export default function ReviewsPage() {
                 "/cart"
               )
             }
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 active:scale-90"
+            className="shine-button flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:text-indigo-600 active:scale-90"
             aria-label="Cart"
           >
             <FaShoppingCart
@@ -649,13 +737,13 @@ export default function ReviewsPage() {
           CONTENT
       =================================================== */}
 
-      <main className="mx-auto max-w-6xl px-3 py-4 pb-24 sm:px-5 sm:py-6 sm:pb-10">
+      <main className="w-full px-3 py-4 pb-24 sm:px-6 sm:py-7 sm:pb-10 lg:px-8 mt-15">
 
         {/* =================================================
             PRODUCT HEADER
         ================================================= */}
 
-        <section className="mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <section className="glass-card shine-card mb-4 w-full overflow-hidden rounded-3xl border border-white/80 bg-white/90 shadow-[0_12px_40px_rgba(15,23,42,0.07)] backdrop-blur-xl">
 
           <div className="flex items-center gap-3 p-3 sm:p-4">
 
@@ -670,7 +758,7 @@ export default function ReviewsPage() {
                   product.title ||
                   "Product"
                 }
-                className="h-16 w-16 shrink-0 rounded-xl border border-slate-200 bg-slate-50 object-contain sm:h-20 sm:w-20"
+                className="shine-image h-16 w-16 shrink-0 rounded-2xl border border-slate-100 bg-white object-contain p-1 shadow-sm sm:h-20 sm:w-20"
               />
             )}
 
@@ -718,7 +806,7 @@ export default function ReviewsPage() {
                   `/product/${id}`
                 )
               }
-              className="hidden shrink-0 rounded-xl border border-slate-200 px-3 py-2 text-[10px] font-extrabold text-slate-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 sm:block"
+              className="shine-button hidden shrink-0 rounded-xl bg-slate-950 px-5 py-2.5 text-[10px] font-extrabold text-white shadow-lg shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-indigo-600 sm:block"
             >
               View Product
             </button>
@@ -731,161 +819,224 @@ export default function ReviewsPage() {
             RATING SUMMARY
         ================================================= */}
 
-        <section className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className="glass-card shine-card mb-4 w-full overflow-hidden rounded-3xl border border-white/80 bg-white/90 p-4 shadow-[0_12px_40px_rgba(15,23,42,0.07)] backdrop-blur-xl sm:p-6 lg:p-8">
 
-          <div className="mb-5">
+          {/* =================================================
+              MARKETPLACE RATING SUMMARY
+          ================================================= */}
 
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-indigo-500">
-                Customer feedback
-              </p>
-              {verifiedCount > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[8px] font-black text-emerald-600">
-                  <FaCheckCircle size={8} />
-                  {verifiedCount} verified
+          <div className="grid grid-cols-[190px_minmax(0,1fr)] items-stretch gap-0 sm:grid-cols-[230px_minmax(0,1fr)] lg:grid-cols-[270px_minmax(0,1fr)]">
+
+            {/* OVERALL RATING */}
+
+            <div
+              className="
+                flex
+                min-h-[170px]
+                flex-col
+                items-center
+                justify-center
+                border-r
+                border-slate-100
+                pr-4
+                text-center
+                sm:pr-6
+                lg:pr-8
+              "
+            >
+
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const value = Number(
+                    ratingSummary.average || 0
+                  );
+
+                  return (
+                    <FaStar
+                      key={star}
+                      size={23}
+                      className={
+                        value >= star
+                          ? "text-[#00a83b]"
+                          : value >= star - 0.5
+                          ? "text-[#00a83b]"
+                          : "text-slate-200"
+                      }
+                    />
+                  );
+                })}
+              </div>
+
+              <div className="mt-4 flex items-baseline gap-1">
+                <span
+                  className="
+                    text-4xl
+                    font-black
+                    leading-none
+                    tracking-tight
+                    text-slate-900
+                  "
+                >
+                  {ratingSummary.average
+                    ? ratingSummary.average.toFixed(1)
+                    : "0.0"}
                 </span>
-              )}
-            </div>
 
-            <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
-                  Ratings & Reviews
-                </h2>
-                <p className="mt-1 text-[10px] font-semibold text-slate-400">
-                  Real experiences from shoppers who bought this product.
-                </p>
-              </div>
-              {reviews.length > 0 && (
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[9px] font-extrabold text-slate-500">
-                  {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+                <span className="text-[10px] font-bold text-slate-400">
+                  / 5
                 </span>
-              )}
-            </div>
-
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-[190px_minmax(0,1fr)]">
-
-            {/* =============================================
-                BIG RATING
-            ============================================= */}
-
-            <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-50 via-white to-white p-5 text-center">
-
-              <div className="text-5xl font-black tracking-tight text-slate-900">
-                {ratingSummary.average
-                  ? ratingSummary.average.toFixed(
-                      1
-                    )
-                  : "0.0"}
               </div>
 
-              <div className="my-2">
-                <Stars
-                  rating={
-                    ratingSummary.average
-                  }
-                  size={18}
-                />
-              </div>
-
-              <p className="text-[11px] font-semibold text-slate-500">
-                {ratingSummary.total}{" "}
-                {ratingSummary.total ===
-                1
+              <p className="mt-2 text-[10px] font-semibold text-slate-500">
+                {ratingSummary.total.toLocaleString()}{" "}
+                {ratingSummary.total === 1
+                  ? "rating"
+                  : "ratings"}{" "}
+                and{" "}
+                {ratingSummary.total.toLocaleString()}{" "}
+                {ratingSummary.total === 1
                   ? "review"
                   : "reviews"}
               </p>
 
-            </div>
-
-            {/* =============================================
-                PROGRESS BARS
-            ============================================= */}
-
-            <div className="flex flex-col justify-center gap-3">
-
-              {[5, 4, 3, 2, 1].map(
-                (star) => {
-
-                  const count =
-                    ratingSummary
-                      .distribution[
-                      star
-                    ] || 0;
-
-                  const percentage =
-                    ratingSummary
-                      .percentages[
-                      star
-                    ] || 0;
-
-                  const active =
-                    ratingFilter ===
-                    String(star);
-
-                  return (
-                    <button
-                      type="button"
-                      key={star}
-                      onClick={() =>
-                        setRatingFilter(
-                          active
-                            ? "all"
-                            : String(
-                                star
-                              )
-                        )
-                      }
-                      className={`group grid w-full grid-cols-[32px_12px_minmax(0,1fr)_35px] items-center gap-2 rounded-xl px-1 py-1 text-left transition ${
-                        active
-                          ? "bg-indigo-50"
-                          : "hover:bg-slate-50"
-                      }`}
-                    >
-
-                      <span className="text-right text-[10px] font-extrabold text-slate-500">
-                        {star}
-                      </span>
-
-                      <FaStar
-                        size={9}
-                        className="text-amber-400"
-                      />
-
-                      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400 transition-all duration-700"
-                          style={{
-                            width: `${percentage}%`,
-                          }}
-                        />
-
-                      </div>
-
-                      <span className="text-right text-[10px] font-bold text-slate-400">
-                        {count}
-                      </span>
-
-                    </button>
-                  );
-                }
+              {verifiedCount > 0 && (
+                <span
+                  className="
+                    mt-3
+                    inline-flex
+                    items-center
+                    gap-1.5
+                    rounded-full
+                    bg-emerald-50
+                    px-2.5
+                    py-1.5
+                    text-[8px]
+                    font-extrabold
+                    text-emerald-600
+                  "
+                >
+                  <FaCheckCircle size={8} />
+                  {verifiedCount} verified
+                </span>
               )}
 
             </div>
 
-          </div>
+            {/* DISTRIBUTION */}
 
+            <div className="flex min-w-0 flex-col justify-center gap-2.5 py-2 pl-5 sm:gap-3 sm:pl-7 lg:pl-9">
+
+              {[5, 4, 3, 2, 1].map((star) => {
+
+                const count =
+                  ratingSummary.distribution[star] || 0;
+
+                const percentage =
+                  ratingSummary.percentages[star] || 0;
+
+                const active =
+                  ratingFilter === String(star);
+
+                return (
+                  <button
+                    type="button"
+                    key={star}
+                    onClick={() =>
+                      setRatingFilter(
+                        active ? "all" : String(star)
+                      )
+                    }
+                    aria-pressed={active}
+                    className={`
+                      group
+                      grid
+                      w-full
+                      grid-cols-[36px_minmax(0,1fr)_48px]
+                      items-center
+                      gap-2.5
+                      rounded-sm
+                      px-1
+                      py-1
+                      text-left
+                      transition
+                      ${
+                        active
+                          ? "bg-blue-50"
+                          : "hover:bg-slate-50"
+                      }
+                    `}
+                  >
+
+                    <span
+                      className="
+                        flex
+                        items-center
+                        justify-end
+                        gap-1
+                        text-[11px]
+                        font-semibold
+                        text-slate-600
+                      "
+                    >
+                      {star}
+                      <FaStar
+                        size={8}
+                        className="text-[#f5a623]"
+                      />
+                    </span>
+
+                    <span
+                      className="
+                        relative
+                        h-2
+                        overflow-hidden
+                        rounded-full
+                        bg-[#e4e7eb]
+                      "
+                    >
+                      <span
+                        className="
+                          absolute
+                          inset-y-0
+                          left-0
+                          rounded-full
+                          bg-[#00a83b]
+                          transition-all
+                          duration-700
+                        "
+                        style={{
+                          width: `${percentage}%`,
+                        }}
+                      />
+                    </span>
+
+                    <span
+                      className="
+                        text-right
+                        text-[10px]
+                        font-medium
+                        tabular-nums
+                        text-slate-500
+                      "
+                    >
+                      {count.toLocaleString()}
+                    </span>
+
+                  </button>
+                );
+              })}
+
+            </div>
+
+          </div>
         </section>
 
         {/* =================================================
             CUSTOMER PHOTO WALL
         ================================================= */}
 
-        {customerPhotos.length > 0 && (
-          <section className="mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        {/* {customerPhotos.length > 0 && (
+          <section className="mb-3 w-full overflow-hidden border border-slate-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-5">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-400">
@@ -904,7 +1055,7 @@ export default function ReviewsPage() {
                     block: "start",
                   });
                 }}
-                className="rounded-xl bg-slate-100 px-3 py-2 text-[9px] font-extrabold text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-600"
+                className="rounded-xl bg-slate-100 px-3 py-2 text-[9px] font-extrabold text-slate-600 transition hover:bg-blue-50 hover:text-[#2874f0]"
               >
                 View photo reviews
               </button>
@@ -916,7 +1067,7 @@ export default function ReviewsPage() {
                   key={`${review?._id || index}-wall-${index}`}
                   type="button"
                   onClick={() => setSelectedImage(image)}
-                  className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+                  className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-sm border border-slate-200 bg-slate-50"
                   aria-label="Open customer photo"
                 >
                   <img
@@ -931,13 +1082,13 @@ export default function ReviewsPage() {
               ))}
             </div>
           </section>
-        )}
+        )} */}
 
         {/* =================================================
             FILTER / SORT
         ================================================= */}
 
-        <section className="mb-4 flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <section className="glass-card mb-4 w-full flex flex-col gap-3 rounded-2xl border border-white/80 bg-white/90 p-2.5 shadow-[0_10px_30px_rgba(15,23,42,0.055)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
 
           <div className="flex gap-1.5 overflow-x-auto pb-0.5">
 
@@ -957,10 +1108,10 @@ export default function ReviewsPage() {
                     setRatingFilter(value);
                     if (value !== "all") setPhotoFilter(false);
                   }}
-                  className={`whitespace-nowrap rounded-lg px-3 py-2 text-[10px] font-extrabold transition ${
+                  className={`shine-button whitespace-nowrap rounded-xl border border-slate-200/80 px-3.5 py-2 text-[10px] font-extrabold shadow-sm transition ${
                     ratingFilter === value && !photoFilter
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      ? "border-indigo-500 bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md shadow-indigo-500/20"
+                      : "border-slate-200 bg-white/80 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50/70 hover:text-indigo-600"
                   }`}
                 >
                   {label}
@@ -971,10 +1122,10 @@ export default function ReviewsPage() {
             <button
               type="button"
               onClick={() => setPhotoFilter((value) => !value)}
-              className={`whitespace-nowrap rounded-lg px-3 py-2 text-[10px] font-extrabold transition ${
+              className={`shine-button whitespace-nowrap rounded-xl border border-slate-200/80 px-3.5 py-2 text-[10px] font-extrabold shadow-sm transition ${
                 photoFilter
-                  ? "bg-indigo-600 text-white"
-                  : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                  ? "border-indigo-500 bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md shadow-indigo-500/20"
+                  : "border-indigo-100 bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
               }`}
             >
               📷 Photos
@@ -991,7 +1142,7 @@ export default function ReviewsPage() {
                   e.target.value
                 )
               }
-              className="h-9 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-[10px] font-bold text-slate-600 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 sm:w-40"
+              className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white/90 pl-3 pr-9 text-[10px] font-bold text-slate-600 outline-none shadow-sm transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100 sm:w-44"
             >
 
               <option value="helpful">
@@ -1045,7 +1196,7 @@ export default function ReviewsPage() {
                   "all"
                 )
               }
-              className="text-[10px] font-extrabold text-indigo-600"
+              className="text-[10px] font-extrabold text-[#2874f0]"
             >
               Clear filter
             </button>
@@ -1060,7 +1211,7 @@ export default function ReviewsPage() {
         {visibleReviews.length ===
         0 ? (
 
-          <section className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-14 text-center">
+          <section className="rounded-3xl border border-dashed border-slate-300 bg-white/90 px-5 py-16 text-center shadow-[0_12px_35px_rgba(15,23,42,0.05)] backdrop-blur-xl">
 
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500">
               <FaRegStar
@@ -1085,7 +1236,7 @@ export default function ReviewsPage() {
                   "all"
                 )
               }
-              className="mt-4 rounded-xl bg-slate-900 px-4 py-2.5 text-[10px] font-extrabold text-white"
+              className="mt-4 rounded-sm bg-[#2874f0] px-4 py-2.5 text-[10px] font-extrabold text-white transition hover:bg-[#1f66d8]"
             >
               Show All Reviews
             </button>
@@ -1120,18 +1271,35 @@ export default function ReviewsPage() {
                     key={
                       review?._id
                     }
-                    className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:border-indigo-100 hover:shadow-md sm:p-5"
+                    className="shine-card group w-full overflow-hidden rounded-3xl border border-white/80 bg-white/95 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.055)] transition duration-300 hover:-translate-y-1 hover:border-indigo-100 hover:shadow-[0_18px_45px_rgba(79,70,229,0.12)] sm:p-5 lg:p-6"
                   >
 
                     {/* =====================================
-                        USER
+                        MODERN REVIEW HEADER
                     ===================================== */}
 
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center justify-between gap-3">
 
-                      <div className="flex min-w-0 items-center gap-3">
+                      {/* AVATAR + REVIEW META */}
 
-                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-indigo-50">
+                      <div className="flex min-w-0 items-center gap-2.5">
+
+                        <div
+                          className="
+                            relative
+                            flex
+                            h-10
+                            w-10
+                            shrink-0
+                            items-center
+                            justify-center
+                            overflow-hidden
+                            rounded-full
+                            bg-[#f1f5f9]
+                            ring-1
+                            ring-slate-200/80
+                          "
+                        >
 
                           {avatar ? (
                             <img
@@ -1140,42 +1308,120 @@ export default function ReviewsPage() {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center text-indigo-500">
-                              <FaUserCircle
-                                size={23}
+                            <FaUserCircle
+                              size={24}
+                              className="text-slate-400"
+                            />
+                          )}
+
+                          {review?.verifiedPurchase && (
+                            <span
+                              className="
+                                absolute
+                                bottom-0
+                                right-0
+                                flex
+                                h-3.5
+                                w-3.5
+                                items-center
+                                justify-center
+                                rounded-full
+                                border-2
+                                border-white
+                                bg-emerald-500
+                              "
+                            >
+                              <FaCheckCircle
+                                size={7}
+                                className="text-white"
                               />
-                            </div>
+                            </span>
                           )}
 
                         </div>
 
                         <div className="min-w-0">
 
-                          <div className="flex flex-wrap items-center gap-1.5">
+                          <div className="flex flex-wrap items-center gap-2">
 
-                            <h3 className="truncate text-xs font-black text-slate-900">
-                              {getReviewerName(
-                                review
-                              )}
-                            </h3>
+                            {review?.verifiedPurchase ? (
+                              <span
+                                className="
+                                  inline-flex
+                                  items-center
+                                  gap-1.5
+                                  rounded-full
+                                  border
+                                  border-emerald-100
+                                  bg-emerald-50
+                                  px-2.5
+                                  py-1
+                                  text-[8px]
+                                  font-extrabold
+                                  text-emerald-600
+                                "
+                              >
+                                <span
+                                  className="
+                                    flex
+                                    h-3.5
+                                    w-3.5
+                                    items-center
+                                    justify-center
+                                    rounded-full
+                                    bg-emerald-500
+                                    text-white
+                                  "
+                                >
+                                  <FaCheckCircle size={7} />
+                                </span>
 
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[8px] font-black text-emerald-600">
-                              <FaCheckCircle
-                                size={8}
-                              />
+                                Verified Purchase
+                              </span>
+                            ) : (
+                              <span
+                                className="
+                                  inline-flex
+                                  items-center
+                                  rounded-full
+                                  bg-slate-100
+                                  px-2.5
+                                  py-1
+                                  text-[8px]
+                                  font-extrabold
+                                  text-slate-500
+                                "
+                              >
+                                Customer Review
+                              </span>
+                            )}
 
-                              {review?.verifiedPurchase
-                                ? "Verified Purchase"
-                                : "Customer Review"}
-                            </span>
+                            {formatReviewDate(review) && (
+                              <>
+                                <span
+                                  className="
+                                    h-1
+                                    w-1
+                                    rounded-full
+                                    bg-slate-300
+                                  "
+                                />
+
+                                <span
+                                  className="
+                                    whitespace-nowrap
+                                    text-[8px]
+                                    font-medium
+                                    text-slate-400
+                                  "
+                                >
+                                  {formatReviewDate(review)}
+                                </span>
+                              </>
+                            )}
 
                           </div>
 
-                          <p className="mt-0.5 text-[9px] font-semibold text-slate-400">
-                            {formatReviewDate(
-                              review
-                            )}
-                          </p>
 
                         </div>
 
@@ -1183,34 +1429,38 @@ export default function ReviewsPage() {
 
                       {/* RATING */}
 
-                      <div className="flex shrink-0 items-center gap-1 rounded-lg bg-amber-50 px-2 py-1.5">
-
-                        <span className="text-[10px] font-black text-amber-700">
-                          {rating.toFixed(
-                            1
-                          )}
-                        </span>
+                      <div
+                        className="
+                          flex
+                          shrink-0
+                          items-center
+                          gap-1.5
+                          rounded-full
+                          border
+                          border-emerald-100
+                          bg-emerald-50
+                          px-2.5
+                          py-1.5
+                        "
+                      >
 
                         <FaStar
-                          size={8}
+                          size={9}
                           className="text-amber-400"
                         />
 
+                        <span
+                          className="
+                            text-[10px]
+                            font-black
+                            text-amber-700
+                          "
+                        >
+                          {rating.toFixed(1)}
+                        </span>
+
                       </div>
 
-                    </div>
-
-                    {/* =====================================
-                        STARS
-                    ===================================== */}
-
-                    <div className="mt-3">
-                      <Stars
-                        rating={
-                          rating
-                        }
-                        size={13}
-                      />
                     </div>
 
                     {/* =====================================
@@ -1218,7 +1468,7 @@ export default function ReviewsPage() {
                     ===================================== */}
 
                     {review?.comment && (
-                      <p className="mt-3 whitespace-pre-wrap text-xs leading-6 text-slate-600 sm:text-[13px]">
+                      <p className="mt-4 whitespace-pre-wrap text-[13px] leading-6 text-slate-600 sm:text-sm">
                         {
                           review.comment
                         }
@@ -1258,7 +1508,7 @@ export default function ReviewsPage() {
                                     image
                                   )
                                 }
-                                className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+                                className="shine-image group relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm sm:h-32 sm:w-32"
                               >
 
                                 <img
@@ -1289,7 +1539,7 @@ export default function ReviewsPage() {
                         HELPFUL
                     ===================================== */}
 
-                    <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3">
+                    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
 
                       <span className="mr-1 text-[9px] font-bold text-slate-400">
                         Helpful?
@@ -1303,7 +1553,7 @@ export default function ReviewsPage() {
                             "like"
                           )
                         }
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[9px] font-extrabold text-slate-500 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95"
+                        className="shine-button inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[9px] font-extrabold text-slate-500 transition hover:border-indigo-200 hover:bg-blue-50 hover:text-[#2874f0] active:scale-95"
                       >
 
                         <FaThumbsUp
@@ -1329,7 +1579,7 @@ export default function ReviewsPage() {
                             "dislike"
                           )
                         }
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[9px] font-extrabold text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:scale-95"
+                        className="shine-button inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[9px] font-extrabold text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:scale-95"
                       >
 
                         <FaThumbsDown
@@ -1361,8 +1611,8 @@ export default function ReviewsPage() {
           MOBILE REVIEW FILTER BAR
       =================================================== */}
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-2.5 shadow-[0_-8px_30px_rgba(15,23,42,.08)] backdrop-blur-xl sm:hidden">
-        <div className="mx-auto flex max-w-6xl gap-2">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/80 bg-white/85 p-2.5 shadow-[0_-14px_40px_rgba(15,23,42,.12)] backdrop-blur-2xl sm:hidden">
+        {/* <div className="flex w-full gap-2">
           <button
             type="button"
             onClick={() => {
@@ -1373,7 +1623,7 @@ export default function ReviewsPage() {
                 block: "start",
               });
             }}
-            className="flex-1 rounded-xl bg-slate-100 py-2.5 text-[10px] font-black text-slate-700 active:scale-[.98]"
+            className="shine-button flex-1 rounded-xl border border-slate-200 bg-white py-3 text-[10px] font-black text-slate-700 shadow-sm active:scale-[.98]"
           >
             All Reviews
           </button>
@@ -1387,11 +1637,11 @@ export default function ReviewsPage() {
                 block: "start",
               });
             }}
-            className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-[10px] font-black text-white active:scale-[.98]"
+            className="shine-button flex-1 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-500 py-3 text-[10px] font-black text-white shadow-md shadow-indigo-500/20 active:scale-[.98]"
           >
             📷 Photo Reviews
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* ===================================================

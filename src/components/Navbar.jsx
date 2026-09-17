@@ -1570,13 +1570,13 @@ const reverseGeocode = async (lat, lng) => {
                     </div>
 
                     <div className="flex flex-col items-start">
-                      <span className="text-[13.5px] font-semibold text-slate-900">
+                      <span className="text-[12px] font-semibold text-slate-900">
                         {isListening
                           ? "Listening..."
                           : "Tap to speak"}
                       </span>
 
-                      <span className="text-xs text-slate-500">
+                      <span className="text-[10px] text-slate-500">
                         Search using your voice
                       </span>
                     </div>
@@ -1671,14 +1671,14 @@ const reverseGeocode = async (lat, lng) => {
         }`}
       >
       <div
-  className={`mx-auto max-w-7xl overflow-visible rounded-[24px] border backdrop-blur-xl transition-all duration-300 ${
+  className={`mx-auto max-w-7xl overflow-visible rounded-[22px] border backdrop-blur-2xl transition-all duration-300 ${
             scrolled
               ? "border-indigo-100/80 bg-white/95 shadow-[0_14px_40px_rgba(15,23,42,.10)]"
               : "border-slate-200/70 bg-white/92 shadow-[0_8px_28px_rgba(15,23,42,.07)]"
           }`}
         >
-          <div className="flex min-h-[70px] items-center gap-2 px-3 py-2.5 sm:px-4">
-            <Link
+          <div className="flex min-h-[64px] items-center gap-2 px-2.5 py-2 sm:px-4">
+            {/* <Link
               to="/"
               className="group flex h-12 w-[78px] shrink-0 items-center justify-center overflow-hidden md:w-[105px]"
             >
@@ -1687,9 +1687,9 @@ const reverseGeocode = async (lat, lng) => {
                 alt="Odikart"
                 className="max-h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />
-            </Link>
+            </Link> */}
 
-            <div className="h-10 w-px shrink-0 bg-slate-200" />
+            {/* <div className="h-10 w-px shrink-0 bg-slate-200" /> */}
 
             <button
               type="button"
@@ -1705,11 +1705,11 @@ const reverseGeocode = async (lat, lng) => {
               </span>
 
               <span className="min-w-0 flex-1">
-                <span className="block text-[9px] font-bold uppercase tracking-[.08em] text-slate-400">
+                <span className="block text-[8px] font-bold uppercase tracking-[.08em] text-slate-400">
                   Deliver to
                 </span>
 
-                <span className="mt-0.5 block max-w-[190px] truncate text-[12px] font-extrabold text-slate-800 sm:max-w-[300px]">
+                <span className="mt-0.5 block max-w-[190px] truncate text-[10px] font-extrabold text-slate-800 sm:max-w-[300px]">
                   {locationLabel}
                 </span>
               </span>
@@ -1725,7 +1725,7 @@ const reverseGeocode = async (lat, lng) => {
                 type="button"
                 onClick={openSearchPage}
                 aria-label="Search products"
-                className="odikart-icon-btn flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                className="odikart-icon-btn flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/70 bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
               >
                 <Search size={20} />
               </button>
@@ -1735,7 +1735,7 @@ const reverseGeocode = async (lat, lng) => {
               <Link
                 to="/cart"
                 aria-label="Cart"
-                className="odikart-icon-btn relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
+                className="odikart-icon-btn relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/70 bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
               >
                 <ShoppingCart size={20} />
 
@@ -1776,7 +1776,7 @@ const reverseGeocode = async (lat, lng) => {
                     key={path}
                     to={path}
                     className={({ isActive }) =>
-                      `group inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[11px] font-extrabold transition ${
+                      `group inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[10px] font-extrabold transition ${
                         isActive
                           ? "bg-indigo-50 text-indigo-700"
                           : "text-slate-500 hover:bg-slate-50 hover:text-indigo-600"
@@ -1792,7 +1792,7 @@ const reverseGeocode = async (lat, lng) => {
               <NavLink
                 to="/wishlist"
                 className={({ isActive }) =>
-                  `inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[11px] font-extrabold transition ${
+                  `inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[10px] font-extrabold transition ${
                     isActive
                       ? "bg-indigo-50 text-indigo-700"
                       : "text-slate-500 hover:bg-slate-50 hover:text-indigo-600"
@@ -1807,7 +1807,7 @@ const reverseGeocode = async (lat, lng) => {
             {!authUser ? (
               <button
                 onClick={() => navigate("/sign-in")}
-                className="flex h-9 items-center gap-1.5 rounded-xl bg-indigo-50 px-3.5 text-[11px] font-extrabold text-indigo-700 transition hover:bg-indigo-100"
+                className="flex h-9 items-center gap-1.5 rounded-xl bg-indigo-50 px-3.5 text-[10px] font-extrabold text-indigo-700 transition hover:bg-indigo-100"
               >
                 <User size={14} />
                 Sign in
@@ -1815,12 +1815,12 @@ const reverseGeocode = async (lat, lng) => {
             ) : (
               <Dropdown placement="bottom-end">
                 <DropdownTrigger>
-                  <button className="flex h-9 items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50">
+                  <button className="flex h-9 items-center gap-2 rounded-full border border-slate-200/80 bg-white/90 py-1 pl-1 pr-2.5 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50">
                     {authUser?.image ? (
                       <img
                         src={authUser.image}
                         alt="Profile"
-                        className="h-7 w-7 rounded-full object-cover"
+                        className="h-7 w-7 rounded-full object-cover ring-2 ring-indigo-50"
                       />
                     ) : (
                       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
@@ -1838,7 +1838,7 @@ const reverseGeocode = async (lat, lng) => {
                   aria-label="Profile Actions"
                   variant="flat"
                   classNames={{
-                    base: "min-w-[240px] rounded-[20px] border p-2",
+                    base: "min-w-[240px] rounded-[18px] border p-1.5",
                     list: "gap-1",
                   }}
                 >
@@ -2397,6 +2397,118 @@ const reverseGeocode = async (lat, lng) => {
           </button>
         </div>
       </div>
+      <style>{`
+/* ============================================================
+   ODikart MODERN NATIVE-STYLE NAVBAR OVERRIDES
+   ============================================================ */
+
+.odikart-navbar-shell {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@media (min-width: 641px) {
+  .odikart-navbar-shell {
+    border-radius: 20px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .odikart-navbar-shell {
+    border-radius: 18px !important;
+  }
+
+  .odikart-navbar-shell > div {
+    min-height: 58px !important;
+    padding: 7px 8px !important;
+  }
+}
+
+/* Cleaner location control */
+.odikart-navbar-shell button[aria-label^="Choose delivery location"] {
+  border-radius: 14px !important;
+  padding: 5px 7px !important;
+}
+
+.odikart-navbar-shell button[aria-label^="Choose delivery location"] > span:first-child {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 11px !important;
+}
+
+.odikart-navbar-shell button[aria-label^="Choose delivery location"] svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Compact icon buttons */
+.odikart-icon-btn {
+  width: 39px !important;
+  height: 39px !important;
+  border-radius: 12px !important;
+  border-color: rgba(226,232,240,.78) !important;
+  background: rgba(248,250,252,.82) !important;
+}
+
+.odikart-icon-btn:hover {
+  background: #eef2ff !important;
+  border-color: #c7d2fe !important;
+}
+
+/* Cart badge */
+.odikart-navbar-shell .absolute.-right-1.-top-1 {
+  min-width: 16px !important;
+  min-height: 16px !important;
+  font-size: 7px !important;
+  border-width: 1.5px !important;
+}
+
+/* Modern search overlay */
+.odikart-navbar-shell input::placeholder {
+  opacity: .72;
+}
+
+@media (max-width: 640px) {
+  /* Make modal/search surfaces feel closer to a native bottom sheet */
+  .odikart-location-skeleton-item {
+    min-height: 60px !important;
+    padding: 9px !important;
+    border-radius: 15px !important;
+  }
+}
+
+/* Reduce visual noise from large text */
+.odikart-navbar-shell .text-\\[12px\\] {
+  line-height: 1.25 !important;
+}
+
+.odikart-navbar-shell .text-\\[11px\\] {
+  line-height: 1.25 !important;
+}
+
+/* Subtle premium glass effect */
+.odikart-navbar-shell {
+  box-shadow:
+    0 8px 28px rgba(15,23,42,.055),
+    0 1px 2px rgba(15,23,42,.04) !important;
+}
+
+.odikart-navbar-shell:hover {
+  box-shadow:
+    0 12px 34px rgba(15,23,42,.075),
+    0 1px 2px rgba(15,23,42,.04) !important;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .odikart-navbar-shell,
+  .odikart-icon-btn,
+  .odikart-bottom-item {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+`}</style>
     </>
   );
 }

@@ -12,6 +12,7 @@ import {
   ModalBody,
   useDisclosure
 } from "@heroui/react";
+import { BsLightningCharge } from "react-icons/bs";
 import {
 } from "react-icons/fa";
 import { toast } from "sonner";
@@ -1894,6 +1895,311 @@ const CSS = `
   }
 }
 
+
+/* =========================================================
+   ODikart — Ratings & Reviews premium UI
+   Scoped ONLY to this product page
+   ========================================================= */
+.rp-modern-page .rp-content{
+  position:relative;
+}
+
+.rp-modern-page .rp-content::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 8% 8%,rgba(99,102,241,.045),transparent 24%),
+    radial-gradient(circle at 92% 20%,rgba(59,130,246,.035),transparent 22%);
+}
+
+.rp-modern-page .rp-card{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(226,232,240,.9);
+  box-shadow:0 8px 28px rgba(15,23,42,.045);
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+
+.rp-modern-page .rp-card::after{
+  content:"";
+  position:absolute;
+  top:-120%;
+  left:-55%;
+  width:42%;
+  height:340%;
+  pointer-events:none;
+  transform:rotate(24deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);
+  opacity:0;
+  transition:left .65s ease,opacity .2s ease;
+}
+
+.rp-modern-page .rp-card:hover{
+  transform:translateY(-2px);
+  border-color:#d7defa;
+  box-shadow:0 15px 38px rgba(15,23,42,.075);
+}
+
+.rp-modern-page .rp-card:hover::after{
+  left:120%;
+  opacity:1;
+}
+
+.rp-modern-page .rp-divider{
+  background:linear-gradient(180deg,transparent,#dbe3f0 18%,#dbe3f0 82%,transparent);
+}
+
+.rp-modern-page .rp-content > .space-y-3{
+  position:relative;
+  z-index:1;
+}
+
+/* Rating summary */
+.rp-modern-page .rp-content > .space-y-3 > .rp-content{
+  position:relative;
+  overflow:hidden;
+  border:1px solid #e2e8f0;
+  background:
+    radial-gradient(circle at 14% 50%,rgba(245,158,11,.07),transparent 25%),
+    linear-gradient(135deg,#fff 0%,#f8faff 52%,#fff 100%);
+  box-shadow:0 10px 32px rgba(79,70,229,.055);
+}
+
+.rp-modern-page .rp-content > .space-y-3 > .rp-content::after{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  pointer-events:none;
+  background:linear-gradient(110deg,transparent 42%,rgba(255,255,255,.62) 50%,transparent 58%);
+  transform:translateX(-45%);
+  animation:rpSummaryShine 5s ease-in-out infinite;
+}
+
+@keyframes rpSummaryShine{
+  0%,58%{transform:translateX(-45%);opacity:0}
+  66%{opacity:1}
+  84%,100%{transform:translateX(45%);opacity:0}
+}
+
+.rp-modern-page .rp-content > .space-y-3 > .rp-content > div{
+  position:relative;
+  z-index:1;
+}
+
+/* Big rating */
+.rp-modern-page .rp-content > .space-y-3 > .rp-content
+  > div:first-child > div:first-child{
+  position:relative;
+}
+
+.rp-modern-page .rp-content > .space-y-3 > .rp-content
+  > div:first-child > div:first-child::before{
+  content:"";
+  position:absolute;
+  width:112px;
+  height:112px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(245,158,11,.14),transparent 68%);
+  filter:blur(2px);
+  z-index:-1;
+}
+
+.rp-modern-page .rp-content > .space-y-3 > .rp-content
+  > div:first-child svg{
+  filter:drop-shadow(0 3px 6px rgba(245,158,11,.22));
+  transition:transform .18s ease;
+}
+
+.rp-modern-page .rp-content > .space-y-3 > .rp-content
+  > div:first-child:hover svg{
+  transform:translateY(-2px) scale(1.04);
+}
+
+/* Distribution rows: 5 ★ | bar | count */
+.rp-modern-page .rp-content > .space-y-3 > .rp-content
+  > div:last-child .group{
+  position:relative;
+  min-height:31px;
+  padding:5px 7px;
+  border-radius:10px;
+  transition:background .18s ease,transform .18s ease;
+}
+
+.rp-modern-page .rp-content > .space-y-3 > .rp-content
+  > div:last-child .group:hover{
+  background:rgba(238,242,255,.72);
+  transform:translateX(2px);
+}
+
+.rp-modern-page .rp-content > .space-y-3 > .rp-content
+  > div:last-child .group > span:first-child{
+  width:40px;
+  color:#475569;
+  font-weight:800;
+}
+
+.rp-modern-page .rp-content > .space-y-3 > .rp-content
+  > div:last-child .group > span:nth-child(2){
+  height:9px;
+  border-radius:999px;
+  background:#e8edf5;
+  box-shadow:inset 0 1px 2px rgba(15,23,42,.05);
+}
+
+.rp-modern-page .rp-content > .space-y-3 > .rp-content
+  > div:last-child .group > span:nth-child(2) > span{
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#f59e0b,#fbbf24,#fde68a);
+  box-shadow:0 2px 7px rgba(245,158,11,.22);
+  position:relative;
+  overflow:hidden;
+}
+
+.rp-modern-page .rp-content > .space-y-3 > .rp-content
+  > div:last-child .group > span:nth-child(2) > span::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  width:45%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);
+  transform:translateX(-140%);
+  animation:rpBarShine 3.8s ease-in-out infinite;
+}
+
+@keyframes rpBarShine{
+  0%,62%{transform:translateX(-140%)}
+  82%,100%{transform:translateX(250%)}
+}
+
+/* Filter pills */
+.rp-modern-page .rp-content button.rounded-full{
+  box-shadow:0 2px 8px rgba(15,23,42,.035);
+}
+
+.rp-modern-page .rp-content button.rounded-full:hover{
+  transform:translateY(-1px);
+}
+
+/* Sort control */
+.rp-modern-page .rp-content select{
+  border-color:#dfe5ef;
+  box-shadow:0 3px 10px rgba(15,23,42,.035);
+  transition:border-color .18s ease,box-shadow .18s ease;
+}
+
+.rp-modern-page .rp-content select:hover{
+  border-color:#c7d2fe;
+}
+
+/* Review cards */
+.rp-modern-page article.rp-card{
+  background:linear-gradient(145deg,#fff,#fcfdff);
+}
+
+.rp-modern-page article.rp-card > div:first-child{
+  align-items:center;
+}
+
+.rp-modern-page article.rp-card img{
+  transition:transform .22s ease,box-shadow .22s ease;
+}
+
+.rp-modern-page article.rp-card:hover img{
+  box-shadow:0 6px 16px rgba(15,23,42,.1);
+}
+
+.rp-modern-page article.rp-card .bg-gradient-to-br.from-indigo-500{
+  box-shadow:0 5px 14px rgba(79,70,229,.2);
+}
+
+.rp-modern-page article.rp-card .bg-amber-50{
+  border:1px solid #fde7a8;
+  box-shadow:0 3px 9px rgba(245,158,11,.08);
+}
+
+.rp-modern-page article.rp-card p{
+  color:#334155;
+  letter-spacing:-.005em;
+}
+
+/* Review media */
+.rp-modern-page article.rp-card button img{
+  transition:transform .28s ease,filter .28s ease;
+}
+
+.rp-modern-page article.rp-card button:hover img{
+  transform:scale(1.055);
+  filter:saturate(1.04);
+}
+
+/* View-all CTA */
+.rp-modern-page .spx-view-all-reviews{
+  position:relative;
+  overflow:hidden;
+  border:1px solid #c7d2fe;
+  background:linear-gradient(135deg,#eef2ff,#f8faff);
+  box-shadow:0 7px 20px rgba(79,70,229,.07);
+}
+
+.rp-modern-page .spx-view-all-reviews::after{
+  content:"";
+  position:absolute;
+  top:-80%;
+  left:-45%;
+  width:35%;
+  height:260%;
+  transform:rotate(24deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);
+  transition:left .6s ease;
+}
+
+.rp-modern-page .spx-view-all-reviews:hover::after{
+  left:120%;
+}
+
+@media(max-width:768px){
+  .rp-modern-page .rp-content{
+    padding-left:12px!important;
+    padding-right:12px!important;
+  }
+
+  .rp-modern-page .rp-content > .space-y-3 > .rp-content{
+    border-radius:14px;
+    padding:14px 10px!important;
+  }
+
+  .rp-modern-page .rp-content > .space-y-3 > .rp-content
+    > div:last-child .group{
+    min-height:28px;
+  }
+
+  .rp-modern-page article.rp-card{
+    border-radius:15px!important;
+    padding:13px!important;
+  }
+
+  .rp-modern-page .rp-content button.rounded-full{
+    box-shadow:none;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .rp-modern-page .rp-content > .space-y-3 > .rp-content::after,
+  .rp-modern-page .rp-content > .space-y-3 > .rp-content
+    > div:last-child .group > span:nth-child(2) > span::after{
+    animation:none;
+  }
+
+  .rp-modern-page .rp-card,
+  .rp-modern-page article.rp-card img{
+    transition:none;
+  }
+}
+
 `;
 
 
@@ -2732,7 +3038,7 @@ const handleMouseLeave = useCallback(() => {
   </div>
 </div>
 
-      <div className="sp sp-bg">
+      <div className="sp sp-bg rp-modern-page">
 
 
         {/* breadcrumb */}
@@ -3173,416 +3479,2720 @@ const handleMouseLeave = useCallback(() => {
                  On mobile these actions are shown only in the fixed bottom bar,
                  so there is no duplicate Add to Cart / Wishlist row. ── */}
             {/* ── Delivery PIN checker ── */}
-            <div
-              className="spx-card"
-              style={{
-                padding: "16px 18px",
-                border: serviceability.checked
-                  ? serviceability.serviceable
-                    ? "1px solid #a7f3d0"
-                    : "1px solid #fecaca"
-                  : "1px solid #e2e8f0",
-                background: serviceability.checked
-                  ? serviceability.serviceable
-                    ? "#f0fdf4"
-                    : "#fef2f2"
-                  : "#fff",
-              }}
-            >
-            <div className="mb-4 flex w-full items-start gap-3">
-  {/* Delivery Icon */}
-  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-    <FaTruck size={15} />
-  </div>
+          
 
-  {/* Content */}
-  <div className="min-w-0 flex-1">
-    <div className="text-sm font-bold leading-5 tracking-tight text-slate-900">
-      Check delivery availability
+           <div className="spx-inline-cta flex w-full items-stretch gap-3">
+  {/* Add to Cart */}
+  <button
+    type="button"
+    onClick={handleCart}
+    className={`
+      group relative flex min-h-[54px] flex-1 items-center justify-center
+      gap-2.5 overflow-hidden rounded-2xl px-5
+      text-sm font-bold transition-all duration-200
+      active:scale-[0.98]
+      focus:outline-none focus:ring-2 focus:ring-indigo-500/30
+      ${
+        isInCart
+          ? "border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+          : "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/25"
+      }
+    `}
+  >
+    <FaShoppingCart
+      size={16}
+      className="shrink-0 transition-transform duration-200 group-hover:scale-110"
+    />
+
+    <span>
+      {isInCart ? "Go to Cart" : "Add to Cart"}
+    </span>
+  </button>
+
+  {/* Buy Now */}
+  <button
+    type="button"
+    onClick={handleBuyNow}
+    className="
+      group relative flex min-h-[54px] flex-1 items-center
+      justify-center gap-2.5 overflow-hidden rounded-2xl
+      bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600
+      px-5 text-sm font-extrabold text-white
+      shadow-lg shadow-blue-600/25
+      transition-all duration-200
+      hover:-translate-y-0.5
+      hover:shadow-xl hover:shadow-blue-600/30
+      active:scale-[0.98]
+      focus:outline-none focus:ring-2 focus:ring-blue-500/30
+    "
+  >
+    {/* Shine effect */}
+    <span
+      className="
+        pointer-events-none absolute inset-0
+        -translate-x-full bg-gradient-to-r
+        from-transparent via-white/20 to-transparent
+        transition-transform duration-700
+        group-hover:translate-x-full
+      "
+    />
+
+    <span className="relative flex items-center gap-2.5">
+      <span
+        className="
+          flex h-7 w-7 items-center justify-center
+          rounded-lg bg-white/15
+          ring-1 ring-white/20
+          backdrop-blur-sm
+        "
+      >
+        <BsLightningCharge
+          size={16}
+          className="text-white transition-transform duration-200 group-hover:scale-110"
+        />
+      </span>
+
+      <span>Buy Now</span>
+    </span>
+  </button>
+
+  {/* Wishlist */}
+  <button
+    type="button"
+    className={`
+      group flex h-[54px] w-[54px] shrink-0 items-center
+      justify-center rounded-2xl border
+      transition-all duration-200
+      active:scale-[0.94]
+      focus:outline-none focus:ring-2 focus:ring-rose-500/20
+      ${
+        isWishlisted
+          ? "border-rose-200 bg-rose-50 text-rose-500 shadow-sm shadow-rose-100"
+          : "border-slate-200 bg-white text-slate-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500"
+      }
+    `}
+    onClick={handleWish}
+    aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+  >
+    {isWishlisted ? (
+      <FaHeart
+        size={18}
+        className="transition-transform duration-200 group-hover:scale-110"
+      />
+    ) : (
+      <FaRegHeart
+        size={18}
+        className="transition-transform duration-200 group-hover:scale-110"
+      />
+    )}
+  </button>
+</div>
+
+            {/* ── Trust badges ── */}
+ {/* =========================================================
+    PREMIUM PRODUCT INFORMATION SECTION
+========================================================= */}
+
+<div className="w-full space-y-4">
+
+  {/* =======================================================
+      DELIVERY / SERVICEABILITY
+  ======================================================= */}
+
+  <section
+    className="
+      overflow-hidden rounded-2xl
+      bg-white
+      shadow-[0_4px_20px_rgba(15,23,42,0.04)]
+    "
+  >
+    <div className="p-2 sm:p-2">
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+
+        <div className="flex min-w-0 items-center gap-3">
+
+          <div
+            className="
+              flex h-10 w-10 shrink-0
+              items-center justify-center
+              rounded-xl
+              bg-indigo-50
+              text-indigo-600
+            "
+          >
+            <span className="text-lg">📍</span>
+          </div>
+
+          <div className="min-w-0">
+
+            <h3
+              className="
+                text-[13px]
+                font-black
+                tracking-[-0.01em]
+                text-slate-900
+              "
+            >
+              Check delivery availability
+            </h3>
+
+            <p
+              className="
+                mt-1
+                text-[10px]
+                font-medium
+                leading-4
+                text-slate-400
+              "
+            >
+              Enter your PIN code to check delivery details
+            </p>
+
+          </div>
+        </div>
+
+        <span
+          className="
+            hidden shrink-0
+            rounded-full
+            bg-emerald-50
+            px-2.5 py-1
+            text-[9px]
+            font-extrabold
+            text-emerald-600
+            sm:block
+          "
+        >
+          ● DELIVERY CHECK
+        </span>
+
+      </div>
+
+
+      {/* PIN INPUT */}
+      <div className="mt-4 flex gap-2">
+
+        <div className="relative min-w-0 flex-1">
+
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            value={servicePincode}
+            onChange={(e) =>
+              setServicePincode(
+                e.target.value.replace(/\D/g, "").slice(0, 6)
+              )
+            }
+            placeholder="Enter 6-digit PIN code"
+            className="
+              h-11
+              w-full
+              rounded-xl
+              border
+              border-slate-200
+              bg-slate-50
+              px-3.5
+              pr-10
+              text-[12px]
+              font-bold
+              tracking-wide
+              text-slate-800
+              outline-none
+              placeholder:text-slate-400
+              transition-all duration-200
+
+              hover:border-slate-300
+
+              focus:border-indigo-400
+              focus:bg-white
+              focus:ring-4
+              focus:ring-indigo-500/10
+            "
+          />
+
+          {/* Valid PIN indicator */}
+          {servicePincode.length === 6 &&
+            /^[1-9][0-9]{5}$/.test(servicePincode) && (
+              <span
+                className="
+                  absolute
+                  right-3
+                  top-1/2
+                  flex
+                  h-5
+                  w-5
+                  -translate-y-1/2
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-emerald-100
+                  text-[10px]
+                  font-black
+                  text-emerald-600
+                "
+              >
+                ✓
+              </span>
+            )}
+
+        </div>
+
+
+        {/* =================================================
+            CHECK BUTTON
+        ================================================= */}
+
+        <button
+          type="button"
+          onClick={checkProductServiceability}
+          disabled={
+            serviceability.checking ||
+            !/^[1-9][0-9]{5}$/.test(servicePincode)
+          }
+          className={`
+            group
+            relative
+            flex
+            h-11
+            min-w-[108px]
+            shrink-0
+            items-center
+            justify-center
+            overflow-hidden
+            rounded-xl
+            border-0
+            px-4
+            text-[12px]
+            font-extrabold
+            tracking-[-0.01em]
+            text-white
+            outline-none
+            transition-all duration-200
+
+            focus:ring-4
+            focus:ring-indigo-500/15
+
+            ${
+              serviceability.checking ||
+              !/^[1-9][0-9]{5}$/.test(servicePincode)
+
+                ? `
+                  cursor-not-allowed
+                  bg-slate-200
+                  text-slate-400
+                `
+
+                : `
+                  cursor-pointer
+                  bg-gradient-to-r
+                  from-indigo-600
+                  via-indigo-600
+                  to-violet-600
+
+                  shadow-[0_6px_18px_rgba(79,70,229,0.22)]
+
+                  hover:-translate-y-[1px]
+                  hover:shadow-[0_9px_26px_rgba(79,70,229,0.30)]
+
+                  active:translate-y-0
+                  active:scale-[0.97]
+                `
+            }
+          `}
+        >
+
+          {/* Shine */}
+          {!serviceability.checking &&
+            /^[1-9][0-9]{5}$/.test(servicePincode) && (
+              <span
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-y-0
+                  left-[-70%]
+                  w-[42%]
+                  -skew-x-[20deg]
+                  bg-gradient-to-r
+                  from-transparent
+                  via-white/40
+                  to-transparent
+                  transition-all
+                  duration-700
+                  group-hover:left-[125%]
+                "
+              />
+            )}
+
+          <span
+            className="
+              relative
+              z-10
+              flex
+              items-center
+              justify-center
+              gap-2
+            "
+          >
+
+            {serviceability.checking ? (
+              <>
+                <span
+                  className="
+                    h-3.5
+                    w-3.5
+                    animate-spin
+                    rounded-full
+                    border-2
+                    border-slate-300
+                    border-t-indigo-600
+                  "
+                />
+
+                <span>Checking</span>
+              </>
+            ) : (
+              <>
+                <span>Check</span>
+
+                <span
+                  className="
+                    flex
+                    h-5
+                    w-5
+                    items-center
+                    justify-center
+                    rounded-md
+                    bg-white/15
+                    text-[11px]
+                    transition-transform
+                    duration-200
+                    group-hover:translate-x-0.5
+                  "
+                >
+                  →
+                </span>
+              </>
+            )}
+
+          </span>
+
+        </button>
+
+      </div>
+
+
+      {/* =================================================
+          SERVICEABILITY RESULT
+      ================================================= */}
+
+      {serviceability.checked && (
+        <div
+          className={`
+            mt-3
+            rounded-xl
+            border
+            px-3.5
+            py-3
+
+            ${
+              serviceability.available
+                ? `
+                  border-emerald-200
+                  bg-emerald-50/70
+                `
+                : `
+                  border-rose-200
+                  bg-rose-50/70
+                `
+            }
+          `}
+        >
+
+          <div className="flex items-start gap-3">
+
+            <div
+              className={`
+                flex
+                h-8
+                w-8
+                shrink-0
+                items-center
+                justify-center
+                rounded-lg
+
+                ${
+                  serviceability.available
+                    ? "bg-emerald-100 text-emerald-600"
+                    : "bg-rose-100 text-rose-600"
+                }
+              `}
+            >
+              {serviceability.available ? "✓" : "×"}
+            </div>
+
+            <div className="min-w-0">
+
+              <div
+                className={`
+                  text-[11px]
+                  font-black
+
+                  ${
+                    serviceability.available
+                      ? "text-emerald-700"
+                      : "text-rose-700"
+                  }
+                `}
+              >
+                {serviceability.available
+                  ? "Delivery available"
+                  : "Delivery unavailable"}
+              </div>
+
+              <p
+                className="
+                  mt-0.5
+                  text-[10px]
+                  font-medium
+                  leading-4
+                  text-slate-500
+                "
+              >
+                {serviceability.message ||
+                  (serviceability.available
+                    ? `We can deliver this product to ${servicePincode}.`
+                    : `Unfortunately, delivery is not available for ${servicePincode}.`)}
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+
+      {/* Benefits */}
+      <div className="mt-3 flex flex-wrap gap-2">
+
+        <span
+          className="
+            inline-flex
+            items-center
+            gap-1.5
+            rounded-lg
+            bg-emerald-50
+            px-2.5
+            py-1.5
+            text-[9px]
+            font-bold
+            text-emerald-700
+          "
+        >
+          <FaTruck size={9} />
+          Delivery available
+        </span>
+
+        <span
+          className="
+            inline-flex
+            items-center
+            gap-1.5
+            rounded-lg
+            bg-indigo-50
+            px-2.5
+            py-1.5
+            text-[9px]
+            font-bold
+            text-indigo-700
+          "
+        >
+          <FaShieldAlt size={9} />
+          Secure checkout
+        </span>
+
+        <span
+          className="
+            inline-flex
+            items-center
+            gap-1.5
+            rounded-lg
+            bg-slate-50
+            px-2.5
+            py-1.5
+            text-[9px]
+            font-bold
+            text-slate-500
+          "
+        >
+          <FaCheckCircle size={9} />
+          Quality assured
+        </span>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  {/* =======================================================
+      TRUST BADGES
+  ======================================================= */}
+
+ 
+
+
+  {/* =======================================================
+      MOBILE ABOUT PRODUCT
+  ======================================================= */}
+
+  
+
+  {/* =======================================================
+      PRODUCT INFORMATION
+  ======================================================= */}
+
+  <div
+    className="
+      reviews-premium
+      overflow-hidden
+      rounded-2xl
+      border
+      border-slate-200/80
+      bg-white
+      shadow-[0_4px_20px_rgba(15,23,42,0.04)]
+    "
+  >
+
+    {/* =====================================================
+        SPECIFICATIONS ACCORDION
+    ===================================================== */}
+
+    {/* =========================================================
+    MODERN SPECIFICATIONS
+========================================================= */}
+
+<div
+  className={`
+    overflow-hidden
+    rounded-2xl
+    border
+    bg-white
+    transition-all
+    duration-300
+
+    ${
+      openInfoSections.specs
+        ? `
+          border-indigo-100
+          shadow-[0_8px_30px_rgba(79,70,229,0.08)]
+        `
+        : `
+          border-slate-200/80
+          shadow-[0_3px_15px_rgba(15,23,42,0.03)]
+        `
+    }
+  `}
+>
+
+  {/* =======================================================
+      HEADER
+  ======================================================= */}
+
+  <button
+    type="button"
+    onClick={() => toggleInfoSection("specs")}
+    aria-expanded={openInfoSections.specs}
+    className="
+      group
+      relative
+      flex
+      min-h-[68px]
+      w-full
+      items-center
+      gap-3.5
+      overflow-hidden
+      border-0
+      bg-white
+      px-4
+      text-left
+      outline-none
+      transition-all
+      duration-200
+
+      hover:bg-slate-50/60
+
+      focus:ring-2
+      focus:ring-inset
+      focus:ring-indigo-500/10
+
+      sm:px-5
+    "
+  >
+
+    {/* Subtle active glow */}
+    <span
+      className={`
+        pointer-events-none
+        absolute
+        left-0
+        top-0
+        h-full
+        w-1
+        bg-gradient-to-b
+        from-indigo-500
+        to-violet-500
+        transition-all
+        duration-300
+
+        ${
+          openInfoSections.specs
+            ? "opacity-100"
+            : "opacity-0"
+        }
+      `}
+    />
+
+
+    {/* =====================================================
+        ICON
+    ===================================================== */}
+
+    <span
+      className={`
+        relative
+        flex
+        h-10
+        w-10
+        shrink-0
+        items-center
+        justify-center
+        overflow-hidden
+        rounded-xl
+        transition-all
+        duration-300
+
+        ${
+          openInfoSections.specs
+            ? `
+              bg-gradient-to-br
+              from-indigo-100
+              to-violet-100
+              text-indigo-600
+              shadow-sm
+            `
+            : `
+              bg-slate-100
+              text-slate-500
+              group-hover:bg-indigo-50
+              group-hover:text-indigo-600
+            `
+        }
+      `}
+    >
+
+      {/* Icon shine */}
+      <span
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          bg-gradient-to-br
+          from-white/70
+          via-transparent
+          to-transparent
+        "
+      />
+
+      <FaCog
+        size={14}
+        className={`
+          relative
+          z-10
+          transition-transform
+          duration-500
+
+          ${
+            openInfoSections.specs
+              ? "rotate-90"
+              : "group-hover:rotate-12"
+          }
+        `}
+      />
+
+    </span>
+
+
+    {/* =====================================================
+        TITLE
+    ===================================================== */}
+
+    <span className="min-w-0 flex-1">
+
+      <span
+        className={`
+          block
+          text-[12px]
+          font-black
+          tracking-[-0.01em]
+          transition-colors
+          duration-200
+
+          ${
+            openInfoSections.specs
+              ? "text-indigo-700"
+              : "text-slate-800"
+          }
+        `}
+      >
+        Specifications
+      </span>
+
+      <span
+        className="
+          mt-1
+          block
+          truncate
+          text-[9.5px]
+          font-medium
+          leading-4
+          text-slate-400
+        "
+      >
+        Product details, dimensions & ordering information
+      </span>
+
+    </span>
+
+
+    {/* =====================================================
+        COUNT
+    ===================================================== */}
+
+    <span
+      className="
+        hidden
+        shrink-0
+        items-center
+        gap-1.5
+        rounded-full
+        border
+        border-slate-200
+        bg-slate-50
+        px-2.5
+        py-1.5
+        text-[9px]
+        font-extrabold
+        text-slate-500
+        transition-all
+        duration-200
+
+        group-hover:border-indigo-100
+        group-hover:bg-indigo-50
+        group-hover:text-indigo-600
+
+        sm:inline-flex
+      "
+    >
+      <span
+        className="
+          h-1.5
+          w-1.5
+          rounded-full
+          bg-indigo-500
+        "
+      />
+
+      {[...specsA, ...specsB].length}
+
+      <span className="font-semibold text-slate-400">
+        details
+      </span>
+    </span>
+
+
+    {/* =====================================================
+        CHEVRON
+    ===================================================== */}
+
+    <span
+      className={`
+        flex
+        h-8
+        w-8
+        shrink-0
+        items-center
+        justify-center
+        rounded-lg
+        transition-all
+        duration-300
+
+        ${
+          openInfoSections.specs
+            ? `
+              bg-indigo-50
+              text-indigo-600
+            `
+            : `
+              bg-slate-50
+              text-slate-400
+              group-hover:bg-indigo-50
+              group-hover:text-indigo-600
+            `
+        }
+      `}
+    >
+
+      <ChevronDown
+        size={16}
+        className={`
+          transition-transform
+          duration-300
+
+          ${
+            openInfoSections.specs
+              ? "rotate-180"
+              : "rotate-0"
+          }
+        `}
+      />
+
+    </span>
+
+  </button>
+
+
+  {/* =======================================================
+      CONTENT
+  ======================================================= */}
+
+  {openInfoSections.specs && (
+
+    <div
+      className="
+        border-t
+        border-indigo-50
+        bg-gradient-to-b
+        from-slate-50/70
+        to-white
+        p-3.5
+
+        sm:p-5
+      "
+    >
+
+      {/* =====================================================
+          SPECIFICATION GRID
+      ===================================================== */}
+
+      <div className="grid gap-3.5 md:grid-cols-2">
+
+
+        {/* ===================================================
+            PRODUCT IDENTITY
+        =================================================== */}
+
+        {specsA.length > 0 && (
+
+          <div
+            className="
+              overflow-hidden
+              rounded-2xl
+              border
+              border-slate-200/70
+              bg-white
+              shadow-[0_2px_10px_rgba(15,23,42,0.025)]
+            "
+          >
+
+            {/* Card header */}
+            <div
+              className="
+                flex
+                items-center
+                gap-2.5
+                border-b
+                border-slate-100
+                px-4
+                py-3.5
+              "
+            >
+
+              <span
+                className="
+                  flex
+                  h-7
+                  w-7
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-indigo-50
+                  text-indigo-600
+                "
+              >
+                <FaInfoCircle size={11} />
+              </span>
+
+              <div>
+
+                <div
+                  className="
+                    text-[10px]
+                    font-black
+                    uppercase
+                    tracking-[0.1em]
+                    text-slate-700
+                  "
+                >
+                  Product Identity
+                </div>
+
+                <div
+                  className="
+                    mt-0.5
+                    text-[8.5px]
+                    font-medium
+                    text-slate-400
+                  "
+                >
+                  Product information
+                </div>
+
+              </div>
+
+            </div>
+
+
+            {/* Rows */}
+            <div className="divide-y divide-slate-100">
+
+              {specsA.map((r, index) => (
+
+                <div
+                  key={r.l}
+                  className="
+                    group/row
+                    flex
+                    items-start
+                    justify-between
+                    gap-4
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+
+                    hover:bg-indigo-50/40
+                  "
+                >
+
+                  {/* Label */}
+                  <div
+                    className="
+                      flex
+                      min-w-0
+                      items-start
+                      gap-2
+                    "
+                  >
+
+                    <span
+                      className="
+                        mt-[5px]
+                        h-1
+                        w-1
+                        shrink-0
+                        rounded-full
+                        bg-slate-300
+                        transition-colors
+                        duration-200
+
+                        group-hover/row:bg-indigo-400
+                      "
+                    />
+
+                    <span
+                      className="
+                        min-w-0
+                        text-[10px]
+                        font-semibold
+                        leading-4
+                        text-slate-400
+                        transition-colors
+                        duration-200
+
+                        group-hover/row:text-slate-500
+                      "
+                    >
+                      {r.l}
+                    </span>
+
+                  </div>
+
+
+                  {/* Value */}
+                  <span
+                    className="
+                      max-w-[58%]
+                      text-right
+                      text-[10.5px]
+                      font-bold
+                      leading-4
+                      text-slate-700
+                      break-words
+                    "
+                  >
+                    {r.v}
+                  </span>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          </div>
+
+        )}
+
+
+        {/* ===================================================
+            SHIPPING & ORDERING
+        =================================================== */}
+
+        {specsB.length > 0 && (
+
+          <div
+            className="
+              overflow-hidden
+              rounded-2xl
+              border
+              border-slate-200/70
+              bg-white
+              shadow-[0_2px_10px_rgba(15,23,42,0.025)]
+            "
+          >
+
+            {/* Card header */}
+            <div
+              className="
+                flex
+                items-center
+                gap-2.5
+                border-b
+                border-slate-100
+                px-4
+                py-3.5
+              "
+            >
+
+              <span
+                className="
+                  flex
+                  h-7
+                  w-7
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-emerald-50
+                  text-emerald-600
+                "
+              >
+                <FaTruck size={11} />
+              </span>
+
+              <div>
+
+                <div
+                  className="
+                    text-[10px]
+                    font-black
+                    uppercase
+                    tracking-[0.1em]
+                    text-slate-700
+                  "
+                >
+                  Shipping & Ordering
+                </div>
+
+                <div
+                  className="
+                    mt-0.5
+                    text-[8.5px]
+                    font-medium
+                    text-slate-400
+                  "
+                >
+                  Delivery & purchase information
+                </div>
+
+              </div>
+
+            </div>
+
+
+            {/* Rows */}
+            <div className="divide-y divide-slate-100">
+
+              {specsB.map((r) => (
+
+                <div
+                  key={r.l}
+                  className="
+                    group/row
+                    flex
+                    items-start
+                    justify-between
+                    gap-4
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+
+                    hover:bg-emerald-50/30
+                  "
+                >
+
+                  {/* Label */}
+                  <div
+                    className="
+                      flex
+                      min-w-0
+                      items-start
+                      gap-2
+                    "
+                  >
+
+                    <span
+                      className="
+                        mt-[5px]
+                        h-1
+                        w-1
+                        shrink-0
+                        rounded-full
+                        bg-slate-300
+                        transition-colors
+                        duration-200
+
+                        group-hover/row:bg-emerald-400
+                      "
+                    />
+
+                    <span
+                      className="
+                        min-w-0
+                        text-[10px]
+                        font-semibold
+                        leading-4
+                        text-slate-400
+                        transition-colors
+                        duration-200
+
+                        group-hover/row:text-slate-500
+                      "
+                    >
+                      {r.l}
+                    </span>
+
+                  </div>
+
+
+                  {/* Value */}
+                  <span
+                    className="
+                      max-w-[58%]
+                      text-right
+                      text-[10.5px]
+                      font-bold
+                      leading-4
+                      text-slate-700
+                      break-words
+                    "
+                  >
+                    {r.v}
+                  </span>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          </div>
+
+        )}
+
+      </div>
+
+
+      {/* =====================================================
+          EMPTY STATE
+      ===================================================== */}
+
+      {specsA.length === 0 &&
+        specsB.length === 0 && (
+
+          <div
+            className="
+              flex
+              flex-col
+              items-center
+              justify-center
+              rounded-2xl
+              border
+              border-dashed
+              border-slate-200
+              bg-white
+              px-5
+              py-10
+              text-center
+            "
+          >
+
+            <span
+              className="
+                flex
+                h-12
+                w-12
+                items-center
+                justify-center
+                rounded-2xl
+                bg-slate-100
+                text-slate-400
+              "
+            >
+              <FaCog size={18} />
+            </span>
+
+            <div
+              className="
+                mt-3
+                text-[11px]
+                font-black
+                text-slate-600
+              "
+            >
+              No specifications available
+            </div>
+
+            <p
+              className="
+                mt-1
+                text-[9px]
+                font-medium
+                text-slate-400
+              "
+            >
+              Product specifications haven't been added yet.
+            </p>
+
+          </div>
+
+        )}
+
     </div>
 
-    <div className="mt-1 text-xs leading-5 text-slate-500">
-      Enter your PIN code to check whether this product is deliverable.
+  )}
+
+</div>
+
+
+    {/* =====================================================
+        RATINGS & REVIEWS
+    ===================================================== */}
+{/* ============================================================
+    PREMIUM RATINGS & REVIEWS ACCORDION
+============================================================ */}
+
+{/* ============================================================
+    RATINGS & REVIEWS
+============================================================ */}
+
+<div
+  className="
+    rp-card
+    rounded-3xl
+    bg-white/90
+  "
+>
+
+  {/* ==========================================================
+      HEADER
+  ========================================================== */}
+
+  <button
+    type="button"
+    onClick={() => toggleInfoSection("reviews")}
+    aria-expanded={openInfoSections.reviews}
+    className="
+      group
+      flex
+      min-h-[68px]
+      w-full
+      items-center
+      gap-3
+      border-0
+      bg-white
+      px-4
+      text-left
+      outline-none
+      transition
+      hover:bg-slate-50
+      sm:px-5
+    "
+  >
+
+    {/* Icon */}
+
+    <span
+      className={`
+        flex
+        h-10
+        w-10
+        shrink-0
+        items-center
+        justify-center
+        rounded-xl
+        transition
+        ${
+          openInfoSections.reviews
+            ? "bg-indigo-50 text-indigo-600"
+            : "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600"
+        }
+      `}
+    >
+      <FaComments size={15} />
+    </span>
+
+
+    {/* Title */}
+
+    <span className="min-w-0 flex-1">
+
+      <span
+        className={`
+          block
+          text-[12px]
+          font-black
+          ${
+            openInfoSections.reviews
+              ? "text-indigo-700"
+              : "text-slate-800"
+          }
+        `}
+      >
+        Ratings & Reviews
+      </span>
+
+      <span
+        className="
+          mt-1
+          block
+          text-[9px]
+          font-medium
+          text-slate-400
+        "
+      >
+        Real experiences from our shoppers
+      </span>
+
+    </span>
+
+
+    {/* Header rating */}
+
+    {reviews.length > 0 && (
+
+      <span
+        className="
+          hidden
+          items-center
+          gap-1
+          rounded-full
+          bg-amber-50
+          px-2.5
+          py-1.5
+          text-[9px]
+          font-black
+          text-amber-600
+          sm:flex
+        "
+      >
+        <FaStar size={8} />
+        {avgRating}
+      </span>
+
+    )}
+
+
+    {/* Count */}
+
+    <span
+      className="
+        flex
+        h-8
+        min-w-8
+        items-center
+        justify-center
+        rounded-lg
+        bg-slate-50
+        px-2
+        text-[9px]
+        font-black
+        text-slate-500
+      "
+    >
+      {reviews.length}
+    </span>
+
+
+    {/* Arrow */}
+
+    <span
+      className="
+        flex
+        h-8
+        w-8
+        shrink-0
+        items-center
+        justify-center
+        rounded-lg
+        bg-slate-50
+        text-slate-400
+      "
+    >
+
+      <ChevronDown
+        size={15}
+        className={`
+          transition-transform
+          duration-300
+          ${
+            openInfoSections.reviews
+              ? "rotate-180"
+              : ""
+          }
+        `}
+      />
+
+    </span>
+
+  </button>
+
+
+  {/* ==========================================================
+      CONTENT
+  ========================================================== */}
+
+  {openInfoSections.reviews && (
+
+    <div
+      className="
+        rp-content
+        px-4
+        py-4
+        sm:px-5
+        sm:py-5
+      "
+    >
+
+      <div className="space-y-3">
+
+
+        {/* ======================================================
+            RATING SUMMARY
+        ====================================================== */}
+
+{/* ==========================================================
+    RATING SUMMARY
+========================================================== */}
+
+<div
+  className="
+    rp-content
+    flex
+    w-full
+    items-center
+    rounded-2xl
+    bg-gradient-to-r
+    from-white
+    via-indigo-50/20
+    to-white
+    px-2
+    py-4
+    sm:py-5
+  "
+>
+  {/* ========================================================
+      LEFT — RATING CALCULATION
+  ======================================================== */}
+
+  <div
+    className="
+      flex
+      w-[42%]
+      shrink-0
+      flex-col
+      items-center
+      justify-center
+      px-2
+      text-center
+      sm:w-[40%]
+    "
+  >
+    {/* STARS */}
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <FaStar
+          key={star}
+          size={24}
+          className={
+            star <= Math.round(Number(avgRating))
+              ? "text-amber-400"
+              : "text-slate-200"
+          }
+        />
+      ))}
+    </div>
+
+    {/* RATING + REVIEWS */}
+    <div
+      className="
+        mt-4
+        text-[11px]
+        font-medium
+        italic
+        leading-6
+        text-slate-400
+      "
+    >
+      <span className="font-semibold text-slate-500">
+        {avgRating}
+      </span>{" "}
+      rating
+      {reviews.length !== 1 ? "s" : ""} and{" "}
+      <span className="font-semibold text-slate-500">
+        {reviews.length}
+      </span>{" "}
+      {reviews.length === 1
+        ? "review"
+        : "reviews"}
+    </div>
+
+    {/* VERIFIED */}
+    {reviews.some(
+      (r) => r?.verifiedPurchase
+    ) && (
+      <div className="mt-2">
+        <span
+          className="
+            inline-flex
+            items-center
+            gap-1
+            rounded-full
+            bg-emerald-50
+            px-2
+            py-1
+            text-[7px]
+            font-black
+            text-emerald-600
+          "
+        >
+          <FaCheckCircle size={7} />
+          Verified shoppers
+        </span>
+      </div>
+    )}
+  </div>
+
+  {/* ========================================================
+      VERTICAL DIVIDER
+  ======================================================== */}
+
+  <div
+    className="
+      rp-divider
+      h-[180px]
+      w-px
+      shrink-0
+    "
+  />
+
+  {/* ========================================================
+      RIGHT — RATING DISTRIBUTION
+  ======================================================== */}
+
+  <div
+    className="
+      min-w-0
+      flex-1
+      pl-3
+      pr-1
+      sm:pl-7
+      sm:pr-3
+    "
+  >
+    <div className="space-y-1">
+      {[5, 4, 3, 2, 1].map((star) => {
+        const count =
+          reviewRatingCounts[star] || 0;
+
+        const percentage =
+          reviews.length > 0
+            ? Math.round(
+                (count / reviews.length) * 100
+              )
+            : 0;
+
+        const active =
+          reviewRatingFilter === String(star);
+
+        return (
+          <button
+            key={star}
+            type="button"
+            onClick={() =>
+              setReviewRatingFilter(
+                active
+                  ? "all"
+                  : String(star)
+              )
+            }
+            aria-pressed={active}
+            className="
+              group
+              flex
+              w-full
+              items-center
+              gap-2
+              text-left
+              outline-none
+            "
+          >
+            {/* STAR LABEL */}
+            <span
+              className="
+                flex
+                w-[42px]
+                shrink-0
+                items-center
+                justify-end
+                gap-1
+                text-[13px]
+                font-medium
+                text-slate-600
+              "
+            >
+              {star}
+              <FaStar
+                size={10}
+                className="text-amber-400"
+              />
+            </span>
+
+            {/* PROGRESS BAR */}
+            <span
+              className="
+                relative
+                h-[3px]
+                flex-1
+                overflow-hidden
+                rounded-full
+                bg-slate-200
+              "
+            >
+              <span
+                className="
+                  absolute inset-0 rounded-full bg-transparent transition-all duration-500
+                "
+                style={{
+                  width: `${percentage}%`,
+                }}
+              />
+            </span>
+
+            {/* COUNT */}
+            <span
+              className="
+                w-[42px]
+                shrink-0
+                text-right
+                text-[13px]
+                font-medium
+                text-slate-400
+              "
+            >
+              {count.toLocaleString()}
+            </span>
+          </button>
+        );
+      })}
     </div>
   </div>
 </div>
 
-              <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
-                <input
-                  className="spx-in"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  placeholder="Enter 6-digit PIN code"
-                  value={servicePincode}
-                  onChange={handleServicePincodeChange}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") checkProductServiceability();
-                  }}
-                  aria-label="Delivery PIN code"
-                />
+
+        {/* ======================================================
+            FILTERS
+        ====================================================== */}
+
+        <div
+          className="
+            -mx-1
+            flex
+            gap-1.5
+            overflow-x-auto
+            px-1
+            pb-1
+          "
+          style={{
+            scrollbarWidth: "none",
+          }}
+        >
+
+          {[
+            [
+              "all",
+              "All",
+              reviews.length,
+            ],
+
+            [
+              "photos",
+              "Photos",
+              reviews.filter(
+                (r) =>
+                  getReviewImages(r).length >
+                  0
+              ).length,
+            ],
+
+            [
+              "5",
+              "5★",
+              reviewRatingCounts[5] || 0,
+            ],
+
+            [
+              "4",
+              "4★",
+              reviewRatingCounts[4] || 0,
+            ],
+
+            [
+              "3",
+              "3★",
+              reviewRatingCounts[3] || 0,
+            ],
+
+            [
+              "2",
+              "2★",
+              reviewRatingCounts[2] || 0,
+            ],
+
+            [
+              "1",
+              "1★",
+              reviewRatingCounts[1] || 0,
+            ],
+          ].map(
+            ([value, label, count]) => {
+
+              const active =
+                reviewRatingFilter === value;
+
+              return (
 
                 <button
+                  key={value}
                   type="button"
-                  onClick={checkProductServiceability}
-                  disabled={
-                    serviceability.checking ||
-                    !/^[1-9][0-9]{5}$/.test(servicePincode)
+                  onClick={() =>
+                    setReviewRatingFilter(value)
                   }
-                  style={{
-                    minWidth: 105,
-                    border: 0,
-                    borderRadius: 12,
-                    padding: "0 14px",
-                    background: "#4f46e5",
-                    color: "#fff",
-                    fontSize: 12,
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    opacity:
-                      serviceability.checking ||
-                      !/^[1-9][0-9]{5}$/.test(servicePincode)
-                        ? 0.55
-                        : 1,
-                  }}
+                  aria-pressed={active}
+                  className={`
+                    inline-flex
+                    h-8
+                    shrink-0
+                    items-center
+                    gap-1.5
+                    rounded-full
+                    border
+                    px-3
+                    text-[9px]
+                    font-black
+                    transition-all
+                    active:scale-95
+                    ${
+                      active
+                        ? `
+                          border-indigo-200
+                          bg-indigo-600
+                          text-white
+                          shadow-sm
+                        `
+                        : `
+                          border-slate-200
+                          bg-white
+                          text-slate-500
+                          hover:border-indigo-200
+                          hover:text-indigo-600
+                        `
+                    }
+                  `}
                 >
-                  {serviceability.checking ? "Checking..." : "Check"}
-                </button>
-              </div>
 
-              {serviceability.message && (
-                <div
-                  style={{
-                    marginTop: 10,
-                    fontSize: 11.5,
-                    fontWeight: 700,
-                    color:
-                      serviceability.serviceable === true
-                        ? "#047857"
-                        : serviceability.serviceable === false
-                          ? "#b91c1c"
-                          : "#64748b",
-                  }}
-                >
-                  {serviceability.serviceable === true ? "✓ " : ""}
-                  {serviceability.serviceable === false ? "✕ " : ""}
-                  {serviceability.message}
-                </div>
-              )}
-            </div>
+                  {value === "photos" && (
+                    <span>📷</span>
+                  )}
 
-            <div className="spx-inline-cta" style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
-              <button
-                type="button"
-                className={`spx-btn ${isInCart ? "spx-ic" : "spx-add"}`}
-                onClick={handleCart}
-              >
-                <FaShoppingCart size={15} />
-                <span>{isInCart ? "Go to Cart" : "Add to Cart"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleBuyNow}
-                style={{
-                  flex: 1, border: 0, borderRadius: 14, padding: "0 18px",
-                  minHeight: 48, background: "blue", color: "#fff",
-                  fontWeight: 900, fontSize: 13, cursor: "pointer",
-                }}
-              >
-                Buy Now
-              </button>
-              <button
-                type="button"
-                className={`spx-wb${isWishlisted ? " on" : ""}`}
-                onClick={handleWish}
-                aria-label="Wishlist"
-              >
-                {isWishlisted
-                  ? <FaHeart size={18} style={{ color: "#f43f5e" }} />
-                  : <FaRegHeart size={18} style={{ color: "#f43f5e" }} />}
-              </button>
-            </div>
+                  {value !== "photos" &&
+                    value !== "all" && (
+                      <FaStar
+                        size={7}
+                        className={
+                          active
+                            ? "text-amber-300"
+                            : "text-amber-400"
+                        }
+                      />
+                    )}
 
-            {/* ── Trust badges ── */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              {[
-                { icon: <FaTruck size={13} style={{ color: "#10b981" }} />, text: product.shipping?.freeShipping ? "Free Delivery" : (product.shippingInformation || "Delivery available") },
-                { icon: <FaUndoAlt size={12} style={{ color: "#3b82f6" }} />, text: product.returnPolicy || "Easy Returns" },
-                { icon: <FaShieldAlt size={12} style={{ color: "#5046e4" }} />, text: "Secure Payment" },
-                { icon: <FaCheckCircle size={12} style={{ color: "#f59e0b" }} />, text: product.warrantyInformation || "Genuine" },
-              ].map(({ icon, text }) => (
-                <div key={text} className="spx-tr">{icon}<span>{text}</span></div>
-              ))}
-            </div>
+                  {label}
 
-            {/* =========================================================
-                MOBILE ABOUT PRODUCT
-            ========================================================= */}
-            <section className="sp-mobile-about">
-              <div className="sp-mobile-section-heading">
-                <h2>About this product</h2>
-              </div>
-              <p>
-                {product.description || product.shortDescription || "No product description available."}
-              </p>
-              <button
-                type="button"
-                className="sp-mobile-read-more"
-                onClick={() => {
-                  const el = document.querySelector(".spx-accordion");
-                  el?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              >
-                View more <span>→</span>
-              </button>
-            </section>
-
-            {/* ══ PRODUCT INFORMATION ACCORDIONS ══ */}
-            <div className="spx-card" style={{ padding: 0, overflow: "hidden" }}>
-
-              {/* DETAILS */}
-              {/* <div className={`spx-accordion${openInfoSections.details ? " open" : ""}`}>
-                <button
-                  type="button"
-                  className="spx-accordion-head"
-                  onClick={() => toggleInfoSection("details")}
-                  aria-expanded={openInfoSections.details}
-                >
-                  <span className="spx-accordion-title">
-                    <span className="spx-accordion-icon"><FaInfoCircle size={13} /></span>
-                    <span>Product Details</span>
+                  <span
+                    className={`
+                      rounded-full
+                      px-1.5
+                      py-0.5
+                      text-[7px]
+                      ${
+                        active
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-100 text-slate-400"
+                      }
+                    `}
+                  >
+                    {count}
                   </span>
-                  <ChevronDown className="spx-accordion-chevron" size={17} />
+
                 </button>
 
-                {openInfoSections.details && (
-                  <div className="spx-accordion-body">
-                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                      <p style={{ fontSize: 14, color: "#5a6278", lineHeight: 1.76, margin: 0 }}>
-                        {product.description || "No product description available."}
+              );
+
+            }
+          )}
+
+        </div>
+
+
+        {/* ======================================================
+            SORT
+        ====================================================== */}
+
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+          "
+        >
+
+          <span
+            className="
+              text-[9px]
+              font-semibold
+              text-slate-400
+            "
+          >
+            Showing{" "}
+            <strong className="text-slate-700">
+              {filteredReviews.length}
+            </strong>{" "}
+            reviews
+          </span>
+
+
+          <div className="relative">
+
+            <select
+              value={reviewSort}
+              onChange={(e) =>
+                setReviewSort(e.target.value)
+              }
+              aria-label="Sort reviews"
+              className="
+                h-8
+                appearance-none
+                rounded-lg
+                border
+                border-slate-200
+                bg-white
+                px-2.5
+                pr-7
+                text-[8px]
+                font-black
+                text-slate-600
+                outline-none
+                focus:border-indigo-300
+                focus:ring-2
+                focus:ring-indigo-500/10
+              "
+            >
+
+              <option value="relevant">
+                Most helpful
+              </option>
+
+              <option value="recent">
+                Newest
+              </option>
+
+              <option value="highest">
+                Highest rated
+              </option>
+
+              <option value="lowest">
+                Lowest rated
+              </option>
+
+            </select>
+
+
+            <ChevronDown
+              size={11}
+              className="
+                pointer-events-none
+                absolute
+                right-2
+                top-1/2
+                -translate-y-1/2
+                text-slate-400
+              "
+            />
+
+          </div>
+
+        </div>
+
+
+        {/* ======================================================
+            REVIEWS
+        ====================================================== */}
+
+        {filteredReviews.length > 0 ? (
+
+          <div className="space-y-3">
+
+            {filteredReviews.map(
+              (review, index) => {
+
+                const rating =
+                  Number(
+                    review?.rating || 0
+                  );
+
+                const reviewImages =
+                  getReviewImages(review);
+
+                const reviewerName =
+                  review?.reviewerName ||
+                  review?.userName ||
+                  review?.user?.name ||
+                  "Anonymous";
+
+                const avatar =
+                  review?.reviewerAvatar ||
+                  review?.user?.avatar;
+
+                const date =
+                  review?.createdAt
+                    ? new Date(
+                        review.createdAt
+                      ).toLocaleDateString(
+                        "en-IN",
+                        {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        }
+                      )
+                    : "";
+
+                return (
+
+                  <article
+                    key={
+                      review?._id || index
+                    }
+                    className="
+                      rp-card
+                      rounded-3xl
+                      bg-white/95
+                      p-4
+                      sm:p-5
+                    "
+                  >
+
+                    {/* =================================================
+                        REVIEW HEADER
+                    ================================================= */}
+
+                    <div
+                      className="
+                        flex
+                        items-start
+                        justify-between
+                        gap-3
+                      "
+                    >
+
+                      <div
+                        className="
+                          flex
+                          min-w-0
+                          items-center
+                          gap-2.5
+                        "
+                      >
+
+                        {/* Avatar */}
+
+                        {avatar ? (
+
+                          <img
+                            src={avatar}
+                            alt=""
+                            className="
+                              h-10
+                              w-10
+                              shrink-0
+                              rounded-full
+                              object-cover
+                              ring-2
+                              ring-slate-100
+                            "
+                          />
+
+                        ) : (
+
+                          <div
+                            className="
+                              flex
+                              h-10
+                              w-10
+                              shrink-0
+                              items-center
+                              justify-center
+                              rounded-full
+                              bg-gradient-to-br
+                              from-indigo-500
+                              to-violet-600
+                              text-[12px]
+                              font-black
+                              text-white
+                            "
+                          >
+                            {reviewerName
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+
+                        )}
+
+
+                        {/* User */}
+
+                      <div className="min-w-0 flex-1">
+  {/* VERIFIED + DATE */}
+  <div className="flex flex-wrap items-center gap-2">
+    {review?.verifiedPurchase && (
+      <span
+        className="
+          inline-flex
+          items-center
+          gap-1.5
+          rounded-full
+          border
+          border-emerald-100
+          bg-emerald-50
+          px-2.5
+          py-1
+          text-[8px]
+          font-extrabold
+          tracking-[-0.01em]
+          text-emerald-600
+        "
+      >
+        <span
+          className="
+            flex
+            h-3.5
+            w-3.5
+            items-center
+            justify-center
+            rounded-full
+            bg-emerald-500
+            text-white
+          "
+        >
+          <FaCheckCircle size={8} />
+        </span>
+
+        Verified Purchase
+      </span>
+    )}
+
+    {date && (
+      <>
+        <span
+          className="
+            h-1
+            w-1
+            rounded-full
+            bg-slate-300
+          "
+        />
+
+        <span
+          className="
+            text-[8px]
+            font-medium
+            text-slate-400
+          "
+        >
+          {date}
+        </span>
+      </>
+    )}
+  </div>
+
+  {/* SMALL SECONDARY INFO */}
+  <div
+    className="
+      mt-1.5
+      flex
+      items-center
+      gap-1
+      text-[7.5px]
+      font-medium
+      text-slate-400
+    "
+  >
+    <span
+      className="
+        h-1.5
+        w-1.5
+        rounded-full
+        bg-emerald-400
+      "
+    />
+
+    Genuine customer review
+  </div>
+</div>
+
+                      </div>
+
+
+                      {/* Rating */}
+
+                      <span
+                        className="
+                          inline-flex
+                          shrink-0
+                          items-center
+                          gap-1
+                          rounded-lg
+                          bg-amber-50
+                          px-2
+                          py-1.5
+                          text-[9px]
+                          font-black
+                          text-amber-600
+                        "
+                      >
+
+                        <FaStar
+                          size={8}
+                          className="text-amber-500"
+                        />
+
+                        {rating.toFixed(1)}
+
+                      </span>
+
+                    </div>
+
+
+                    {/* =================================================
+                        REVIEW STARS
+                    ================================================= */}
+
+                    <div className="mt-3">
+
+                      <Stars
+                        rating={rating}
+                        size={12}
+                      />
+
+                    </div>
+
+
+                    {/* =================================================
+                        COMMENT
+                    ================================================= */}
+
+                    {review?.comment && (
+
+                      <p
+                        className="
+                          mt-2.5
+                          text-[11px]
+                          font-medium
+                          leading-5
+                          text-slate-600
+                        "
+                      >
+                        {review.comment}
                       </p>
 
-                      {(product.shippingInformation || product.returnPolicy || product.warrantyInformation) && (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 10 }}>
-                          {[
-                            { label: "Shipping", val: product.shippingInformation, color: "#10b981" },
-                            { label: "Returns", val: product.returnPolicy, color: "#3b82f6" },
-                            { label: "Warranty", val: product.warrantyInformation, color: "#f59e0b" },
-                          ].filter(x => x.val).map(x => (
-                            <div key={x.label} className="sp-detail-item" style={{
-                              padding: "12px 14px",
-                              borderRadius: 14,
-                              background: `${x.color}0d`,
-                              border: `1px solid ${x.color}22`
-                            }}>
-                              <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: ".08em", textTransform: "uppercase", color: x.color, marginBottom: 4 }}>
-                                {x.label}
-                              </div>
-                              <div style={{ fontSize: 12.5, fontWeight: 600, color: "#374151" }}>{x.val}</div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                    )}
 
-                      {product.tags?.length > 0 && (
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                          {product.tags.map(t => <span key={t} className="spx-tag">#{t}</span>)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div> */}
 
-              {/* SPECIFICATIONS */}
-              <div className={`spx-accordion${openInfoSections.specs ? " open" : ""}`}>
-                <button
-                  type="button"
-                  className="spx-accordion-head"
-                  onClick={() => toggleInfoSection("specs")}
-                  aria-expanded={openInfoSections.specs}
-                >
-                  <span className="spx-accordion-title">
-                    <span className="spx-accordion-icon"><FaCog size={13} /></span>
-                    <span>Specifications</span>
-                  </span>
-                  <span className="spx-accordion-meta">
-                    {[...specsA, ...specsB].length} specifications
-                  </span>
-                  <ChevronDown className="spx-accordion-chevron" size={17} />
-                </button>
+                    {/* =================================================
+                        PHOTOS
+                    ================================================= */}
 
-                {openInfoSections.specs && (
-                  <div className="spx-accordion-body">
-                    <div className="spx-spec-grid">
-                      {specsA.length > 0 && (
-                        <div className="spx-spec-group">
-                          <div className="spx-spec-head">Product Identity</div>
-                          {specsA.map(r => (
-                            <div key={r.l} className="spx-spec-row">
-                              <span className="spx-spec-key">{r.l}</span>
-                              <span className="spx-spec-val">{r.v}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                    {reviewImages.length > 0 && (
 
-                      {specsB.length > 0 && (
-                        <div className="spx-spec-group">
-                          <div className="spx-spec-head">Shipping &amp; Ordering</div>
-                          {specsB.map(r => (
-                            <div key={r.l} className="spx-spec-row">
-                              <span className="spx-spec-key">{r.l}</span>
-                              <span className="spx-spec-val">{r.v}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+                      <div
+                        className="
+                          mt-3
+                          flex
+                          gap-2
+                          overflow-x-auto
+                          pb-1
+                        "
+                        style={{
+                          scrollbarWidth: "none",
+                        }}
+                      >
 
-              {/* =========================================================
-                  MODERN RATINGS & REVIEWS
-                  ========================================================= */}
-              <div className={`spx-accordion${openInfoSections.reviews ? " open" : ""}`}>
-                <button type="button" className="spx-accordion-head" onClick={() => toggleInfoSection("reviews")} aria-expanded={openInfoSections.reviews}>
-                  <span className="spx-accordion-title">
-                    <span className="spx-accordion-icon"><FaComments size={13} /></span>
-                    <span>Ratings &amp; Reviews</span>
-                  </span>
-                  <span className="spx-accordion-meta">{reviews.length} {reviews.length === 1 ? "review" : "reviews"}</span>
-                  <ChevronDown className="spx-accordion-chevron" size={17} />
-                </button>
+                        {reviewImages.map(
+                          (
+                            image,
+                            imageIndex
+                          ) => (
 
-                {openInfoSections.reviews && (
-                  <div className="spx-accordion-body">
-                    <div className="spx-reviews-modern">
-                      <div className="spx-review-hero">
-                        <div className="spx-review-score">
-                          <div className="spx-review-score-num">{avgRating}</div>
-                          <Stars rating={parseFloat(avgRating)} size={17} />
-                          <div className="spx-review-score-label">Based on {reviews.length} {reviews.length === 1 ? "review" : "reviews"}</div>
-                          {reviews.some(r => r?.verifiedPurchase) && (
-                            <span className="spx-verified" style={{marginTop:8}}><FaCheckCircle size={8}/> Verified shoppers</span>
-                          )}
-                        </div>
+                            <button
+                              key={`${review?._id || index}-image-${imageIndex}`}
+                              type="button"
+                              onClick={() => {
 
-                        <div className="spx-review-bars">
-                          {[5,4,3,2,1].map(star => {
-                            const count = reviewRatingCounts[star] || 0;
-                            const percentage = reviews.length ? Math.round((count / reviews.length) * 100) : 0;
-                            const isActive = reviewRatingFilter === String(star);
-                            return (
-                              <button key={star} type="button" className="spx-review-bar" onClick={() => setReviewRatingFilter(isActive ? "all" : String(star))} aria-pressed={isActive}>
-                                <span className="spx-review-bar-label">{star}★</span>
-                                <span className="spx-review-bar-track"><span className="spx-review-bar-fill" style={{width:`${percentage}%`}} /></span>
-                                <span className="spx-review-bar-count">{count}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                                setSelectedReview(
+                                  review
+                                );
 
-                      <div className="spx-review-toolbar">
-                        <div className="spx-review-filter-scroll">
-                          {[
-                            ["all", "All", reviews.length],
-                            ["photos", "📷 Photos", reviews.filter(r => getReviewImages(r).length > 0).length],
-                            ["5", "★ 5", reviewRatingCounts[5]],
-                            ["4", "★ 4", reviewRatingCounts[4]],
-                            ["3", "★ 3", reviewRatingCounts[3]],
-                            ["2", "★ 2", reviewRatingCounts[2]],
-                            ["1", "★ 1", reviewRatingCounts[1]],
-                          ].map(([value,label,count]) => (
-                            <button key={value} type="button" className={`spx-review-chip${reviewRatingFilter === value ? " on" : ""}`} onClick={() => setReviewRatingFilter(value)} aria-pressed={reviewRatingFilter === value}>
-                              {label} <span style={{opacity:.65}}>{count}</span>
+                                setGalleryImages(
+                                  reviewImages
+                                );
+
+                                setCurrentIndex(
+                                  imageIndex
+                                );
+
+                                setSelectedImage(
+                                  image
+                                );
+
+                                onOpen();
+
+                              }}
+                              aria-label={`Open review photo ${
+                                imageIndex + 1
+                              }`}
+                              className="
+                                rp-photo
+                                group/photo
+                                relative
+                                h-[82px]
+                                w-[82px]
+                                shrink-0
+                                overflow-hidden
+                                rounded-2xl
+                                border
+                                border-white
+                                bg-slate-100
+                                shadow-sm
+                                outline-none
+                                transition
+                                hover:scale-[1.03]
+                                hover:border-indigo-200
+                                hover:shadow-md
+                                focus:ring-2
+                                focus:ring-indigo-500/30
+                              "
+                            >
+
+                              <img
+                                src={image}
+                                alt={`Review ${
+                                  imageIndex + 1
+                                }`}
+                                className="
+                                  h-full
+                                  w-full
+                                  object-cover
+                                  transition-transform
+                                  duration-500
+                                  group-hover/photo:scale-110
+                                "
+                              />
+
+
+                              <span
+                                className="
+                                  pointer-events-none
+                                  absolute
+                                  inset-0
+                                  bg-black/0
+                                  transition
+                                  group-hover/photo:bg-black/10
+                                "
+                              />
+
                             </button>
-                          ))}
-                        </div>
-                        <select className="spx-review-sort" value={reviewSort} onChange={(e) => setReviewSort(e.target.value)} aria-label="Sort reviews">
-                          <option value="relevant">Most helpful</option>
-                          <option value="recent">Newest</option>
-                          <option value="highest">Highest rated</option>
-                          <option value="lowest">Lowest rated</option>
-                        </select>
-                      </div>
 
-                      <div className="spx-review-countline">
-                        <span>{filteredReviews.length} {filteredReviews.length === 1 ? "review" : "reviews"} shown</span>
-                        {reviewRatingFilter !== "all" && (
-                          <button type="button" onClick={() => setReviewRatingFilter("all")} style={{border:0,background:"transparent",color:"#4f46e5",fontSize:10,fontWeight:850,cursor:"pointer"}}>Clear filter</button>
+                          )
                         )}
+
                       </div>
 
-                      {filteredReviews.length > 0 ? (
-                        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                          {filteredReviews.map((review,index) => {
-                            const rating = Number(review?.rating || 0);
-                            const reviewImages = getReviewImages(review);
-                            const reviewerName = review?.reviewerName || review?.userName || review?.user?.name || "Anonymous";
-                            const avatar = review?.reviewerAvatar || review?.user?.avatar;
-                            const date = review?.createdAt ? new Date(review.createdAt).toLocaleDateString("en-IN", {day:"numeric",month:"short",year:"numeric"}) : "";
-                            return (
-                              <article key={review?._id || index} className="spx-modern-review">
-                                <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start"}}>
-                                  <div className="spx-review-user">
-                                    {avatar ? <img className="spx-review-avatar" src={avatar} alt="" /> : <div className="spx-review-avatar spx-review-avatar-fallback">{reviewerName.charAt(0).toUpperCase()}</div>}
-                                    <div style={{minWidth:0}}>
-                                      <div className="spx-review-name">{reviewerName}</div>
-                                      <div className="spx-review-meta">
-                                        {review?.verifiedPurchase && <span className="spx-verified"><FaCheckCircle size={8}/> Verified Purchase</span>}
-                                        {date && <span className="spx-review-date">{date}</span>}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <span className="spx-review-rating-pill"><FaStar size={9}/> {rating.toFixed(1)}</span>
-                                </div>
+                    )}
 
-                                <div style={{marginTop:9}}><Stars rating={rating} size={12}/></div>
 
-                                {review?.comment && <p className="spx-review-comment">{review.comment}</p>}
+                    {/* =================================================
+                        ACTION BAR
+                    ================================================= */}
 
-                                {reviewImages.length > 0 && (
-                                  <div className="spx-review-photos">
-                                    {reviewImages.map((image,imageIndex) => (
-                                      <button key={`${review?._id || index}-image-${imageIndex}`} type="button" className="spx-review-photo" onClick={() => { setSelectedReview(review); setGalleryImages(reviewImages); setCurrentIndex(imageIndex); setSelectedImage(image); onOpen(); }} aria-label={`Open review photo ${imageIndex+1}`}>
-                                        <img src={image} alt={`Review ${imageIndex+1}`} />
-                                        {imageIndex === reviewImages.length - 1 && reviewImages.length > 1 && <span className="spx-review-photo-more">{reviewImages.length} photos</span>}
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
+                    <div
+                      className="
+                        mt-4
+                        flex
+                        items-center
+                        gap-2
+                        border-t
+                        border-slate-100
+                        pt-3
+                      "
+                    >
 
-                                <div className="spx-review-actions">
-                                  <span className="spx-review-actions-label">Helpful?</span>
-                                  <button type="button" onClick={() => toggleLike(review._id,"like")} className="spx-lb"><FaThumbsUp size={9}/> Helpful <span>{review?.likesCount || 0}</span></button>
-                                  <button type="button" onClick={() => toggleLike(review._id,"dislike")} className="spx-lb"><FaThumbsDown size={9}/> <span>{review?.dislikesCount || 0}</span></button>
-                                  {review?.isOwner && <button type="button" onClick={() => deleteReview(review._id)} className="spx-lb" style={{marginLeft:"auto",color:"#dc2626"}}><FaTrash size={9}/> Delete</button>}
-                                </div>
-                              </article>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="spx-review-empty">
-                          <FaRegStar size={28} color="#a5b4fc" />
-                          <div style={{marginTop:9,fontSize:13,fontWeight:850,color:"#334155"}}>{reviews.length === 0 ? "No reviews yet" : "No reviews match this filter"}</div>
-                          <p style={{margin:"6px auto 0",maxWidth:320,fontSize:11,color:"#94a3b8",lineHeight:1.55}}>Be the first to share your experience and help other shoppers make a confident choice.</p>
-                          {reviews.length > 0 && <button type="button" onClick={() => setReviewRatingFilter("all")} style={{marginTop:10,border:0,background:"#eef2ff",color:"#4338ca",padding:"8px 12px",borderRadius:9,fontSize:10,fontWeight:850,cursor:"pointer"}}>Show all reviews</button>}
-                        </div>
+                      <span
+                        className="
+                          mr-1
+                          text-[9px]
+                          font-semibold
+                          text-slate-400
+                        "
+                      >
+                        Helpful?
+                      </span>
+
+
+                      {/* Like */}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          toggleLike(
+                            review._id,
+                            "like"
+                          )
+                        }
+                        className="
+                          inline-flex
+                          h-8
+                          items-center
+                          gap-1.5
+                          rounded-lg
+                          border
+                          border-slate-200
+                          bg-white
+                          px-2.5
+                          text-[9px]
+                          font-bold
+                          text-slate-500
+                          transition
+                          hover:border-indigo-200
+                          hover:bg-indigo-50
+                          hover:text-indigo-600
+                          active:scale-95
+                        "
+                      >
+
+                        <FaThumbsUp size={9} />
+
+                        Helpful
+
+                        <span
+                          className="
+                            rounded-md
+                            bg-slate-100
+                            px-1
+                            text-[8px]
+                            text-slate-400
+                          "
+                        >
+                          {review?.likesCount ||
+                            0}
+                        </span>
+
+                      </button>
+
+
+                      {/* Dislike */}
+
+                   
+
+                      {/* Delete */}
+
+                      {review?.isOwner && (
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            deleteReview(
+                              review._id
+                            )
+                          }
+                          className="
+                            ml-auto
+                            inline-flex
+                            h-8
+                            items-center
+                            gap-1.5
+                            rounded-lg
+                            border
+                            border-rose-100
+                            bg-rose-50
+                            px-2.5
+                            text-[9px]
+                            font-bold
+                            text-rose-500
+                            transition
+                            hover:bg-rose-100
+                            active:scale-95
+                          "
+                        >
+
+                          <FaTrash size={8} />
+
+                          Delete
+
+                        </button>
+
                       )}
 
-                      {reviews.length > 0 && (
-                        <button type="button" className="spx-view-all-reviews" onClick={() => navigate(`/product/${product._id}/reviews`)}>View all {reviews.length} reviews <span aria-hidden="true">→</span></button>
-                      )}
                     </div>
-                  </div>
-                )}
-              </div>
 
+                  </article>
+
+                );
+
+              }
+            )}
+
+          </div>
+
+        ) : (
+
+          /* ======================================================
+             EMPTY STATE
+          ====================================================== */
+
+          <div
+            className="
+              rounded-2xl
+              border
+              border-dashed
+              border-slate-200
+              bg-slate-50/50
+              px-5
+              py-10
+              text-center
+            "
+          >
+
+            <div
+              className="
+                mx-auto
+                flex
+                h-14
+                w-14
+                items-center
+                justify-center
+                rounded-2xl
+                bg-indigo-50
+                text-indigo-300
+              "
+            >
+              <FaRegStar size={24} />
             </div>
+
+
+            <div
+              className="
+                mt-3
+                text-[12px]
+                font-black
+                text-slate-700
+              "
+            >
+              {reviews.length === 0
+                ? "No reviews yet"
+                : "No reviews match this filter"}
+            </div>
+
+
+            <p
+              className="
+                mx-auto
+                mt-1.5
+                max-w-[320px]
+                text-[9px]
+                font-medium
+                leading-5
+                text-slate-400
+              "
+            >
+              {reviews.length === 0
+                ? "Be the first to share your experience."
+                : "Try another rating filter."}
+            </p>
+
+
+            {reviews.length > 0 && (
+
+              <button
+                type="button"
+                onClick={() =>
+                  setReviewRatingFilter("all")
+                }
+                className="
+                  mt-3
+                  rounded-lg
+                  bg-indigo-50
+                  px-3
+                  py-2
+                  text-[9px]
+                  font-black
+                  text-indigo-600
+                  transition
+                  hover:bg-indigo-100
+                "
+              >
+                Show all reviews
+              </button>
+
+            )}
+
+          </div>
+
+        )}
+
+
+        {/* ======================================================
+            VIEW ALL
+        ====================================================== */}
+
+        {reviews.length > 0 && (
+
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                `/product/${product._id}/reviews`
+              )
+            }
+            className="
+              rp-btn
+              group
+              relative
+              flex
+              h-11
+              w-full
+              items-center
+              justify-center
+              gap-2
+              overflow-hidden
+              rounded-xl
+              border
+              border-indigo-100
+              bg-indigo-50
+              text-[9px]
+              font-black
+              text-indigo-600
+              transition
+              hover:border-indigo-200
+              hover:bg-indigo-100
+              active:scale-[0.99]
+            "
+          >
+
+            {/* Shine */}
+
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                left-[-60%]
+                w-[30%]
+                -skew-x-[20deg]
+                bg-gradient-to-r
+                from-transparent
+                via-white/80
+                to-transparent
+                transition-all
+                duration-700
+                group-hover:left-[130%]
+              "
+            />
+
+            <span className="relative z-10">
+              View all {reviews.length} reviews
+            </span>
+
+            <span
+              className="
+                relative
+                z-10
+                transition-transform
+                group-hover:translate-x-1
+              "
+            >
+              →
+            </span>
+
+          </button>
+
+        )}
+
+      </div>
+
+    </div>
+
+  )}
+
+</div>
+
+  </div>
+
+</div>
 
           </div>
           {/* end right */}
@@ -3617,16 +6227,124 @@ const handleMouseLeave = useCallback(() => {
         )}
 
         {/* ── Mobile sticky purchase bar ── */}
-        <div className="sp-mobile-buybar">
-          <button type="button" className="sp-mobile-cart" onClick={handleCart}>
-            <FaShoppingCart size={17} />
-            <span>{isInCart ? "Go to Cart" : "Add to Cart"}</span>
-          </button>
-          <button type="button" className="sp-mobile-buy" onClick={handleBuyNow}>
-            <span>Buy Now</span>
-            <span className="sp-mobile-buy-price">₹{finalPrice.toLocaleString("en-IN")}</span>
-          </button>
-        </div>
+        
+<div
+  className="
+    sp-mobile-buybar fixed inset-x-0 bottom-0 z-[120]
+    flex items-center gap-2
+    border-t border-slate-200/80
+    bg-white/95 px-3 pt-2.5
+    pb-[calc(10px+env(safe-area-inset-bottom))]
+    shadow-[0_-8px_30px_rgba(15,23,42,0.10)]
+    backdrop-blur-xl
+  "
+>
+  {/* Add to Cart */}
+  <button
+    type="button"
+    onClick={handleCart}
+    className={`
+      group flex h-[39px] flex-1 items-center justify-center
+      gap-2 rounded-xl border px-3
+      text-[12px] font-extrabold
+      transition-all duration-200
+      active:scale-[0.97]
+      focus:outline-none focus:ring-2 focus:ring-indigo-500/20
+      ${
+        isInCart
+          ? `
+            border-indigo-200 bg-indigo-50
+            text-indigo-700
+            hover:bg-indigo-100
+          `
+          : `
+            border-indigo-200 bg-white
+            text-indigo-600
+            shadow-sm
+            hover:border-indigo-300
+            hover:bg-indigo-50
+          `
+      }
+    `}
+  >
+    <span
+      className="
+        flex h-8 w-8 shrink-0 items-center justify-center
+        rounded-lg bg-indigo-50
+        transition-transform duration-200
+        group-hover:scale-105
+      "
+    >
+      <FaShoppingCart size={15} />
+    </span>
+
+    <span className="truncate">
+      {isInCart ? "Go to Cart" : "Add to Cart"}
+    </span>
+  </button>
+
+  {/* Buy Now */}
+  <button
+    type="button"
+    onClick={handleBuyNow}
+    className="
+      group relative flex h-[39px] flex-[1.25]
+      items-center justify-center flex-row gap-2
+      overflow-hidden rounded-xl
+      bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600
+      px-3 text-white
+      shadow-lg shadow-indigo-500/25
+      transition-all duration-200
+      hover:shadow-xl hover:shadow-indigo-500/30
+      active:scale-[0.97]
+      focus:outline-none
+      focus:ring-2 focus:ring-indigo-500/30
+    "
+  >
+    {/* Animated shine */}
+    <span
+      className="
+        pointer-events-none absolute inset-y-0 left-[-80%]
+        w-[45%] skew-x-[-20deg]
+        bg-gradient-to-r
+        from-transparent via-white/25 to-transparent
+        transition-all duration-700
+        group-hover:left-[130%]
+      "
+    />
+
+    {/* Lightning icon */}
+    <span
+      className="
+        relative flex  shrink-0
+        items-center justify-center
+        ring-white/20
+        backdrop-blur-sm 
+      "
+    >
+      <BsLightningCharge
+        size={16}
+        className="
+          text-white
+          transition-transform duration-200
+          group-hover:scale-110
+        "
+      />
+    </span>
+
+    <span className="relative flex flex-row gap-1.5 justify-center items-start leading-none">
+      <span className="text-[12px] font-extrabold">
+        Buy Now
+      </span>
+
+      <span className="pt-0.5 text-[10px] font-semibold text-white/80">
+        ₹{finalPrice.toLocaleString("en-IN")}
+      </span>
+    </span>
+  </button>
+</div>
+
+
 
       </div>
       <Modal
