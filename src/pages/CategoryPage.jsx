@@ -591,12 +591,12 @@ function ProductCard({ product, index }) {
         </span>
       </div>
 
-      <div className="px-1 pb-1 pt-2.5">
+      <div className="px-1  pt-0.5">
         <h3 className="line-clamp-2 min-h-[34px] text-[12px] font-bold leading-[17px] text-slate-800 sm:text-[13px]">
           {name}
         </h3>
 
-        <div className="mt-2 flex min-w-0 items-baseline gap-1.5">
+        <div className="flex min-w-0 items-baseline gap-1.5">
           <strong className="text-[14px] font-extrabold text-slate-950 sm:text-[15px]">
             {formatPrice(price)}
           </strong>
@@ -772,7 +772,7 @@ export default function CategoryPage() {
   if (loading) return <CategorySkeleton />;
 
   return (
-    <div className="min-h-screen w-full overflow-hidden bg-gradient-to-br from-violet-50/50 via-indigo-50/30 to-blue-50/50 text-slate-900">
+    <div className="min-h-screen mt-3 w-full overflow-hidden bg-gradient-to-br from-violet-50/50 via-indigo-50/30 to-blue-50/50 text-slate-900">
     
       <div className="mx-auto grid h-[calc(100vh-68px)] min-h-0 max-w-[1500px] grid-cols-[92px_minmax(0,1fr)] gap-2 overflow-hidden px-2 py-2 sm:h-[calc(100vh-74px)] sm:grid-cols-[108px_minmax(0,1fr)] sm:gap-3 sm:px-3 sm:py-3 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-4 lg:px-5 lg:py-4">
         {/* LEFT: independently scrollable category rail */}

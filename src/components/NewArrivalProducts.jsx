@@ -1423,51 +1423,7 @@ export default function NewArrivalProducts() {
 
                       {images.length > 1 && (
                         <>
-                          <div className="na-dots">
-
-                            {images.map(
-                              (
-                                _,
-                                imageIndex
-                              ) => (
-
-                                <button
-                                  key={
-                                    imageIndex
-                                  }
-
-                                  type="button"
-
-                                  aria-label={`Show image ${
-                                    imageIndex + 1
-                                  }`}
-
-                                  className={`
-                                    na-dot
-                                    ${
-                                      activeIdx ===
-                                      imageIndex
-                                        ? "active"
-                                        : ""
-                                    }
-                                  `}
-
-                                  onClick={(
-                                    event
-                                  ) =>
-                                    goToImage(
-                                      event,
-                                      product._id,
-                                      imageIndex
-                                    )
-                                  }
-                                />
-
-                              )
-                            )}
-
-                          </div>
-
+f
                           {/* IMAGE COUNT */}
 
                           <div className="na-count">

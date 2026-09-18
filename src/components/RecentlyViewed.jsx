@@ -1018,8 +1018,8 @@ export default function RecentlyViewed() {
           padding: 5px 9px;
           border: 1px solid rgba(255,255,255,.28);
           border-radius: 999px;
-          background: rgba(15,23,42,.68);
-          color: white;
+          background: transparent;
+          color:indigo;
           font-size: 8.5px;
           font-weight: 800;
           letter-spacing: .04em;
@@ -1032,9 +1032,9 @@ export default function RecentlyViewed() {
           left: 11px;
           bottom: 11px;
           z-index: 15;
-          padding: 5px 9px;
+          padding: 1px 6px;
           border-radius: 999px;
-          background: rgba(16,185,129,.94);
+          background: indigo;
           color: white;
           font-size: 9px;
           font-weight: 800;
@@ -1098,7 +1098,7 @@ export default function RecentlyViewed() {
         }
 
         .rv-title {
-          min-height: 32px;
+          // min-height: 32px;
           margin: 0;
           color: #0f172a;
           font-size: 12px;
@@ -1423,41 +1423,7 @@ export default function RecentlyViewed() {
 
                     <>
 
-                      <div
-                        className="rv-dots"
-                        aria-label="Product images"
-                      >
-
-                        {images.map(
-                          (_, index) => (
-
-                            <button
-                              key={index}
-                              type="button"
-
-                              aria-label={`Show image ${
-                                index + 1
-                              }`}
-
-                              className={`rv-dot ${
-                                activeIdx === index
-                                  ? "active"
-                                  : ""
-                              }`}
-
-                              onClick={(event) =>
-                                goToImage(
-                                  event,
-                                  product._id,
-                                  index
-                                )
-                              }
-                            />
-
-                          )
-                        )}
-
-                      </div>
+                    
 
 
                       <div className="rv-count">

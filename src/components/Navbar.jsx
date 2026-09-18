@@ -1698,9 +1698,9 @@ const reverseGeocode = async (lat, lng) => {
                 e.stopPropagation();
                 onOpen();
               }}
-              className="group flex min-w-0 flex-1 items-center gap-2 rounded-2xl px-2 py-1.5 text-left transition-all duration-200 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+              className="group flex min-w-0 flex-1 items-center gap-2 rounded-2xl px-2 py-1.5 text-left transition-all duration-200 hover:bg-slate-50 focus:outline-none"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-100">
+              <span className="flex shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-100">
                 <MapPin size={18} />
               </span>
 
@@ -1725,7 +1725,7 @@ const reverseGeocode = async (lat, lng) => {
                 type="button"
                 onClick={openSearchPage}
                 aria-label="Search products"
-                className="odikart-icon-btn flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/70 bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                className="odikart-icon-btn flex h-10 w-10 items-center justify-center rounded-xl  bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none"
               >
                 <Search size={20} />
               </button>
@@ -1735,7 +1735,7 @@ const reverseGeocode = async (lat, lng) => {
               <Link
                 to="/cart"
                 aria-label="Cart"
-                className="odikart-icon-btn relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/70 bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
+                className="odikart-icon-btn relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
               >
                 <ShoppingCart size={20} />
 
@@ -2310,7 +2310,7 @@ const reverseGeocode = async (lat, lng) => {
       ================================================= */}
 
       <div
-        className="fixed inset-x-2 bottom-2 z-40 rounded-[24px] border border-white/80 bg-white/90 shadow-[0_12px_45px_rgba(15,23,42,0.16)] backdrop-blur-2xl sm:hidden"
+        className="fixed inset-x-2 bottom-1 z-40 rounded-[24px] border border-white/80 bg-white/90 shadow-[0_12px_45px_rgba(15,23,42,0.16)] backdrop-blur-2xl sm:hidden"
         style={{
           transform:
             showBottomNav

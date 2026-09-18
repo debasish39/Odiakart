@@ -3,63 +3,103 @@ import {
   FaArrowLeft,
   FaSearch,
 } from "react-icons/fa";
-import { ShoppingCart } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import {
+  ShoppingCart,
+} from "lucide-react";
+import {
+  useNavigate,
+} from "react-router-dom";
 
 import { useCart } from "../context/CartContext";
-import { getData } from "../context/DataContext";
 
 export default function SearchNavbar() {
   const navigate = useNavigate();
 
   const { cartCount = 0 } = useCart();
 
-  const {
-    search,
-    setSearch,
-  } = getData();
+  // ============================================================
+  // STATES
+  // ============================================================
 
-  // Navbar show / hide state
   const [showNavbar, setShowNavbar] = useState(true);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
-  // --------------------------------------------------
-  // HIDE NAVBAR ON SCROLL DOWN
-  // SHOW NAVBAR ON SCROLL UP
-  // --------------------------------------------------
+  // ============================================================
+  // NAVBAR SCROLL BEHAVIOR + PROGRESS
+  // ============================================================
+
   useEffect(() => {
     let lastScrollY = window.scrollY;
+    let ticking = false;
 
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+      if (ticking) return;
 
-      // Always show navbar at the top
-      if (currentScrollY <= 10) {
-        setShowNavbar(true);
+      ticking = true;
+
+      window.requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+
+        // --------------------------------------------------------
+        // SCROLL PROGRESS
+        // --------------------------------------------------------
+
+        const documentHeight =
+          document.documentElement.scrollHeight -
+          window.innerHeight;
+
+        const progress =
+          documentHeight > 0
+            ? Math.min(
+                (currentScrollY / documentHeight) * 100,
+                100
+              )
+            : 0;
+
+        setScrollProgress(progress);
+
+        // --------------------------------------------------------
+        // ALWAYS SHOW NAVBAR AT TOP
+        // --------------------------------------------------------
+
+        if (currentScrollY <= 10) {
+          setShowNavbar(true);
+
+          lastScrollY = currentScrollY;
+          ticking = false;
+
+          return;
+        }
+
+        // --------------------------------------------------------
+        // SCROLLING DOWN
+        // --------------------------------------------------------
+
+        if (
+          currentScrollY > lastScrollY &&
+          currentScrollY > 80
+        ) {
+          setShowNavbar(false);
+        }
+
+        // --------------------------------------------------------
+        // SCROLLING UP
+        // --------------------------------------------------------
+
+        if (currentScrollY < lastScrollY) {
+          setShowNavbar(true);
+        }
+
         lastScrollY = currentScrollY;
-        return;
-      }
-
-      // Scrolling down
-      if (
-        currentScrollY > lastScrollY &&
-        currentScrollY > 60
-      ) {
-        setShowNavbar(false);
-      }
-
-      // Scrolling up
-      if (currentScrollY < lastScrollY) {
-        setShowNavbar(true);
-      }
-
-      lastScrollY = currentScrollY;
+        ticking = false;
+      });
     };
 
-    window.addEventListener(
-      "scroll",
-      handleScroll,
-      { passive: true }
-    );
+    window.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+
+    handleScroll();
 
     return () => {
       window.removeEventListener(
@@ -69,26 +109,10 @@ export default function SearchNavbar() {
     };
   }, []);
 
-  // --------------------------------------------------
-  // SEARCH
-  // --------------------------------------------------
-  const handleSearch = (e) => {
-    const value = e.target.value;
-
-    setSearch(value);
-
-    navigate(
-      value.trim()
-        ? `/search?search=${encodeURIComponent(
-            value.trim()
-          )}`
-        : "/search"
-    );
-  };
-
-  // --------------------------------------------------
+  // ============================================================
   // BACK
-  // --------------------------------------------------
+  // ============================================================
+
   const goBack = () => {
     if (window.history.length > 1) {
       navigate(-1);
@@ -97,9 +121,18 @@ export default function SearchNavbar() {
     }
   };
 
-  // --------------------------------------------------
+  // ============================================================
+  // OPEN SEARCH PAGE
+  // ============================================================
+
+  const openSearch = () => {
+    navigate("/search");
+  };
+
+  // ============================================================
   // CART
-  // --------------------------------------------------
+  // ============================================================
+
   const openCart = () => {
     navigate("/cart");
   };
@@ -111,221 +144,443 @@ export default function SearchNavbar() {
         left-0
         right-0
         top-0
-        z-50
-        border-b
-        border-slate-200/70
-        bg-white/80
-        shadow-sm
-        backdrop-blur-xl
-        transition-transform
-        duration-300
-        ease-in-out
+        z-[999]
+
+        transition-all
+        duration-500
+        ease-[cubic-bezier(0.22,1,0.36,1)]
+
         ${
           showNavbar
-            ? "translate-y-0"
-            : "-translate-y-full"
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-full opacity-0"
         }
       `}
     >
-      <div
-        className="
-          mx-auto
-          flex
-          h-16
-          max-w-7xl
-          items-center
-          gap-2
-          px-3
-          sm:gap-3
-          sm:px-5
-          lg:px-6
-        "
-      >
+      {/* ========================================================
+          OUTER SPACING
+      ======================================================== */}
 
-        {/* ==========================================
-            BACK BUTTON
-        ========================================== */}
-        <button
-          type="button"
-          onClick={goBack}
-          aria-label="Go back"
-          className="
-            group
-            flex
-            h-10
-            w-10
-            shrink-0
-            items-center
-            justify-center
-            rounded-xl
-            border
-            border-transparent
-            text-slate-600
-            transition-all
-            duration-200
-            hover:border-slate-200
-            hover:bg-slate-100
-            hover:text-indigo-700
-            active:scale-95
-          "
-        >
-          <FaArrowLeft
-            size={13}
-            className="
-              transition-transform
-              duration-200
-              group-hover:-translate-x-0.5
-            "
-          />
-        </button>
+      <div className="px-2 pt-2 sm:px-4 sm:pt-3 lg:px-6">
+        {/* ======================================================
+            MODERN GLASS NAVBAR
+        ====================================================== */}
 
-        {/* ==========================================
-            SEARCH BAR
-        ========================================== */}
         <div
           className="
-            group
+            relative
+
+            mx-auto
             flex
-            h-11
-            min-w-0
-            flex-1
+
+            h-[60px]
+            max-w-7xl
+
             items-center
-            gap-2.5
+            justify-between
+
             rounded-2xl
+
             border
-            border-slate-200
-            bg-slate-50/80
-            px-3.5
-            shadow-sm
-            transition-all
-            duration-200
-            focus-within:border-indigo-300
-            focus-within:bg-white
-            focus-within:shadow-[0_0_0_4px_rgba(99,102,241,0.08)]
-            sm:px-4
+            border-white/70
+
+            bg-white/85
+
+            px-2.5
+
+            shadow-[0_8px_30px_rgba(15,23,42,0.08)]
+
+            backdrop-blur-2xl
+            backdrop-saturate-150
+
+            sm:h-[64px]
+            sm:px-3
+
+            lg:px-4
           "
         >
-          {/* SEARCH ICON */}
-          <FaSearch
-            size={13}
-            className="
-              shrink-0
-              text-slate-400
-              transition-colors
-              duration-200
-              group-focus-within:text-indigo-500
-            "
-          />
+          {/* ====================================================
+              SCROLL PROGRESS
+          ==================================================== */}
 
-          {/* SEARCH INPUT */}
-          <input
-            type="text"
-            value={search}
-            onChange={handleSearch}
-            placeholder="Search products, brands & categories"
+          <div
             className="
-              min-w-0
-              w-full
-              bg-transparent
-              text-sm
-              font-medium
-              text-slate-800
-              placeholder:text-slate-400
-              outline-none
-              sm:text-[15px]
-            "
-          />
+              pointer-events-none
 
-          {/* SEARCH LABEL */}
-          <span
-            className="
-              hidden
-              shrink-0
-              items-center
-              rounded-lg
-              border
-              border-slate-200
-              bg-white
-              px-2
-              py-1
-              text-[10px]
-              font-semibold
-              text-slate-400
-              shadow-sm
-              md:flex
+              absolute
+              left-4
+              right-4
+              top-0
+
+              h-[2px]
+
+              overflow-hidden
+
+              rounded-full
+
+              bg-slate-100
             "
           >
-            Search
-          </span>
-        </div>
-
-        {/* ==========================================
-            CART BUTTON
-        ========================================== */}
-        <button
-          type="button"
-          onClick={openCart}
-          aria-label="Shopping cart"
-          className="
-            group
-            relative
-            flex
-            h-11
-            w-11
-            shrink-0
-            items-center
-            justify-center
-            rounded-xl
-            border
-            border-transparent
-            text-indigo-900
-            transition-all
-            duration-200
-            hover:border-indigo-100
-            hover:bg-indigo-50
-            active:scale-95
-          "
-        >
-          {/* CART ICON */}
-          <ShoppingCart
-            size={19}
-            strokeWidth={2}
-            className="
-              transition-transform
-              duration-200
-              group-hover:scale-105
-            "
-          />
-
-          {/* CART COUNT */}
-          {Number(cartCount) > 0 && (
-            <span
+            <div
               className="
-                absolute
-                -right-1
-                -top-1
+                h-full
+
+                rounded-full
+
+                bg-gradient-to-r
+                from-indigo-500
+                via-violet-500
+                to-purple-500
+
+                transition-[width]
+                duration-150
+              "
+              style={{
+                width: `${scrollProgress}%`,
+              }}
+            />
+          </div>
+
+          {/* ====================================================
+              LEFT SIDE
+          ==================================================== */}
+
+          <div className="flex items-center">
+            {/* ==================================================
+                BACK BUTTON
+            ================================================== */}
+
+            <button
+              type="button"
+              onClick={goBack}
+              aria-label="Go back"
+              title="Go back"
+              className="
+                group
+
+                relative
+
                 flex
-                h-[19px]
-                min-w-[19px]
+                h-10
+                w-10
+
                 items-center
                 justify-center
-                rounded-full
-                bg-indigo-600
-                px-1
-                text-[9px]
-                font-bold
-                text-white
-                shadow-md
-                ring-2
-                ring-white
+
+                overflow-hidden
+
+                rounded-xl
+
+                border
+                border-transparent
+
+                text-slate-600
+
+                transition-all
+                duration-300
+
+                hover:border-slate-200
+                hover:bg-slate-100
+                hover:text-indigo-600
+
+                active:scale-90
+
+                focus:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-indigo-500
+                focus-visible:ring-offset-2
+
+                sm:h-11
+                sm:w-11
               "
             >
-              {Number(cartCount) > 99
-                ? "99+"
-                : cartCount}
-            </span>
-          )}
-        </button>
+              {/* Hover shine */}
+
+              <span
+                className="
+                  pointer-events-none
+
+                  absolute
+                  inset-0
+
+                  -translate-x-full
+
+                  bg-gradient-to-r
+                  from-transparent
+                  via-white/80
+                  to-transparent
+
+                  transition-transform
+                  duration-500
+
+                  group-hover:translate-x-full
+                "
+              />
+
+              <FaArrowLeft
+                size={14}
+                className="
+                  relative
+                  z-10
+
+                  transition-all
+                  duration-300
+                  ease-out
+
+                  group-hover:-translate-x-1
+                "
+              />
+            </button>
+          </div>
+
+          {/* ====================================================
+              CENTER SEARCH BUTTON
+          ==================================================== */}
+
+          {/* ====================================================
+              RIGHT SIDE
+          ==================================================== */}
+
+         {/* ====================================================
+    RIGHT SIDE
+==================================================== */}
+
+<div className="flex items-center gap-1 sm:gap-2">
+
+  {/* ==================================================
+      SEARCH BUTTON
+  ================================================== */}
+
+  <button
+    type="button"
+    onClick={openSearch}
+    aria-label="Search products"
+    title="Search products"
+    className="
+      group
+
+      relative
+
+      flex
+      h-10
+      w-10
+      shrink-0
+
+      items-center
+      justify-center
+
+      overflow-hidden
+
+      text-slate-600
+
+      rounded-xl
+
+      transition-all
+      duration-300
+
+      hover:border-indigo-200
+      hover:bg-indigo-50
+      hover:text-indigo-600
+
+      hover:shadow-[0_6px_20px_rgba(79,70,229,0.12)]
+
+      active:scale-90
+
+      
+      focus-visible:ring-indigo-500
+      focus-visible:ring-offset-2
+
+      sm:h-11
+      sm:w-11
+    "
+  >
+    {/* Search glow */}
+
+    <span
+      className="
+        pointer-events-none
+
+        absolute
+        inset-1
+
+        rounded-lg
+bg-indigo-500/10
+
+        opacity-0
+        blur-md
+
+        transition-opacity
+        duration-300
+
+        group-hover:opacity-100
+      "
+    />
+
+    {/* Search icon */}
+
+    <FaSearch
+      size={18}
+      className="
+        relative
+        z-10
+
+        transition-all
+        duration-300
+
+        group-hover:scale-110
+        group-hover:-rotate-3
+      "
+    />
+  </button>
+
+
+  {/* ==================================================
+      CART BUTTON
+  ================================================== */}
+
+  <button
+    type="button"
+    onClick={openCart}
+    aria-label={`Shopping cart${
+      Number(cartCount) > 0
+        ? `, ${cartCount} items`
+        : ""
+    }`}
+    title="Shopping cart"
+    className="
+      group
+
+      relative
+
+      flex
+      h-10
+      w-10
+      shrink-0
+
+      items-center
+      justify-center
+
+      rounded-xl
+
+      border
+      border-transparent
+
+      text-slate-700
+
+      transition-all
+      duration-300
+
+      hover:border-indigo-100
+      hover:bg-indigo-50
+      hover:text-indigo-600
+
+      active:scale-90
+
+      focus:outline-none
+      focus-visible:ring-2
+      focus-visible:ring-indigo-500
+      focus-visible:ring-offset-2
+
+      sm:h-11
+      sm:w-11
+    "
+  >
+    {/* Cart glow */}
+
+    <span
+      className="
+        pointer-events-none
+
+        absolute
+        inset-1
+
+        rounded-lg
+
+        bg-indigo-500/10
+
+        opacity-0
+        blur-md
+
+        transition-opacity
+        duration-300
+
+        group-hover:opacity-100
+      "
+    />
+
+    {/* Cart */}
+
+    <ShoppingCart
+      size={21}
+      strokeWidth={2.1}
+      className="
+        relative
+        z-10
+
+        transition-all
+        duration-300
+
+        group-hover:-translate-y-0.5
+        group-hover:scale-110
+      "
+    />
+
+    {/* Cart count */}
+
+    {Number(cartCount) > 0 && (
+      <span
+        className="
+          absolute
+          
+          -right-0.5
+          -top-0.5
+
+          z-20
+
+          flex
+          h-[19px]
+          min-w-[19px]
+
+          items-center
+          justify-center
+
+          rounded-full
+
+          border-2
+          border-white
+
+          bg-gradient-to-br
+          from-indigo-500
+          to-violet-600
+
+          px-1
+
+          text-[8px]
+          font-extrabold
+          leading-none
+          text-white
+
+          shadow-[0_3px_10px_rgba(79,70,229,0.30)]
+
+          transition-transform
+          duration-300
+
+          group-hover:scale-110
+
+          sm:h-5
+          sm:min-w-5
+          sm:text-[9px]
+        "
+      >
+        {Number(cartCount) > 99
+          ? "99+"
+          : cartCount}
+      </span>
+    )}
+  </button>
+
+</div>
+        </div>
       </div>
     </header>
   );

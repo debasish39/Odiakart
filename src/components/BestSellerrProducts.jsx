@@ -1442,7 +1442,7 @@ if (loading) {
                       1 && (
                       <>
 
-                        <div
+                        {/* <div
                           className="bs-dots"
                           aria-label="Product images"
                         >
@@ -1486,7 +1486,7 @@ if (loading) {
                             ),
                           )}
 
-                        </div>
+                        </div> */}
 
 
                         {/* IMAGE COUNT */}

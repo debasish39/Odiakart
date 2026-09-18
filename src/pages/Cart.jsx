@@ -13,6 +13,10 @@ import {
   FaEnvelope,
   FaShieldAlt,
   FaShoppingBag,
+  FaHome,
+  FaHeart,
+  FaUserCircle,
+  FaThLarge,
 } from "react-icons/fa";
 
 import {
@@ -67,8 +71,8 @@ const STEPS = [
   },
   {
     id: 2,
-    label: "Delivery",
-    icon: <AiFillEnvironment size={16} />,
+    label: "Review",
+    icon: <FaCheckCircle size={16} />,
   },
   {
     id: 3,
@@ -273,6 +277,22 @@ const Cart = ({
     useState(
       localStorage.getItem("token")
     );
+
+
+  /* =======================================================
+     CART UI HYDRATION
+     Shows a short skeleton while the cart UI settles.
+  ======================================================= */
+
+  const [cartUiReady, setCartUiReady] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setCartUiReady(true);
+    }, 650);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
 
   useEffect(() => {
@@ -1592,17 +1612,13 @@ const Cart = ({
 
 
   /* =======================================================
-     SUBTOTAL AFTER PRODUCT DISCOUNT
+     BACKEND PRICING BASE
+     Do NOT reduce the frontend price by discount.
+     Product/coupon discounts are calculated by the backend.
   ======================================================= */
 
   const subtotalAfterDiscount =
-    roundMoney(
-      Math.max(
-        0,
-        totalPrice -
-        itemDiscount
-      )
-    );
+    totalPrice;
 
 
   /* =======================================================
@@ -1627,19 +1643,17 @@ const Cart = ({
 
 
   /* =======================================================
-     FINAL TOTAL
+     FRONTEND BASE TOTAL
+
+     IMPORTANT:
+     The frontend must NOT subtract coupon/product discounts.
+     The backend is the source of truth for the final payable
+     amount. `finalTotal` is updated from the backend response
+     when a coupon is applied.
   ======================================================= */
 
   const calculatedTotal =
-    roundMoney(
-
-      Math.max(
-        0,
-        amountBeforeCoupon -
-        Number(couponDiscount || 0)
-      )
-
-    );
+    amountBeforeCoupon;
 
 
   /* =======================================================
@@ -1787,14 +1801,10 @@ const Cart = ({
 
       } else {
 
+        // Backend should always return finalTotal.
+        // Never calculate it here by subtracting the discount.
         setFinalTotal(
-          roundMoney(
-            Math.max(
-              0,
-              amountBeforeCoupon -
-              discount
-            )
-          )
+          amountBeforeCoupon
         );
 
       }
@@ -2730,16 +2740,9 @@ const orderSubtotal = roundMoney(
         Number(item.price || 0) *
         Number(item.quantity || 1);
 
-      const itemDiscount =
-        Number(item.discount || 0);
-
-      return (
-        sum +
-        Math.max(
-          0,
-          itemGross - itemDiscount
-        )
-      );
+      // Do not reduce product discount on the frontend.
+      // Backend is responsible for discount calculation.
+      return sum + itemGross;
     },
     0
   )
@@ -2773,12 +2776,15 @@ const orderTotalBeforeCoupon = roundMoney(
 );
 
 
+/*
+ * IMPORTANT:
+ * Never calculate the final payable amount by subtracting
+ * couponDiscount on the frontend. The backend is the source
+ * of truth. `finalTotal` contains the backend-calculated
+ * payable amount after coupon/discount rules.
+ */
 const orderFinalTotal = roundMoney(
-  Math.max(
-    0,
-    orderTotalBeforeCoupon -
-      orderCouponDiscount
-  )
+  Number(finalTotal || orderTotalBeforeCoupon)
 );
 
 
@@ -3625,6 +3631,46 @@ total:
 
 
   /* =======================================================
+     STEP 2 REVIEW → PLACE ORDER
+  ======================================================= */
+
+  const handlePlaceOrderFromReview = async () => {
+    if (!selectedAddressId) {
+      toast.error("Please select a saved delivery address first.");
+      redirectToSavedAddresses();
+      return;
+    }
+
+    if (!validateDelivery()) {
+      return;
+    }
+
+    if (!paymentType) {
+      toast.warning("Please select a payment method");
+      return;
+    }
+
+    const postalCode = String(address.postcode || "").trim();
+
+    const freshServiceability =
+      serviceability.checked &&
+      serviceability.postalCode === postalCode &&
+      serviceability.unavailableItems.length === 0;
+
+    if (!freshServiceability) {
+      const serviceable = await checkServiceability();
+      if (!serviceable) return;
+    }
+
+    if (paymentType === "razorpay") {
+      onInstrOpen();
+    } else {
+      onCodConfirmOpen();
+    }
+  };
+
+
+  /* =======================================================
      VALIDATION
   ======================================================= */
 
@@ -3866,11 +3912,6 @@ total:
 
       <style>{`
 
-        @import url(
-          'https://fonts.googleapis.com/css2?family=Clash+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap'
-        );
-
-
         :root {
 
           --ind:#4f46e5;
@@ -3886,20 +3927,12 @@ total:
 
 
         .cart-root * {
-
-          font-family:
-            'Plus Jakarta Sans',
-            sans-serif;
-
+          font-family: Inter, Poppins, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-
         .cart-serif {
-
-          font-family:
-            'Clash Display',
-            sans-serif;
-
+          font-family: Inter, Poppins, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          font-style: normal;
         }
 
 
@@ -4248,6 +4281,242 @@ total:
 
         }
 
+
+        .review-card {
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 22px;
+          box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05);
+        }
+
+        .review-icon {
+          width: 38px;
+          height: 38px;
+          border-radius: 12px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .review-outline-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 38px;
+          padding: 0 14px;
+          border-radius: 12px;
+          border: 1px solid #dbeafe;
+          background: #eff6ff;
+          color: #2563eb;
+          font-size: 13px;
+          font-weight: 700;
+          transition: .2s ease;
+        }
+
+        .review-outline-btn:hover {
+          background: #dbeafe;
+          border-color: #bfdbfe;
+        }
+
+        .review-product {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 12px;
+          border: 1px solid #eef2f7;
+          background: #f8fafc;
+          border-radius: 18px;
+        }
+
+        .review-input {
+          width: 100%;
+          min-height: 50px;
+          border: 1px solid #e2e8f0;
+          background: #f8fafc;
+          border-radius: 14px;
+          padding: 0 15px;
+          color: #0f172a;
+          font-size: 14px;
+          font-weight: 500;
+          outline: none;
+          transition: .2s ease;
+        }
+
+        .review-input::placeholder { color: #94a3b8; }
+
+        .review-input:focus {
+          background: #fff;
+          border-color: #60a5fa;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+        }
+
+        .review-apply-btn {
+          min-height: 50px;
+          min-width: 104px;
+          padding: 0 20px;
+          border: 0;
+          border-radius: 14px;
+          background: #2563eb;
+          color: #fff;
+          font-size: 14px;
+          font-weight: 700;
+          transition: .2s ease;
+          box-shadow: 0 8px 18px rgba(37, 99, 235, .18);
+        }
+
+        .review-apply-btn:hover:not(:disabled) {
+          background: #1d4ed8;
+          transform: translateY(-1px);
+        }
+
+        .review-apply-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+        .review-payment-option {
+          width: 100%;
+          min-height: 82px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px;
+          border-radius: 18px;
+          border: 1.5px solid #e5e7eb;
+          background: #fff;
+          transition: .2s ease;
+        }
+
+        .review-payment-option:hover {
+          border-color: #bfdbfe;
+          background: #f8fbff;
+        }
+
+        .review-payment-active {
+          border-color: #2563eb !important;
+          background: #eff6ff !important;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, .08);
+        }
+
+        .payment-radio {
+          width: 22px;
+          height: 22px;
+          border: 2px solid #cbd5e1;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .review-payment-active .payment-radio { border-color: #2563eb; }
+
+        .payment-radio-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #2563eb;
+        }
+
+        .payment-method-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .online-icon { background: #dbeafe; color: #2563eb; }
+        .cod-icon { background: #fef3c7; color: #d97706; }
+
+        .fixed-review-bar {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 40;
+          padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+          background: rgba(255,255,255,.94);
+          backdrop-filter: blur(16px);
+          border-top: 1px solid #e5e7eb;
+          box-shadow: 0 -8px 28px rgba(15,23,42,.08);
+        }
+
+        .fixed-review-inner {
+          width: min(1180px, 100%);
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .review-back-btn {
+          min-height: 56px;
+          min-width: 56px;
+          padding: 0 15px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          border: 1px solid #e2e8f0;
+          background: #fff;
+          color: #475569;
+          border-radius: 17px;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .review-total-mini {
+          min-width: 160px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .review-total-mini span {
+          color: #94a3b8;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        .review-total-mini strong {
+          color: #0f172a;
+          font-size: 20px;
+          line-height: 1.1;
+          font-weight: 800;
+        }
+
+        .review-place-btn {
+          flex: 1;
+          min-height: 58px;
+          border: 0;
+          border-radius: 18px;
+          background: #2563eb;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          font-size: 15px;
+          font-weight: 800;
+          box-shadow: 0 10px 24px rgba(37,99,235,.25);
+          transition: .2s ease;
+        }
+
+        .review-place-btn:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-1px); }
+        .review-place-btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+
+        @media (max-width: 640px) {
+          .review-card { border-radius: 19px; padding: 16px !important; }
+          .review-product { align-items: flex-start; gap: 10px; padding: 10px; }
+          .review-product > div:last-child { margin-left: auto; }
+          .review-total-mini { min-width: 0; flex: 0 0 auto; }
+          .review-total-mini strong { font-size: 17px; }
+          .review-total-mini span { font-size: 10px; }
+          .review-back-btn { min-width: 50px; min-height: 54px; padding: 0 13px; }
+          .review-place-btn { min-height: 54px; font-size: 14px; }
+          .fixed-review-inner { gap: 9px; }
+        }
 
         @keyframes shimmer {
 
@@ -5002,8 +5271,784 @@ total:
           }
         }
 
+\n        /* =========================================================\n           MODERN CART UI + SKELETON\n        ========================================================= */\n        .modern-cart-page {\n          position: relative;\n          padding-bottom: 20px;\n        }\n\n        .modern-cart-head {\n          display:flex; align-items:center; justify-content:space-between; gap:16px;\n          margin-bottom:22px;\n        }\n        .modern-icon-btn {\n          width:42px; height:42px; border-radius:14px; border:1px solid #e8edf5;\n          background:#fff; color:#334155; display:flex; align-items:center; justify-content:center;\n          box-shadow:0 5px 18px rgba(15,23,42,.06); transition:.2s ease; flex:none;\n        }\n        .modern-icon-btn:hover { transform:translateY(-1px); border-color:#c7d2fe; color:#4f46e5; }\n        .modern-cart-title { font-size:clamp(24px,3vw,32px); line-height:1.05; font-weight:850; letter-spacing:-.04em; color:#0f172a; margin:0; }\n        .modern-cart-subtitle { margin-top:5px; color:#94a3b8; font-size:12px; font-weight:550; }\n        .modern-count-pill { padding:5px 9px; border-radius:999px; background:#eef2ff; border:1px solid #e0e7ff; color:#4f46e5; font-size:11px; font-weight:800; }\n        .modern-orders-btn {\n          min-height:42px; padding:0 14px; border:1px solid #e7eaf0; border-radius:14px; background:#fff;\n          color:#475569; display:flex; align-items:center; gap:8px; font-size:12px; font-weight:800;\n          box-shadow:0 5px 18px rgba(15,23,42,.05); transition:.2s ease; flex:none;\n        }\n        .modern-orders-btn:hover { border-color:#c7d2fe; color:#4f46e5; transform:translateY(-1px); }\n\n        .modern-cart-layout { display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:22px; align-items:start; }\n        .modern-cart-main { min-width:0; display:flex; flex-direction:column; gap:9px; }\n        .modern-assurance-card {\n          min-height:72px; display:flex; align-items:center; gap:12px; padding:14px 16px;\n          border:1px solid #dbeafe; border-radius:18px; background:linear-gradient(135deg,#f8fbff,#fff);\n          box-shadow:0 8px 28px rgba(37,99,235,.06);\n        }\n        .modern-assurance-icon { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#ecfdf5; color:#10b981; flex:none; }\n        .modern-assurance-title { font-size:13px; font-weight:850; color:#0f172a; }\n        .modern-assurance-text { margin-top:2px; font-size:11px; color:#64748b; line-height:1.45; }\n        .modern-secure-badge { margin-left:auto; border-radius:999px; padding:5px 8px; background:#eff6ff; color:#2563eb; font-size:9px; font-weight:900; letter-spacing:.08em; }\n\n        .modern-items-card, .modern-summary-card {\n          background:rgba(255,255,255,.92); border:1px solid #e8edf4; border-radius:22px;\n          box-shadow:0 12px 40px rgba(15,23,42,.07);\n        }\n        .modern-items-card { padding:18px; }\n        .modern-section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:2px 2px 14px; }\n        .modern-eyebrow { font-size:9px; font-weight:900; letter-spacing:.14em; color:#94a3b8; }\n        .modern-section-title { margin-top:3px; font-size:17px; font-weight:850; letter-spacing:-.02em; color:#0f172a; }\n        .modern-item-count { padding:5px 9px; border-radius:999px; background:#f8fafc; border:1px solid #eef2f7; color:#64748b; font-size:10px; font-weight:800; }\n        .modern-items-list { display:flex; flex-direction:column; }\n        .modern-product-row {\n          display:flex; gap:14px; padding:15px 2px; border-top:1px solid #f1f5f9; transition:.2s ease;\n        }\n        .modern-product-row:hover { background:#fbfdff; border-radius:16px; padding-left:8px; padding-right:8px; }\n        .modern-product-image-wrap { position:relative; width:92px; height:92px; border-radius:17px; overflow:hidden; background:#f8fafc; flex:none; }\n        .modern-product-image { width:100%; height:100%; object-fit:cover; display:block; transition:transform .35s ease; }\n        .modern-product-image-wrap:hover .modern-product-image { transform:scale(1.045); }\n        .modern-unavailable-badge { position:absolute; left:6px; bottom:6px; padding:4px 6px; border-radius:7px; background:#e11d48; color:#fff; font-size:8px; font-weight:900; }\n        .modern-product-info { min-width:0; flex:1; display:flex; flex-direction:column; justify-content:space-between; }\n        .modern-product-title { display:block; max-width:calc(100% - 35px); color:#172033; font-size:14px; line-height:1.35; font-weight:800; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }\n        .modern-product-title:hover { color:#4f46e5; }\n        .modern-variant { margin-top:4px; color:#94a3b8; font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }\n        .modern-delete-btn { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid transparent; flex:none; transition:.2s ease; }\n        .modern-delete-btn:hover { color:#e11d48; background:#fff1f2; border-color:#ffe4e6; }\n        .modern-product-bottom { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-top:10px; }\n        .modern-product-price { color:#111827; font-size:16px; font-weight:900; letter-spacing:-.02em; }\n        .modern-product-note { margin-top:3px; display:flex; align-items:center; gap:4px; color:#10b981; font-size:9px; font-weight:750; }\n        .modern-qty-control { height:36px; display:flex; align-items:center; gap:2px; padding:3px; border:1px solid #e5e7eb; border-radius:11px; background:#fff; box-shadow:0 3px 10px rgba(15,23,42,.04); }\n        .modern-qty-control button { width:29px; height:29px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#475569; transition:.15s ease; }\n        .modern-qty-control button:hover { background:#eef2ff; color:#4f46e5; }\n        .modern-qty-control span { width:24px; text-align:center; color:#0f172a; font-size:12px; font-weight:900; }\n\n        .modern-add-products { width:100%; margin-top:10px; min-height:62px; padding:10px 12px; display:flex; align-items:center; gap:10px; border:1px dashed #cbd5e1; border-radius:16px; background:#fafcff; color:#334155; transition:.2s ease; }\n        .modern-add-products:hover { border-color:#a5b4fc; background:#f5f7ff; color:#4f46e5; }\n        .modern-add-products strong { display:block; font-size:12px; font-weight:850; }\n        .modern-add-products small { display:block; margin-top:2px; font-size:10px; color:#94a3b8; }\n        .modern-add-icon { width:36px; height:36px; border-radius:11px; background:#eef2ff; color:#4f46e5; display:flex; align-items:center; justify-content:center; flex:none; }\n\n        .modern-cart-summary { position:sticky; top:20px; }\n        .modern-summary-card { padding:20px; }\n        .modern-summary-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:15px; border-bottom:1px solid #f1f5f9; }\n        .modern-summary-head h3 { margin-top:3px; font-size:18px; font-weight:900; letter-spacing:-.025em; color:#0f172a; text-transform:capitalize; }\n        .modern-summary-bag { width:42px; height:42px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:#eef2ff; color:#4f46e5; }\n        .modern-summary-rows { padding:15px 0; display:flex; flex-direction:column; gap:11px; }\n        .modern-summary-rows > div { display:flex; justify-content:space-between; gap:12px; font-size:12px; }\n        .modern-summary-rows span { color:#64748b; }\n        .modern-summary-rows strong { color:#334155; font-weight:800; }\n        .modern-summary-rows .free { color:#10b981; }\n        .modern-savings-note { display:flex; align-items:flex-start; gap:8px; padding:10px 11px; border-radius:13px; background:#ecfdf5; border:1px solid #d1fae5; color:#047857; font-size:10px; line-height:1.45; font-weight:700; }\n        .modern-total-row { margin-top:15px; padding-top:15px; border-top:1px dashed #e2e8f0; display:flex; align-items:flex-end; justify-content:space-between; gap:10px; }\n        .modern-total-row span { display:block; color:#475569; font-size:11px; font-weight:800; }\n        .modern-total-row small { display:block; margin-top:3px; color:#94a3b8; font-size:9px; }\n        .modern-total-row strong { color:#111827; font-size:25px; line-height:1; font-weight:950; letter-spacing:-.045em; }\n        .modern-trust-row { display:flex; flex-wrap:wrap; gap:7px 12px; margin:14px 0; color:#64748b; font-size:9px; font-weight:700; }\n        .modern-trust-row span { display:flex; align-items:center; gap:5px; }\n        .modern-trust-row svg:first-child { color:#10b981; }\n        .modern-checkout-btn { width:100%; min-height:50px; border:0; border-radius:15px; background:linear-gradient(135deg,#4f46e5,#2563eb); color:#fff; display:flex; align-items:center; justify-content:center; gap:9px; font-size:13px; font-weight:900; box-shadow:0 12px 25px rgba(37,99,235,.22); transition:.2s ease; }\n        .modern-checkout-btn:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 15px 30px rgba(37,99,235,.28); }\n        .modern-checkout-btn:disabled { opacity:.45; cursor:not-allowed; box-shadow:none; }\n        .modern-checkout-caption { margin-top:9px; text-align:center; color:#94a3b8; font-size:9px; line-height:1.45; }\n\n        .modern-unavailable-card { padding:16px; border:1px solid #fecdd3; border-radius:18px; background:linear-gradient(135deg,#fff7f8,#fff); }\n        .modern-warning-icon { width:38px; height:38px; border-radius:12px; background:#fff1f2; color:#e11d48; display:flex; align-items:center; justify-content:center; flex:none; }\n        .modern-warning-title { color:#9f1239; font-size:13px; font-weight:900; }\n        .modern-warning-text { margin-top:3px; color:#be123c; font-size:10px; line-height:1.45; }\n        .modern-unavailable-item { display:flex; align-items:center; gap:10px; padding:11px; border-radius:13px; background:#fff; border:1px solid #ffe4e6; }\n        .modern-remove-btn { height:32px; padding:0 9px; border-radius:9px; background:#fff1f2; color:#be123c; border:1px solid #fecdd3; display:flex; align-items:center; gap:5px; font-size:9px; font-weight:850; flex:none; }\n        .modern-change-pin { margin-top:10px; width:100%; min-height:38px; border-radius:11px; background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; display:flex; align-items:center; justify-content:center; gap:7px; font-size:10px; font-weight:850; }\n\n        .modern-mobile-checkout { display:none; }\n\n        /* Skeleton */\n        .modern-cart-skeleton { width:100%; }\n        .skeleton { position:relative; overflow:hidden; background:#e9eef5; border-radius:10px; }\n        .skeleton::after { content:""; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent); animation:modernSkeletonShimmer 1.35s infinite; }\n        .modern-cart-skeleton .modern-cart-head { min-height:48px; }\n        .skeleton-back { width:42px; height:42px; border-radius:14px; flex:none; }\n        .skeleton-title { width:190px; height:25px; }\n        .skeleton-order { width:84px; height:42px; border-radius:14px; }\n        .modern-skeleton-product { min-height:122px; display:flex; gap:14px; padding:15px 0; border-top:1px solid #f1f5f9; }\n        .skeleton-assurance { height:72px; border-radius:18px; margin-bottom:0; }\n        .skeleton-product-image { width:92px; height:92px; border-radius:17px; flex:none; }\n        .skeleton-product-copy { flex:1; padding-top:4px; }\n        .skeleton-line { height:12px; margin-bottom:10px; }\n        .w-80 { width:80%; } .w-55 { width:55%; } .w-35 { width:35%; }\n        .skeleton-qty { width:88px; height:34px; margin-left:auto; border-radius:11px; }\n        .modern-skeleton-summary { min-height:290px; padding:20px; border:1px solid #e8edf4; border-radius:22px; box-shadow:0 12px 40px rgba(15,23,42,.05); }\n        .skeleton-summary-head { width:65%; height:25px; margin-bottom:24px; }\n        .skeleton-summary-line { width:100%; height:13px; margin-bottom:15px; }\n        .skeleton-summary-total { width:48%; height:30px; margin:22px 0 20px auto; }\n        .skeleton-summary-button { width:100%; height:50px; border-radius:15px; }\n        @keyframes modernSkeletonShimmer { 100% { transform:translateX(100%); } }\n\n        @media (max-width: 900px) {\n          .modern-cart-layout { grid-template-columns:1fr; }\n          .modern-cart-summary { position:static; }\n        }\n\n        @media (max-width: 767px) {\n          .modern-cart-page { padding-bottom:122px; }\n          .modern-cart-head { margin-bottom:14px; }\n          .modern-cart-subtitle { font-size:10px; }\n          .modern-orders-btn { width:40px; height:40px; min-height:40px; padding:0; justify-content:center; border-radius:12px; }\n          .modern-orders-btn span { display:none; }\n          .modern-cart-layout { gap:12px; }\n          .modern-assurance-card { min-height:62px; padding:11px 12px; border-radius:15px; }\n          .modern-assurance-icon { width:34px; height:34px; border-radius:10px; }\n          .modern-assurance-text { font-size:9px; }\n          .modern-secure-badge { display:none; }\n          .modern-items-card { padding:13px; border-radius:18px; }\n          .modern-section-title { font-size:15px; }\n          .modern-product-row { gap:10px; padding:13px 0; }\n          .modern-product-image-wrap, .skeleton-product-image { width:76px; height:76px; border-radius:14px; }\n          .modern-product-title { font-size:12px; }\n          .modern-product-price { font-size:14px; }\n          .modern-product-bottom { margin-top:7px; }\n          .modern-qty-control { height:32px; }\n          .modern-qty-control button { width:25px; height:25px; }\n          .modern-qty-control span { width:21px; }\n          .modern-summary-card { padding:15px; border-radius:18px; }\n          .modern-summary-head h3 { font-size:16px; }\n          .modern-total-row strong { font-size:22px; }\n          .modern-checkout-btn, .modern-checkout-caption { display:none; }\n          .modern-mobile-checkout {\n            position:fixed; left:0; right:0; bottom:0; z-index:95; min-height:72px;\n            padding:10px 14px calc(10px + env(safe-area-inset-bottom)); border:1px solid rgba(226,232,240,.92); border-radius:22px 22px 0 0;\n            background:rgba(255,255,255,.96); backdrop-filter:blur(18px); box-shadow:0 12px 38px rgba(15,23,42,.16);\n            display:flex; align-items:center; justify-content:space-between; gap:12px;\n          }\n          .modern-mobile-checkout span { display:block; color:#94a3b8; font-size:9px; font-weight:750; }\n          .modern-mobile-checkout strong { display:block; margin-top:2px; color:#0f172a; font-size:17px; font-weight:950; }\n          .modern-mobile-checkout button { min-height:45px; padding:0 17px; border:0; border-radius:13px; background:#2563eb; color:#fff; display:flex; align-items:center; justify-content:center; gap:7px; font-size:12px; font-weight:900; box-shadow:0 8px 18px rgba(37,99,235,.22); }\n          .modern-mobile-checkout button:disabled { opacity:.45; box-shadow:none; }\n          .modern-skeleton-summary { min-height:250px; }\n          .skeleton-title { width:135px; }\n          .skeleton-order { width:40px; }\n        }\n\n        @media (prefers-reduced-motion: reduce) {\n          .skeleton::after { animation:none; }\n          .modern-icon-btn, .modern-orders-btn, .modern-checkout-btn, .modern-product-image { transition:none; }\n        }\n        /* =========================================================
+           FIXED BOTTOM ACTION DOCKS — MODERN APP UX
+           Content scrolls normally; only the active step action
+           stays fixed at the bottom.
+        ========================================================= */
+
+        .payment-action-dock {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 110;
+          padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+          background: rgba(255,255,255,.88);
+          border-top: 1px solid rgba(148,163,184,.18);
+          box-shadow: 0 -12px 35px rgba(15,23,42,.10);
+          backdrop-filter: blur(22px);
+          -webkit-backdrop-filter: blur(22px);
+        }
+
+        .payment-action-inner {
+          width: min(100%, 980px);
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .payment-action-dock button {
+          min-height: 54px;
+          border-radius: 17px;
+        }
+
+        .fixed-review-bar {
+          padding-bottom: env(safe-area-inset-bottom);
+          background: rgba(255,255,255,.90);
+          backdrop-filter: blur(22px);
+          -webkit-backdrop-filter: blur(22px);
+        }
+
+        .modern-mobile-checkout {
+          padding-bottom: calc(9px + env(safe-area-inset-bottom));
+          background: rgba(255,255,255,.90);
+          backdrop-filter: blur(22px);
+          -webkit-backdrop-filter: blur(22px);
+        }
+
+        @media (max-width: 767px) {
+          .payment-action-dock {
+            padding-left: 10px;
+            padding-right: 10px;
+            padding-top: 8px;
+          }
+
+          .payment-action-inner {
+            gap: 9px;
+          }
+
+          .payment-action-inner button {
+            min-height: 50px;
+            border-radius: 15px;
+          }
+
+          .payment-action-inner button:first-child {
+            flex: 0 0 30%;
+          }
+
+          .payment-action-inner button:last-child {
+            flex: 1;
+          }
+
+          .step-panel.pb-32 {
+            padding-bottom: 130px !important;
+          }
+        }
+
+        @media (min-width: 768px) {
+          .payment-action-dock {
+            padding-left: 24px;
+            padding-right: 24px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .payment-action-dock *,
+          .modern-mobile-checkout * {
+            transition: none !important;
+            animation: none !important;
+          }
+        }
+
+        /* =========================================================
+           ✨ ANIME SHINE / TAILWIND-FIRST CART THEME
+        ========================================================= */
+        .anime-cart-page { isolation:isolate; }
+        .anime-step-panel { position:relative; animation:animePanelFade .5s cubic-bezier(.2,.8,.2,1) both; }
+        .anime-orb { animation:animeOrbFloat 9s ease-in-out infinite alternate; }
+        .anime-orb-b { animation-delay:-3s; }
+        .anime-orb-c { animation-delay:-6s; }
+        .anime-sweep { animation:animeSweep 6s ease-in-out infinite; }
+        .anime-star {
+          color:#8b5cf6;
+          font-size:22px;
+          text-shadow:0 0 10px rgba(139,92,246,.65),0 0 26px rgba(236,72,153,.30);
+          animation:animeSparkle 2.2s ease-in-out infinite;
+        }
+
+        .anime-cart-page .modern-assurance-card,
+        .anime-cart-page .modern-items-card,
+        .anime-cart-page .modern-summary-card,
+        .anime-cart-page .review-card,
+        .anime-cart-page .modern-unavailable-card {
+          border-color:rgba(255,255,255,.82) !important;
+          background:rgba(255,255,255,.72) !important;
+          box-shadow:0 18px 60px rgba(76,29,149,.10), inset 0 1px 0 rgba(255,255,255,.95) !important;
+          backdrop-filter:blur(22px) saturate(135%);
+          -webkit-backdrop-filter:blur(22px) saturate(135%);
+        }
+
+        .anime-cart-page .modern-items-card,
+        .anime-cart-page .modern-summary-card,
+        .anime-cart-page .review-card { overflow:hidden; }
+
+        .anime-cart-page .modern-assurance-card::after,
+        .anime-cart-page .modern-items-card::after,
+        .anime-cart-page .modern-summary-card::after,
+        .anime-cart-page .review-card::after {
+          content:"";
+          position:absolute;
+          top:-100%; left:-45%; width:28%; height:300%;
+          transform:rotate(24deg);
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);
+          pointer-events:none;
+          animation:animeCardShine 7s ease-in-out infinite;
+        }
+
+        .anime-cart-page .modern-product-image-wrap {
+          box-shadow:0 12px 30px rgba(79,70,229,.16);
+          outline:1px solid rgba(255,255,255,.9);
+        }
+
+        .anime-cart-page .modern-checkout-btn,
+        .anime-cart-page .modern-mobile-checkout button,
+        .anime-cart-page .review-place-btn,
+        .anime-cart-page .payment-action-inner button:last-child {
+          background:linear-gradient(135deg,#7c3aed 0%,#2563eb 52%,#06b6d4 100%) !important;
+          box-shadow:0 12px 34px rgba(79,70,229,.32), inset 0 1px 0 rgba(255,255,255,.35) !important;
+          position:relative;
+          overflow:hidden;
+        }
+
+        .anime-cart-page .modern-checkout-btn::after,
+        .anime-cart-page .modern-mobile-checkout button::after,
+        .anime-cart-page .review-place-btn::after,
+        .anime-cart-page .payment-action-inner button:last-child::after {
+          content:"";
+          position:absolute;
+          top:0; bottom:0; left:-55%; width:34%;
+          transform:skewX(-18deg);
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,.60),transparent);
+          animation:animeButtonShine 3.2s ease-in-out infinite;
+          pointer-events:none;
+        }
+
+        /* The page scrolls; only the current step's CTA dock is fixed. */
+        .anime-cart-page .modern-mobile-checkout,
+        .anime-cart-page .fixed-review-bar,
+        .anime-cart-page .payment-action-dock {
+          position:fixed !important;
+          left:0 !important;
+          right:0 !important;
+          bottom:0 !important;
+          width:100% !important;
+          z-index:999 !important;
+          border-top:1px solid rgba(255,255,255,.86) !important;
+          background:rgba(255,255,255,.78) !important;
+          box-shadow:0 -18px 60px rgba(76,29,149,.18) !important;
+          backdrop-filter:blur(26px) saturate(160%);
+          -webkit-backdrop-filter:blur(26px) saturate(160%);
+        }
+        .anime-cart-page .modern-mobile-checkout {
+          border-radius:24px 24px 0 0 !important;
+          padding-bottom:calc(12px + env(safe-area-inset-bottom)) !important;
+        }
+        .anime-cart-page .fixed-review-bar,
+        .anime-cart-page .payment-action-dock {
+          padding-bottom:env(safe-area-inset-bottom) !important;
+        }
+        .anime-cart-page .fixed-review-inner,
+        .anime-cart-page .payment-action-inner {
+          width:min(100%,1120px);
+          margin:0 auto;
+          padding:10px 14px;
+        }
+        .anime-cart-page .payment-action-inner { display:flex; align-items:center; gap:12px; }
+        .anime-cart-page .payment-action-inner button { min-height:52px; border-radius:17px; }
+
+        /* Extra scroll room so the fixed dock never covers the final card. */
+        .anime-cart-page .modern-cart-page,
+        .anime-cart-page .step-panel { padding-bottom:155px !important; }
+
+        /* IMPORTANT: do not apply transform/filter/contain to any ancestor
+           of the bottom dock. A transformed ancestor makes position:fixed
+           behave like position:absolute instead of viewport-fixed. */
+        .anime-cart-page .anime-step-panel {
+          transform:none !important;
+          filter:none !important;
+          perspective:none !important;
+          contain:none !important;
+          will-change:auto !important;
+        }
+
+        /* True viewport-fixed checkout docks. */
+        .anime-cart-page .modern-mobile-checkout,
+        .anime-cart-page .fixed-review-bar,
+        .anime-cart-page .payment-action-dock {
+          position:fixed !important;
+          inset:auto 0 0 0 !important;
+          width:100vw !important;
+          max-width:100vw !important;
+          margin:0 !important;
+          z-index:2147483000 !important;
+          box-sizing:border-box !important;
+        }
+
+        @keyframes animePanelFade {
+          from { opacity:0; }
+          to { opacity:1; }
+        }
+        @keyframes animeOrbFloat {
+          from { transform:translate3d(-10px,-8px,0) scale(.96); }
+          to { transform:translate3d(20px,18px,0) scale(1.08); }
+        }
+        @keyframes animeSweep {
+          0%,55% { transform:translateX(-80%) rotate(12deg); opacity:0; }
+          70% { opacity:.55; }
+          100% { transform:translateX(430%) rotate(12deg); opacity:0; }
+        }
+        @keyframes animeSparkle {
+          0%,100% { opacity:.30; transform:scale(.72) rotate(0deg); }
+          50% { opacity:1; transform:scale(1.2) rotate(18deg); }
+        }
+        @keyframes animeCardShine {
+          0%,58% { left:-45%; opacity:0; }
+          70% { opacity:.72; }
+          100% { left:135%; opacity:0; }
+        }
+        @keyframes animeButtonShine {
+          0%,58% { left:-55%; }
+          78%,100% { left:135%; }
+        }
+
+        @media (max-width:767px) {
+          .anime-cart-page .fixed-review-inner,
+          .anime-cart-page .payment-action-inner { padding:9px 10px; gap:8px; }
+          .anime-cart-page .payment-action-inner button { min-height:50px; border-radius:15px; }
+          .anime-cart-page .modern-mobile-checkout { min-height:78px !important; }
+          .anime-cart-page .modern-cart-page,
+          .anime-cart-page .step-panel { padding-bottom:165px !important; }
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+          .anime-orb,.anime-sweep,.anime-star,.anime-step-panel,
+          .anime-cart-page .modern-assurance-card::after,
+          .anime-cart-page .modern-items-card::after,
+          .anime-cart-page .modern-summary-card::after,
+          .anime-cart-page .review-card::after,
+          .anime-cart-page .modern-checkout-btn::after,
+          .anime-cart-page .modern-mobile-checkout button::after,
+          .anime-cart-page .review-place-btn::after,
+          .anime-cart-page .payment-action-inner button:last-child::after { animation:none !important; }
+        }
+
+
+        /* =========================================================
+           INDEPENDENT CART NAVBAR
+           This navbar is page-level and does not change with checkout step.
+        ========================================================= */
+        .cart-independent-navbar {
+          position: sticky;
+          top: 0;
+          z-index: 80;
+          border-bottom: 1px solid rgba(255,255,255,.72);
+          background: rgba(255,255,255,.72);
+          backdrop-filter: blur(22px) saturate(150%);
+          -webkit-backdrop-filter: blur(22px) saturate(150%);
+          box-shadow: 0 10px 35px rgba(79,70,229,.08);
+        }
+        .cart-independent-navbar::after {
+          content:"";
+          position:absolute;
+          left:0;
+          right:0;
+          bottom:-1px;
+          height:1px;
+          background:linear-gradient(90deg,transparent,rgba(99,102,241,.25),rgba(34,211,238,.25),transparent);
+        }
+        .cart-nav-inner {
+          width:100%;
+          max-width:1280px;
+          margin:0 auto;
+          min-height:68px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:18px;
+          padding:10px 16px;
+        }
+        .cart-nav-brand {
+          display:flex;
+          align-items:center;
+          gap:10px;
+          flex-shrink:0;
+        }
+        .cart-nav-logo {
+          width:42px;
+          height:42px;
+          border-radius:14px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:white;
+          background:linear-gradient(135deg,#7c3aed,#2563eb,#06b6d4);
+          box-shadow:0 10px 25px rgba(79,70,229,.28);
+          position:relative;
+          overflow:hidden;
+        }
+        .cart-nav-logo::after {
+          content:"";
+          position:absolute;
+          inset:-80% 35%;
+          transform:rotate(25deg);
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);
+          animation:cartNavShine 3.2s ease-in-out infinite;
+        }
+        .cart-nav-brand-text {
+          font-weight:900;
+          letter-spacing:-.04em;
+          font-size:18px;
+          color:#172554;
+          line-height:1;
+        }
+        .cart-nav-brand-sub {
+          display:block;
+          margin-top:3px;
+          font-size:9px;
+          font-weight:700;
+          letter-spacing:.12em;
+          text-transform:uppercase;
+          color:#94a3b8;
+        }
+        .cart-nav-links {
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:6px;
+          flex:1;
+        }
+        .cart-nav-link {
+          position:relative;
+          display:inline-flex;
+          align-items:center;
+          gap:7px;
+          min-height:42px;
+          padding:9px 13px;
+          border-radius:14px;
+          border:1px solid transparent;
+          color:#64748b;
+          font-size:13px;
+          font-weight:800;
+          transition:all .2s ease;
+          background:transparent;
+        }
+        .cart-nav-link:hover {
+          color:#4f46e5;
+          background:rgba(238,242,255,.78);
+          border-color:rgba(129,140,248,.18);
+          transform:translateY(-1px);
+        }
+        .cart-nav-link.active {
+          color:#4f46e5;
+          background:linear-gradient(135deg,rgba(238,242,255,.95),rgba(224,231,255,.72));
+          border-color:rgba(129,140,248,.22);
+          box-shadow:0 7px 18px rgba(79,70,229,.10);
+        }
+        .cart-nav-link.active::after {
+          content:"";
+          position:absolute;
+          left:20%;
+          right:20%;
+          bottom:-7px;
+          height:3px;
+          border-radius:999px;
+          background:linear-gradient(90deg,#7c3aed,#2563eb,#06b6d4);
+          box-shadow:0 0 12px rgba(99,102,241,.55);
+        }
+        .cart-nav-cart {
+          position:relative;
+        }
+        .cart-nav-badge {
+          position:absolute;
+          top:-2px;
+          right:-1px;
+          min-width:18px;
+          height:18px;
+          padding:0 5px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          border-radius:999px;
+          background:linear-gradient(135deg,#fb7185,#ef4444);
+          color:white;
+          font-size:9px;
+          font-weight:900;
+          border:2px solid white;
+          box-shadow:0 4px 12px rgba(239,68,68,.25);
+        }
+        .cart-nav-account {
+          display:flex;
+          align-items:center;
+          gap:8px;
+          padding:7px 11px 7px 7px;
+          border:1px solid rgba(226,232,240,.95);
+          background:rgba(255,255,255,.82);
+          border-radius:999px;
+          color:#475569;
+          font-size:12px;
+          font-weight:800;
+          box-shadow:0 7px 20px rgba(15,23,42,.05);
+          transition:all .2s ease;
+        }
+        .cart-nav-account:hover {
+          border-color:rgba(129,140,248,.35);
+          color:#4f46e5;
+          transform:translateY(-1px);
+        }
+        .cart-nav-account-icon {
+          width:32px;
+          height:32px;
+          border-radius:50%;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:linear-gradient(135deg,#eef2ff,#cffafe);
+          color:#4f46e5;
+        }
+        @keyframes cartNavShine {
+          0%,55% { transform:translateX(-180%) rotate(25deg); }
+          75%,100% { transform:translateX(300%) rotate(25deg); }
+        }
+        @media (max-width:767px) {
+          .cart-independent-navbar {
+            position:sticky;
+          }
+          .cart-nav-inner {
+            min-height:64px;
+            padding:8px 10px;
+            gap:7px;
+          }
+          .cart-nav-brand-text,
+          .cart-nav-brand-sub,
+          .cart-nav-account-text {
+            display:none;
+          }
+          .cart-nav-brand {
+            width:44px;
+          }
+          .cart-nav-links {
+            gap:3px;
+          }
+          .cart-nav-link {
+            width:54px;
+            min-height:46px;
+            padding:7px 3px;
+            flex-direction:column;
+            justify-content:center;
+            gap:3px;
+            font-size:9px;
+            border-radius:13px;
+          }
+          .cart-nav-link.active::after {
+            left:22%;
+            right:22%;
+            bottom:-5px;
+          }
+          .cart-nav-account {
+            width:44px;
+            height:44px;
+            padding:5px;
+            justify-content:center;
+          }
+          .cart-nav-account-icon {
+            width:32px;
+            height:32px;
+          }
+        }
+
+
+        /* =========================================================
+           FIXED CHECKOUT TOP NAVBAR
+           Same header stays visible on Cart / Review / Payment.
+
+           FONT SIZE IS EASY TO ADJUST HERE:
+             --cart-top-title-size   = main "Your cart"
+             --cart-top-subtitle-size = "1 item ready to go"
+             --cart-top-clear-size   = "Clear"
+           ========================================================= */
+        :root {
+          --cart-top-navbar-height: 64px;
+          --cart-top-title-size: 20px;
+          --cart-top-subtitle-size: 11px;
+          --cart-top-clear-size: 12px;
+        }
+
+        .cart-top-navbar {
+          position:fixed;
+          top:0;
+          left:0;
+          right:0;
+          z-index:2147482000;
+          width:100%;
+          display:block;
+          background:rgba(255,255,255,.96);
+          border-bottom:1px solid rgba(226,232,240,.9);
+          box-shadow:0 8px 28px rgba(15,23,42,.07);
+          backdrop-filter:blur(22px) saturate(150%);
+          -webkit-backdrop-filter:blur(22px) saturate(150%);
+        }
+
+        .cart-top-navbar-inner {
+          width:100%;
+          min-height:var(--cart-top-navbar-height);
+          padding:10px 16px;
+          display:grid;
+          grid-template-columns:52px minmax(0,1fr) auto;
+          align-items:center;
+          gap:12px;
+        }
+
+        .cart-top-back {
+          width:52px;
+          height:52px;
+          border:0;
+          border-radius:17px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:#f5f8fc;
+          color:#17243a;
+          box-shadow:inset 0 0 0 1px rgba(226,232,240,.55);
+          transition:transform .18s ease,background .18s ease;
+          flex-shrink:0;
+        }
+
+        .cart-top-back:active {
+          transform:scale(.94);
+          background:#edf3fa;
+        }
+
+        .cart-top-title {
+          min-width:0;
+          overflow:hidden;
+        }
+
+        .cart-top-title h1 {
+          margin:0;
+          color:#14213a;
+          font-size:var(--cart-top-title-size);
+          line-height:1.05;
+          font-weight:900;
+          letter-spacing:-.045em;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        }
+
+        .cart-top-title p {
+          margin:5px 0 0;
+          color:#91a0b7;
+          font-size:var(--cart-top-subtitle-size);
+          line-height:1.1;
+          font-weight:500;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        }
+
+        .cart-top-clear {
+          min-width:78px;
+          height:48px;
+          padding:0 12px;
+          border:0;
+          border-radius:16px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:8px;
+          background:#fff3f4;
+          color:#ef3038;
+          box-shadow:inset 0 0 0 1px rgba(254,205,211,.45);
+          font-size:var(--cart-top-clear-size);
+          font-weight:850;
+          transition:transform .18s ease,background .18s ease;
+          flex-shrink:0;
+        }
+
+        .cart-top-clear:active {
+          transform:scale(.95);
+          background:#ffe8ea;
+        }
+
+        .cart-top-clear:disabled {
+          opacity:.45;
+          cursor:not-allowed;
+        }
+
+        /* Because the navbar is fixed, reserve its space in every checkout step. */
+        .cart-root {
+          padding-top:var(--cart-top-navbar-height) !important;
+        }
+
+        /* Step 2 / Step 3 can never hide underneath the fixed header. */
+        .cart-root .step-panel,
+        .cart-root .modern-cart-page {
+          scroll-margin-top:calc(var(--cart-top-navbar-height) + 12px);
+        }
+
+        @media (min-width:768px) {
+          :root {
+            --cart-top-navbar-height:72px;
+            --cart-top-title-size:24px;
+            --cart-top-subtitle-size:12px;
+            --cart-top-clear-size:13px;
+          }
+
+          .cart-top-navbar-inner {
+            max-width:1280px;
+            min-height:var(--cart-top-navbar-height);
+            margin:0 auto;
+            padding:12px 24px;
+          }
+
+          .cart-top-back {
+            width:54px;
+            height:54px;
+          }
+        }
+
+        @media (max-width:430px) {
+          :root {
+            --cart-top-navbar-height:64px;
+            --cart-top-title-size:20px;
+            --cart-top-subtitle-size:11px;
+            --cart-top-clear-size:12px;
+          }
+
+          .cart-top-navbar-inner {
+            min-height:var(--cart-top-navbar-height);
+            padding:9px 16px;
+            grid-template-columns:50px minmax(0,1fr) auto;
+            gap:11px;
+          }
+
+          .cart-top-back {
+            width:50px;
+            height:50px;
+            border-radius:16px;
+          }
+
+          .cart-top-clear {
+            min-width:76px;
+            height:46px;
+            border-radius:15px;
+            padding:0 10px;
+          }
+        }
+
+        @media (max-width:360px) {
+          :root {
+            --cart-top-navbar-height:60px;
+            --cart-top-title-size:18px;
+            --cart-top-subtitle-size:10px;
+            --cart-top-clear-size:11px;
+          }
+
+          .cart-top-navbar-inner {
+            padding-left:10px;
+            padding-right:10px;
+            grid-template-columns:44px minmax(0,1fr) auto;
+            gap:7px;
+          }
+
+          .cart-top-back {
+            width:44px;
+            height:44px;
+            border-radius:14px;
+          }
+
+          .cart-top-clear {
+            min-width:68px;
+            height:42px;
+            padding:0 8px;
+          }
+
+          .cart-top-clear svg {
+            width:18px;
+            height:18px;
+          }
+
+          .cart-top-back {
+            width:46px;
+            height:46px;
+          }
+
+          .cart-top-title h1 {
+            font-size:23px;
+          }
+
+          .cart-top-title p {
+            font-size:12px;
+          }
+
+          .cart-top-clear {
+            min-width:68px;
+            height:44px;
+            gap:6px;
+            font-size:13px;
+          }
+        }
+
+
       `}</style>
 
+
+
+      {/* =========================================================
+          INDEPENDENT CART TOP NAVBAR
+          Mobile header matching the provided design.
+      ========================================================= */}
+      <nav
+        className="cart-top-navbar"
+        aria-label="Cart navigation"
+      >
+        <div className="cart-top-navbar-inner">
+          <button
+            type="button"
+            className="cart-top-back"
+            onClick={() => navigate(-1)}
+            aria-label="Go back"
+          >
+            <IoArrowBack size={24} strokeWidth={2.2} />
+          </button>
+
+          <div className="cart-top-title">
+            <h1>
+              {step === 1 ? "Your cart" : step === 2 ? "Review order" : "Payment"}
+            </h1>
+            <p>
+              {step === 1
+                ? `${cartItem.length} ${cartItem.length === 1 ? "item" : "items"} ready to go`
+                : step === 2
+                ? "Check your delivery details"
+                : "Choose your payment method"}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="cart-top-clear"
+            onClick={onDeleteOpen}
+            disabled={cartItem.length === 0}
+            aria-label="Clear cart"
+          >
+            <FaRegTrashAlt size={16} />
+            <span>Clear</span>
+          </button>
+        </div>
+      </nav>
 
       {/* ===================================================
           ROOT
@@ -5011,86 +6056,90 @@ total:
 
       <div
         className="
-          cart-root
-          min-h-screen
-          mb-9
-          sm:mb-0
-          relative
-          overflow-x-hidden
+          cart-root anime-cart-page min-h-screen mb-9 sm:mb-0 relative overflow-x-hidden
+          bg-gradient-to-br from-violet-50 via-white to-cyan-50
+          text-slate-900 selection:bg-violet-200 selection:text-violet-950
         "
-        style={{
-          background:
-            "linear-gradient(135deg,#eef2ff 0%,#f0f4ff 40%,#ffffff 100%)",
-        }}
       >
 
 
-        {/* BACKGROUND BLOBS */}
+        {/* ANIME SHINE BACKGROUND — Tailwind utility layers */}
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+          <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-fuchsia-300/30 blur-3xl anime-orb anime-orb-a" />
+          <div className="absolute -right-24 top-1/4 h-80 w-80 rounded-full bg-cyan-300/25 blur-3xl anime-orb anime-orb-b" />
+          <div className="absolute -bottom-32 left-1/3 h-96 w-96 rounded-full bg-violet-300/25 blur-3xl anime-orb anime-orb-c" />
+          <div className="absolute inset-0 opacity-[0.035] bg-[radial-gradient(circle,_#7c3aed_1px,_transparent_1px)] [background-size:24px_24px]" />
+          <div className="anime-sweep absolute -inset-y-20 -left-1/3 w-1/3 rotate-12 bg-gradient-to-r from-transparent via-white/80 to-transparent blur-2xl" />
+          <span className="anime-star absolute left-[12%] top-[18%]">✦</span>
+          <span className="anime-star absolute right-[15%] top-[32%] text-cyan-400">✧</span>
+          <span className="anime-star absolute left-[8%] bottom-[22%] text-fuchsia-400">✦</span>
+        </div>
+
+        {/* =========================================================
+            INDEPENDENT PAGE NAVBAR
+            This stays the same for Cart / Review / Payment.
+        ========================================================= */}
+        {/* <nav className="cart-independent-navbar" aria-label="Main navigation">
+          <div className="cart-nav-inner">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="cart-nav-brand"
+              aria-label="Go to home"
+            >
+              <span className="cart-nav-logo">
+                <GiShoppingBag size={20} />
+              </span>
+              <span>
+                <span className="cart-nav-brand-text">Odikart</span>
+                <span className="cart-nav-brand-sub">Shop smarter</span>
+              </span>
+            </button>
+
+            <div className="cart-nav-links">
+              <button type="button" onClick={() => navigate("/")} className="cart-nav-link">
+                <FaHome size={15} />
+                <span>Home</span>
+              </button>
+
+              <button type="button" onClick={() => navigate("/products")} className="cart-nav-link">
+                <FaThLarge size={14} />
+                <span>Categories</span>
+              </button>
+
+              <button type="button" onClick={() => navigate("/cart")} className="cart-nav-link active cart-nav-cart">
+                <GiShoppingBag size={16} />
+                <span>Cart</span>
+                {cartItem.length > 0 && (
+                  <span className="cart-nav-badge">
+                    {cartItem.length > 99 ? "99+" : cartItem.length}
+                  </span>
+                )}
+              </button>
+
+              <button type="button" onClick={() => navigate("/wishlist")} className="cart-nav-link">
+                <FaHeart size={14} />
+                <span>Wishlist</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate(token ? "/account" : "/sign-in")}
+              className="cart-nav-account"
+            >
+              <span className="cart-nav-account-icon">
+                <FaUserCircle size={18} />
+              </span>
+              <span className="cart-nav-account-text">
+                {user?.firstName ? user.firstName : "Account"}
+              </span>
+            </button>
+          </div>
+        </nav> */}
 
         <div
-          className="
-            blob
-            pointer-events-none
-            fixed
-            -top-32
-            -left-32
-            w-96
-            h-96
-            opacity-30
-            blur-3xl
-          "
-          style={{
-            background:
-              "radial-gradient(circle,#c7d2fe,transparent)",
-          }}
-        />
-
-
-        <div
-          className="
-            blob2
-            pointer-events-none
-            fixed
-            -bottom-24
-            -right-24
-            w-80
-            h-80
-            opacity-20
-            blur-3xl
-          "
-          style={{
-            background:
-              "radial-gradient(circle,#bfdbfe,transparent)",
-          }}
-        />
-
-
-        <div
-          className="
-            pointer-events-none
-            fixed
-            inset-0
-            opacity-[0.025]
-          "
-          style={{
-            backgroundImage:
-              "radial-gradient(circle,#4f46e5 1px,transparent 1px)",
-
-            backgroundSize:
-              "28px 28px",
-          }}
-        />
-
-
-        <div
-          className="
-            relative
-            z-10
-            max-w-7xl
-            mx-auto
-            px-4
-            py-10
-          "
+          className="relative z-10 mx-auto w-full max-w-7xl px-3 py-3 sm:px-5 sm:py-8 lg:px-8"
         >
 
 
@@ -5238,12 +6287,7 @@ total:
               ============================================= */}
 
               <div
-                className="
-                  flex
-                  items-center
-                  justify-center
-                  mb-10
-                "
+                className="mx-auto mb-3 flex w-full max-w-2xl items-center justify-center rounded-[2rem] border border-white/70 bg-white/55 px-4 py-4 shadow-[0_20px_60px_rgba(99,102,241,0.10)] backdrop-blur-xl sm:mb-9 sm:px-7"
               >
 
                 {STEPS.map(
@@ -5366,2614 +6410,775 @@ total:
 
               </div>
 
-
               {/* =================================================
-                  TRUST STRIP
-              ================================================= */}
-
-              <div className="cart-trust-strip mb-7">
-                <div className="cart-trust-item"><span>🔒</span><div><strong>Secure checkout</strong><small>Your data is protected</small></div></div>
-                <div className="cart-trust-item"><span>🚚</span><div><strong>Reliable delivery</strong><small>Track your order easily</small></div></div>
-                <div className="cart-trust-item"><span>↩️</span><div><strong>Easy returns</strong><small>Simple return experience</small></div></div>
-                <div className="cart-trust-item hidden sm:flex"><span>💳</span><div><strong>Safe payments</strong><small>Powered by Razorpay</small></div></div>
-              </div>
-
-
-              {/* =================================================
-                  STEP 1 — CART
+                  STEP 1 — CART / MODERN MOBILE-FIRST EXPERIENCE
               ================================================= */}
 
               {step === 1 && (
+                <div className="step-panel step-one-panel modern-cart-page anime-step-panel">
 
-                <div
-                  className="
-                    step-panel
-                    step-one-panel
-                    space-y-5
-                  "
-                >
+                  {!cartUiReady ? (
+                    /* ===================== SKELETON ===================== */
+                    <div className="modern-cart-skeleton" aria-hidden="true">
+                      <div className="modern-cart-head">
+                        <div className="skeleton skeleton-back" />
+                        <div className="skeleton skeleton-title" />
+                        <div className="skeleton skeleton-order" />
+                      </div>
 
-                  {/* HEADER */}
-
-                  <div
-                    className="
-                      flex
-                      items-center
-                      justify-between
-                      mb-2
-                    "
-                  >
-
-                    <h2
-                      className="
-                        cart-serif
-                        text-2xl
-                        font-bold
-                        text-indigo-900
-                      "
-                    >
-
-                      My Cart
-
-                      <span
-                        className="
-                          text-indigo-400
-                          text-lg
-                        "
-                      >
-                        {" "}
-                        ({cartItem.length})
-                      </span>
-
-                    </h2>
-
-
-                    <button
-                      onClick={() =>
-                        navigate(
-                          "/order-history"
-                        )
-                      }
-                      className="
-                        btn-secondary
-                        px-4
-                        py-2
-                        text-xs
-                      "
-                    >
-
-                      <FaHistory
-                        size={14}
-                      />
-
-                      View Orders
-
-                    </button>
-
-                  </div>
-
-
-                  {/* =================================================
-                      UNAVAILABLE PRODUCTS
-                  ================================================= */}
-
-                  {serviceability.checked &&
-                    serviceability
-                      .unavailableItems
-                      .length > 0 && (
-
-                    <div
-                      className="
-                        rounded-2xl
-                        border-2
-                        border-rose-200
-                        bg-rose-50
-                        p-4
-                        sm:p-5
-                      "
-                    >
-
-                      <div
-                        className="
-                          flex
-                          items-start
-                          gap-3
-                        "
-                      >
-
-                        <div
-                          className="
-                            w-10
-                            h-10
-                            rounded-xl
-                            bg-rose-100
-                            text-rose-600
-                            flex
-                            items-center
-                            justify-center
-                            flex-shrink-0
-                          "
-                        >
-
-                          <FaRegTrashAlt
-                            size={15}
-                          />
-
+                      <div className="modern-cart-layout">
+                        <div className="modern-cart-main">
+                          <div className="skeleton skeleton-assurance" />
+                          {[1, 2, 3].map((n) => (
+                            <div className="modern-skeleton-product" key={n}>
+                              <div className="skeleton skeleton-product-image" />
+                              <div className="skeleton-product-copy">
+                                <div className="skeleton skeleton-line w-80" />
+                                <div className="skeleton skeleton-line w-55" />
+                                <div className="skeleton skeleton-line w-35" />
+                                <div className="skeleton skeleton-qty" />
+                              </div>
+                            </div>
+                          ))}
                         </div>
-
-
-                        <div
-                          className="
-                            flex-1
-                            min-w-0
-                          "
-                        >
-
-                          <p
-                            className="
-                              text-sm
-                              sm:text-base
-                              font-bold
-                              text-rose-800
-                            "
-                          >
-                            ⚠️ Some products cannot be delivered
-                          </p>
-
-
-                          <p
-                            className="
-                              text-xs
-                              sm:text-sm
-                              text-rose-600
-                              mt-1
-                            "
-                          >
-
-                            The following product(s)
-                            cannot be delivered to PIN code{" "}
-
-                            <strong>
-                              {
-                                serviceability.postalCode
-                              }
-                            </strong>
-
-                          </p>
-
-
-                          <p
-                            className="
-                              text-xs
-                              text-rose-500
-                              mt-1
-                            "
-                          >
-                            You can remove the product
-                            or change your delivery PIN.
-                          </p>
-
+                        <div className="modern-skeleton-summary">
+                          <div className="skeleton skeleton-summary-head" />
+                          <div className="skeleton skeleton-summary-line" />
+                          <div className="skeleton skeleton-summary-line" />
+                          <div className="skeleton skeleton-summary-line" />
+                          <div className="skeleton skeleton-summary-total" />
+                          <div className="skeleton skeleton-summary-button" />
                         </div>
-
                       </div>
-
-
-                      <div
-                        className="
-                          mt-4
-                          space-y-3
-                        "
-                      >
-
-                        {serviceability
-                          .unavailableItems
-                          .map(
-                            (
-                              unavailable,
-                              index
-                            ) => {
-
-                              const productId =
-                                unavailable?.productId?._id ||
-                                unavailable?.productId ||
-                                unavailable?._id ||
-                                unavailable?.product?._id;
-
-
-                              const backendVariantSku =
-                                unavailable?.variantSku ||
-                                unavailable?.variant?.sku ||
-                                "";
-
-
-                              const cartProduct =
-                                cartItem.find(
-                                  (cart) => {
-
-                                    if (
-                                      String(
-                                        cart.productId
-                                      ) !==
-                                      String(
-                                        productId
-                                      )
-                                    ) {
-
-                                      return false;
-
-                                    }
-
-
-                                    if (
-                                      !backendVariantSku
-                                    ) {
-
-                                      return true;
-
-                                    }
-
-
-                                    return (
-                                      String(
-                                        cart.variantSku ||
-                                        ""
-                                      ) ===
-                                      String(
-                                        backendVariantSku
-                                      )
-                                    );
-
-                                  }
-                                );
-
-
-                              const variantSku =
-                                backendVariantSku ||
-                                cartProduct?.variantSku ||
-                                "";
-
-
-                              const itemKey =
-                                `${productId}-${variantSku || "default"}`;
-
-
-                              const title =
-                                unavailable?.title ||
-                                unavailable?.name ||
-                                unavailable?.product?.title ||
-                                unavailable?.product?.name ||
-                                cartProduct?.title ||
-                                "Unavailable product";
-
-
-                              const image =
-                                unavailable?.image ||
-                                unavailable?.thumbnail ||
-                                unavailable?.product?.image ||
-                                cartProduct?.image ||
-                                "";
-
-
-                              const reason =
-                                unavailable?.message ||
-                                unavailable?.reason ||
-                                "This product cannot be delivered to your PIN code.";
-
-
-                              return (
-
-                                <div
-                                  key={`${itemKey}-${index}`}
-                                  className="
-                                    rounded-xl
-                                    border
-                                    border-rose-100
-                                    bg-white
-                                    p-3
-                                  "
-                                >
-
-                                  <div
-                                    className="
-                                      flex
-                                      items-center
-                                      gap-3
-                                    "
-                                  >
-
-                                    {image ? (
-
-                                      <img
-                                        src={image}
-                                        alt={title}
-                                        className="
-                                          w-16
-                                          h-16
-                                          rounded-lg
-                                          object-cover
-                                          border
-                                          border-slate-100
-                                          flex-shrink-0
-                                        "
-                                      />
-
-                                    ) : (
-
-                                      <div
-                                        className="
-                                          w-16
-                                          h-16
-                                          rounded-lg
-                                          bg-slate-100
-                                          flex
-                                          items-center
-                                          justify-center
-                                          text-slate-400
-                                          flex-shrink-0
-                                        "
-                                      >
-
-                                        <GiShoppingBag
-                                          size={20}
-                                        />
-
-                                      </div>
-
-                                    )}
-
-
-                                    <div
-                                      className="
-                                        flex-1
-                                        min-w-0
-                                      "
-                                    >
-
-                                      <p
-                                        className="
-                                          text-sm
-                                          font-bold
-                                          text-slate-800
-                                          line-clamp-2
-                                        "
-                                      >
-                                        {title}
-                                      </p>
-
-
-                                      {variantSku && (
-
-                                        <p
-                                          className="
-                                            text-[11px]
-                                            text-slate-400
-                                            mt-1
-                                          "
-                                        >
-                                          Variant:
-                                          {" "}
-                                          {variantSku}
-                                        </p>
-
-                                      )}
-
-
-                                      <p
-                                        className="
-                                          text-xs
-                                          text-rose-600
-                                          font-medium
-                                          mt-1
-                                        "
-                                      >
-                                        ❌ {reason}
-                                      </p>
-
-                                    </div>
-
-                                  </div>
-
-
-                                  <div
-                                    className="
-                                      grid
-                                      grid-cols-2
-                                      gap-2
-                                      mt-3
-                                    "
-                                  >
-
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleRemoveUnavailable(
-                                          {
-                                            ...unavailable,
-                                            productId,
-                                            variantSku,
-                                          }
-                                        )
-                                      }
-                                      disabled={
-                                        removingUnavailable ===
-                                        itemKey
-                                      }
-                                      className="
-                                        inline-flex
-                                        items-center
-                                        justify-center
-                                        gap-1.5
-                                        rounded-xl
-                                        bg-rose-600
-                                        px-3
-                                        py-2.5
-                                        text-xs
-                                        font-bold
-                                        text-white
-                                        hover:bg-rose-700
-                                        transition-all
-                                        disabled:opacity-50
-                                        disabled:cursor-not-allowed
-                                      "
-                                    >
-
-                                      <FaRegTrashAlt
-                                        size={11}
-                                      />
-
-                                      {removingUnavailable ===
-                                      itemKey
-                                        ? "Removing..."
-                                        : "Remove"}
-
-                                    </button>
-
-
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-
-                                        setServiceability(
-                                          (prev) => ({
-
-                                            ...prev,
-
-                                            checked:
-                                              false,
-
-                                            checking:
-                                              false,
-
-                                            serviceableItems:
-                                              [],
-
-                                            unavailableItems:
-                                              [],
-
-                                            message:
-                                              "",
-
-                                          })
-                                        );
-
-
-                                        setStep(2);
-
-
-                                        toast.info(
-                                          "Change your PIN code to check delivery availability."
-                                        );
-
-                                      }}
-                                      className="
-                                        inline-flex
-                                        items-center
-                                        justify-center
-                                        gap-1.5
-                                        rounded-xl
-                                        border
-                                        border-indigo-200
-                                        bg-indigo-50
-                                        px-3
-                                        py-2.5
-                                        text-xs
-                                        font-bold
-                                        text-indigo-600
-                                        hover:bg-indigo-100
-                                        transition-all
-                                      "
-                                    >
-
-                                      <MdMyLocation
-                                        size={13}
-                                      />
-
-                                      Change PIN
-
-                                    </button>
-
-                                  </div>
-
-                                </div>
-
-                              );
-
-                            }
-                          )}
-
-                      </div>
-
-
-                      <div
-                        className="
-                          mt-4
-                          rounded-xl
-                          border
-                          border-indigo-100
-                          bg-indigo-50
-                          px-3
-                          py-3
-                          text-xs
-                          text-indigo-600
-                        "
-                      >
-                        💡{" "}
-                        <strong>
-                          Tip:
-                        </strong>{" "}
-                        If you have another delivery
-                        address, try its PIN code.
-                        Otherwise, remove the unavailable product.
-                      </div>
-
                     </div>
-
-                  )}
-
-
-                  {/* =================================================
-                      CART ITEMS
-                  ================================================= */}
-
-                  {cartItem.map(
-                    (item) => {
-
-                      const itemUnavailable =
-                        serviceability
-                          .unavailableItems
-                          .some(
-                            (u) => {
-
-                              const uProductId =
-                                u?.productId?._id ||
-                                u?.productId ||
-                                u?._id ||
-                                u?.product?._id;
-
-
-                              const uSku =
-                                u?.variantSku ||
-                                u?.variant?.sku ||
-                                "";
-
-
-                              return (
-
-                                String(
-                                  uProductId
-                                ) ===
-                                String(
-                                  item.productId
-                                ) &&
-
-                                (
-                                  !uSku ||
-
-                                  String(
-                                    uSku
-                                  ) ===
-                                  String(
-                                    item.variantSku ||
-                                    ""
-                                  )
-                                )
-
-                              );
-
-                            }
-                          );
-
-
-                      return (
-
-                        <div
-                          key={
-                            `${item.productId}-${item.variantSku || "default"}`
-                          }
-                          className={`
-                            cart-card
-                            cart-item-card
-                            flex
-                            flex-col
-                            sm:flex-row
-                            sm:items-center
-                            sm:justify-between
-                            gap-4
-                            p-4
-                            sm:p-5
-
-                            ${
-                              itemUnavailable
-                                ? "border-2 border-rose-300 bg-rose-50/40"
-                                : ""
-                            }
-                          `}
-                        >
-
-                          <div
-                            className="
-                              flex
-                              items-center
-                              gap-4
-                              flex-1
-                              cursor-pointer
-                            "
-                            onClick={() =>
-                              navigate(
-                                `/products/${item.productId}`
-                              )
-                            }
+                  ) : (
+                    <>
+                      {/* ===================== HEADER ===================== */}
+                      {/* <div className="modern-cart-head">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <button
+                            type="button"
+                            onClick={() => navigate(-1)}
+                            className="modern-icon-btn"
+                            aria-label="Go back"
                           >
+                            <IoArrowBack size={18} />
+                          </button>
 
-                            <div
-                              className="
-                                relative
-                                flex-shrink-0
-                              "
-                            >
-
-                              <img
-                                src={
-                                  item.image ||
-                                  item.thumbnail ||
-                                  item.images?.[0] ||
-                                  ""
-                                }
-                                alt={
-                                  item.title
-                                }
-                                className="
-                                  w-20
-                                  h-20
-                                  rounded-xl
-                                  object-cover
-                                  border
-                                  border-indigo-100
-                                "
-                              />
-
-
-                              {itemUnavailable && (
-
-                                <span
-                                  className="
-                                    absolute
-                                    -top-2
-                                    -right-2
-                                    rounded-full
-                                    bg-rose-600
-                                    px-2
-                                    py-1
-                                    text-[8px]
-                                    font-extrabold
-                                    text-white
-                                    shadow-sm
-                                  "
-                                >
-                                  NOT DELIVERABLE
-                                </span>
-
-                              )}
-
-                            </div>
-
-
-                            <div
-                              className="
-                                min-w-0
-                              "
-                            >
-
-                              <p
-                                className="
-                                  text-sm
-                                  font-semibold
-                                  text-slate-800
-                                  line-clamp-2
-                                  hover:text-indigo-600
-                                  transition-colors
-                                "
-                              >
-                                {item.title}
-                              </p>
-
-
-                              {itemUnavailable && (
-
-                                <p
-                                  className="
-                                    text-xs
-                                    font-semibold
-                                    text-rose-600
-                                    mt-1
-                                  "
-                                >
-                                  ❌ Cannot be delivered to{" "}
-                                  {
-                                    serviceability.postalCode
-                                  }
-                                </p>
-
-                              )}
-
-
-                              <p
-                                className="
-                                  flex
-                                  items-center
-                                  text-indigo-600
-                                  font-bold
-                                  text-base
-                                  mt-1
-                                "
-                              >
-
-                                <FaRupeeSign
-                                  size={11}
-                                />
-
-                                {Number(
-                                  item.price || 0
-                                ).toFixed(2)}
-
-                              </p>
-
-                            </div>
-
-                          </div>
-
-
-                          <div
-                            className="
-                              flex
-                              items-center
-                              gap-3
-                              justify-end
-                            "
-                          >
-
-                            <div
-                              className="
-                                qty-wrap
-                              "
-                            >
-
-                              <button
-                                className="
-                                  qty-btn
-                                "
-                                onClick={(e) => {
-
-                                  e.stopPropagation();
-
-                                  handleDecrease(
-                                    item.productId,
-                                    item.quantity,
-                                    item.variantSku
-                                  );
-
-                                }}
-                              >
-
-                                <AiOutlineMinus
-                                  size={12}
-                                />
-
-                              </button>
-
-
-                              <span
-                                className="
-                                  text-sm
-                                  font-bold
-                                  text-slate-800
-                                  w-5
-                                  text-center
-                                "
-                              >
-                                {item.quantity}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h2 className="modern-cart-title">My Cart</h2>
+                              <span className="modern-count-pill">
+                                {cartItem.length} {cartItem.length === 1 ? "item" : "items"}
                               </span>
-
-
-                              <button
-                                className="
-                                  qty-btn
-                                "
-                                onClick={(e) => {
-
-                                  e.stopPropagation();
-
-                                  increaseQty(
-                                    item.productId,
-                                    item.variantSku
-                                  );
-
-                                }}
-                              >
-
-                                <AiOutlinePlus
-                                  size={12}
-                                />
-
-                              </button>
-
                             </div>
-
-
-                            <button
-                              onClick={(e) => {
-
-                                e.stopPropagation();
-
-
-                                setSelectedItem({
-
-                                  productId:
-                                    item.productId,
-
-                                  variantSku:
-                                    item.variantSku ||
-                                    "",
-
-                                });
-
-
-                                onDeleteOpen();
-
-                              }}
-                              className="
-                                w-9
-                                h-9
-                                rounded-xl
-                                flex
-                                items-center
-                                justify-center
-                                border
-                                border-slate-200
-                                bg-white
-                                text-slate-400
-                                hover:border-red-400
-                                hover:text-red-500
-                                hover:bg-red-50
-                                transition-all
-                              "
-                            >
-
-                              <FaRegTrashAlt
-                                size={13}
-                              />
-
-                            </button>
-
+                            <p className="modern-cart-subtitle">Review your items before delivery.</p>
                           </div>
-
-                        </div>
-
-                      );
-
-                    }
-                  )}
-
-
-                  {/* =================================================
-                      ORDER SUMMARY
-                  ================================================= */}
-
-                  <div
-                    className="
-                      cart-card
-                      cart-summary-card
-                      p-5
-                    "
-                  >
-
-                    <p
-                      className="
-                        text-xs
-                        font-bold
-                        tracking-widest
-                        text-indigo-400
-                        uppercase
-                        mb-4
-                      "
-                    >
-                      Order Summary
-                    </p>
-
-
-                    <div
-                      className="
-                        space-y-2.5
-                      "
-                    >
-
-                      <div className="s-row">
-
-                        <span>
-                          🧾 Subtotal
-                        </span>
-
-                        <span
-                          className="
-                            font-semibold
-                            text-slate-700
-                          "
-                        >
-                          ₹
-                          {subtotalAfterDiscount.toFixed(2)}
-                        </span>
-
-                      </div>
-
-
-                      <div className="s-row">
-
-                        <span>
-                          🧾 Tax
-                        </span>
-
-                        <span
-                          className="
-                            font-semibold
-                            text-slate-700
-                          "
-                        >
-                          ₹
-                          {itemTax.toFixed(2)}
-                        </span>
-
-                      </div>
-
-
-                      <div className="s-row">
-
-                        <span>
-                          🏷️ Discount
-                        </span>
-
-                        <span
-                          className="
-                            font-semibold
-                            text-emerald-600
-                          "
-                        >
-                          -₹
-                          {itemDiscount.toFixed(2)}
-                        </span>
-
-                      </div>
-
-
-                      {couponDiscount > 0 && (
-
-                        <div className="s-row">
-
-                          <span>
-                            🎟️ Coupon
-                          </span>
-
-                          <span
-                            className="
-                              font-semibold
-                              text-emerald-600
-                            "
-                          >
-                            -₹
-                            {Number(
-                              couponDiscount
-                            ).toFixed(2)}
-                          </span>
-
-                        </div>
-
-                      )}
-
-
-                      <div className="s-row">
-
-                        <span>
-                          🚚 Delivery
-                        </span>
-
-                        <span
-                          className="
-                            text-green-600
-                            font-semibold
-                            text-xs
-                          "
-                        >
-                          FREE
-                        </span>
-
-                      </div>
-
-
-                      <div className="s-row">
-
-                        <span
-                          className="
-                            flex
-                            items-center
-                            gap-2
-                          "
-                        >
-
-                          <GiShoppingBag
-                            size={13}
-                          />
-
-                          Handling
-
-                        </span>
-
-
-                        <span
-                          className="
-                            font-semibold
-                            text-slate-700
-                          "
-                        >
-                          ₹
-                          {shippingCharge.toFixed(2)}
-                        </span>
-
-                      </div>
-
-
-                      <div
-                        className="
-                          border-t
-                          pt-3
-                          flex
-                          justify-between
-                        "
-                      >
-
-                        <span
-                          className="
-                            font-bold
-                            text-slate-800
-                          "
-                        >
-                          Total
-                        </span>
-
-
-                        <span
-                          className="
-                            flex
-                            items-center
-                            font-extrabold
-                            text-lg
-                            text-indigo-600
-                          "
-                        >
-
-                          <FaRupeeSign
-                            size={13}
-                            className="mr-1"
-                          />
-
-                          {Number(
-                            finalTotal || 0
-                          ).toFixed(2)}
-
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-
-                  {/* =================================================
-                      CONTINUE
-                  ================================================= */}
-
-                  <button
-                    onClick={() => {
-
-                      if (
-                        !canProceedStep1
-                      ) {
-                        return;
-                      }
-
-
-                      if (
-                        serviceability.checked &&
-                        serviceability
-                          .unavailableItems
-                          .length > 0
-                      ) {
-
-                        toast.warning(
-                          "Remove unavailable products or change your PIN code first."
-                        );
-
-                        return;
-
-                      }
-
-
-                      setStep(2);
-
-                    }}
-                    disabled={
-
-                      !canProceedStep1 ||
-
-                      (
-                        serviceability.checked &&
-                        serviceability
-                          .unavailableItems
-                          .length > 0
-                      )
-
-                    }
-                    className="
-                      btn-primary
-                      w-full
-                      py-4
-                      text-sm
-                    "
-                  >
-
-                    <span
-                      className="
-                        relative
-                        z-10
-                      "
-                    >
-
-                      {
-                        serviceability.checked &&
-                        serviceability
-                          .unavailableItems
-                          .length > 0
-
-                          ? "Remove unavailable products to continue"
-
-                          : "Continue to Delivery"
-                      }
-
-                    </span>
-
-
-                    <IoArrowForward
-                      size={16}
-                      className="
-                        relative
-                        z-10
-                      "
-                    />
-
-                  </button>
-
-                </div>
-
-              )}
-
-
-              {/* =================================================
-                  STEP 2 — DELIVERY
-              ================================================= */}
-
-              {step === 2 && (
-
-                <div
-                  className="
-                    step-panel
-                  "
-                >
-
-                  <h2
-                    className="
-                      cart-serif
-                      text-2xl
-                      font-bold
-                      text-indigo-900
-                      mb-6
-                    "
-                  >
-
-                    <span
-                      className="
-                        flex
-                        items-center
-                        gap-2
-                      "
-                    >
-
-                      <AiFillEnvironment
-                        className="
-                          text-indigo-600
-                        "
-                      />
-
-                      Delivery Information
-
-                    </span>
-
-                  </h2>
-
-
-                  <div
-                    className="
-                      cart-card
-                      p-6
-                      sm:p-8
-                      space-y-4
-                    "
-                  >
-
-                    {/* HEADER */}
-
-                    <div
-                      className="
-                        flex
-                        items-center
-                        gap-3
-                        border-b
-                        border-indigo-50
-                        pb-4
-                        mb-2
-                      "
-                    >
-
-                      <div
-                        className="
-                          w-10
-                          h-10
-                          rounded-xl
-                          bg-indigo-50
-                          border
-                          border-indigo-100
-                          flex
-                          items-center
-                          justify-center
-                          text-xl
-                        "
-                      >
-
-                        <GiShoppingBag
-                          className="
-                            text-indigo-600
-                          "
-                          size={20}
-                        />
-
-                      </div>
-
-
-                      <div>
-
-                        <p
-                          className="
-                            font-bold
-                            text-indigo-900
-                            text-sm
-                          "
-                        >
-                          Shipping Details
-                        </p>
-
-
-                        <p
-                          className="
-                            text-xs
-                            text-slate-400
-                          "
-                        >
-                          Where should we deliver?
-                        </p>
-
-                      </div>
-
-                    </div>
-
-
-                    {/* =================================================
-                        SAVED DELIVERY ADDRESS — REQUIRED
-                    ================================================= */}
-
-                    {addressLoading ? (
-
-                      <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-5 text-sm text-indigo-700">
-                        Loading your saved delivery addresses...
-                      </div>
-
-                    ) : savedAddresses.length === 0 ? (
-
-                      <div className="rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 p-5 space-y-4">
-
-                        <div>
-                          <p className="text-sm font-bold text-indigo-900">
-                            Add a saved delivery address
-                          </p>
-
-                          <p className="text-xs text-slate-500 mt-1 leading-5">
-                            Checkout uses a saved address so the delivery
-                            location stays separate from your current pickup location.
-                          </p>
                         </div>
 
                         <button
                           type="button"
-                          onClick={redirectToSavedAddresses}
-                          className="btn-primary w-full py-3 text-sm"
+                          onClick={() => navigate("/order-history")}
+                          className="modern-orders-btn"
                         >
-                          Add Delivery Address →
+                          <FaHistory size={13} />
+                          <span>Orders</span>
                         </button>
+                      </div> */}
 
-                      </div>
+                      <div className="modern-cart-layout">
+                        {/* ===================== LEFT ===================== */}
+                        <div className="modern-cart-main">
 
-                    ) : (
-
-                      <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
-
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-bold text-indigo-900">
-                              Select Delivery Address
-                            </p>
-
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              Select the saved address where this order should be delivered.
-                            </p>
+                          <div className="modern-assurance-card">
+                            <div className="modern-assurance-icon"><FaCheckCircle size={16} /></div>
+                            <div className="min-w-0">
+                              <p className="modern-assurance-title">You're almost there</p>
+                              <p className="modern-assurance-text">Free delivery • Secure checkout • Easy order tracking</p>
+                            </div>
+                            <span className="modern-secure-badge">SECURE</span>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={redirectToSavedAddresses}
-                            className="btn-secondary px-3 py-2 text-xs whitespace-nowrap"
-                          >
-                            Manage Addresses
-                          </button>
-                        </div>
+                          {/* ================= UNAVAILABLE ================= */}
+                          {serviceability.checked && serviceability.unavailableItems.length > 0 && (
+                            <div className="modern-unavailable-card">
+                              <div className="flex items-start gap-3">
+                                <div className="modern-warning-icon"><FaRegTrashAlt size={15} /></div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="modern-warning-title">Some items need your attention</p>
+                                  <p className="modern-warning-text">These products cannot be delivered to PIN {serviceability.postalCode}.</p>
+                                </div>
+                              </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-
-                          {savedAddresses.map((saved) => {
-
-                            const active =
-                              String(selectedAddressId) === String(saved._id);
-
-                            return (
-                              <div
-                                key={saved._id}
-                                className={`rounded-2xl border p-4 transition ${
-                                  active
-                                    ? "border-indigo-500 bg-white shadow-md"
-                                    : "border-slate-200 bg-white hover:border-indigo-200"
-                                }`}
-                              >
-
-                                <button
-                                  type="button"
-                                  onClick={() => fillAddressFromSaved(saved)}
-                                  className="w-full text-left"
-                                >
-
-                                  <div className="flex items-start justify-between gap-3">
-
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs font-bold px-2 py-1 rounded-lg bg-indigo-100 text-indigo-700">
-                                        {saved.label || "Address"}
-                                      </span>
-
-                                      {saved.isDefault && (
-                                        <span className="text-[10px] font-bold text-emerald-600">
-                                          DEFAULT
-                                        </span>
-                                      )}
+                              <div className="space-y-2.5 mt-4">
+                                {serviceability.unavailableItems.map((unavailable, index) => {
+                                  const productId =
+                                    unavailable?.productId?._id ||
+                                    unavailable?.productId ||
+                                    unavailable?._id ||
+                                    unavailable?.product?._id;
+                                  const backendVariantSku = unavailable?.variantSku || unavailable?.variant?.sku || "";
+                                  const cartProduct = cartItem.find((cart) => {
+                                    if (String(cart.productId) !== String(productId)) return false;
+                                    if (!backendVariantSku) return true;
+                                    return String(cart.variantSku || "") === String(backendVariantSku);
+                                  });
+                                  const variantSku = backendVariantSku || cartProduct?.variantSku || "";
+                                  const itemKey = `${productId}-${variantSku || "default"}`;
+                                  const title = unavailable?.title || unavailable?.name || unavailable?.product?.title || unavailable?.product?.name || cartProduct?.title || "Unavailable product";
+                                  return (
+                                    <div key={`${itemKey}-${index}`} className="modern-unavailable-item">
+                                      <div className="min-w-0 flex-1">
+                                        <p className="font-bold text-sm text-slate-800 truncate">{title}</p>
+                                        {variantSku && <p className="text-[11px] text-slate-400 mt-0.5">Variant: {variantSku}</p>}
+                                        <p className="text-xs text-rose-600 font-medium mt-1">❌ {unavailable?.reason || "Not serviceable to this PIN"}</p>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveUnavailable({ ...unavailable, productId, variantSku })}
+                                        disabled={removingUnavailable === itemKey}
+                                        className="modern-remove-btn"
+                                      >
+                                        <FaRegTrashAlt size={11} />
+                                        {removingUnavailable === itemKey ? "Removing" : "Remove"}
+                                      </button>
                                     </div>
+                                  );
+                                })}
+                              </div>
 
-                                    {active && (
-                                      <FaCheckCircle className="text-indigo-600" />
-                                    )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setServiceability((prev) => ({ ...prev, checked: false, checking: false, serviceableItems: [], unavailableItems: [], message: "" }));
+                                  setStep(2);
+                                  toast.info("Change your PIN code to check delivery availability.");
+                                }}
+                                className="modern-change-pin"
+                              >
+                                <MdMyLocation size={14} /> Change PIN code
+                              </button>
+                            </div>
+                          )}
 
-                                  </div>
+                          {/* ===================== ITEMS ===================== */}
+                          <section className="modern-items-card">
+                            <div className="modern-section-head">
+                              <div>
+                                <p className="modern-eyebrow">YOUR ITEMS</p>
+                                <h3 className="modern-section-title">Ready to checkout</h3>
+                              </div>
+                              <span className="modern-item-count">{cartItem.length} {cartItem.length === 1 ? "item" : "items"}</span>
+                            </div>
 
-                                  <p className="text-sm font-bold text-slate-800 mt-3">
-                                    {saved.fullName || "Customer"}
-                                  </p>
+                            <div className="modern-items-list">
+                              {cartItem.map((item) => {
+                                const itemUnavailable = serviceability.unavailableItems.some((u) => {
+                                  const uProductId = u?.productId?._id || u?.productId || u?._id || u?.product?._id;
+                                  const uSku = u?.variantSku || u?.variant?.sku || "";
+                                  return String(uProductId) === String(item.productId) && (!uSku || String(uSku) === String(item.variantSku || ""));
+                                });
 
-                                  <p className="text-xs text-slate-500 mt-1 leading-5">
-                                    {saved.addressLine1}
-                                    {saved.addressLine2 ? `, ${saved.addressLine2}` : ""}
-                                    {saved.area ? `, ${saved.area}` : ""}
-                                    {saved.city ? `, ${saved.city}` : ""}
-                                    {saved.district ? `, ${saved.district}` : ""}
-                                    {saved.state ? `, ${saved.state}` : ""}
-                                    {saved.postalCode ? ` - ${saved.postalCode}` : ""}
-                                  </p>
-
-                                  <p className="text-xs text-slate-500 mt-2">
-                                    +91 {saved.phone || ""}
-                                  </p>
-
-                                </button>
-
-                                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-100">
-
-                                  <button
-                                    type="button"
-                                    onClick={() => startEditAddress(saved)}
-                                    className="text-xs font-semibold text-indigo-600 hover:underline"
+                                return (
+                                  <article
+                                    key={`${item.productId}-${item.variantSku || "default"}`}
+                                    className={`modern-product-row ${itemUnavailable ? "modern-product-unavailable" : ""}`}
                                   >
-                                    Edit in Saved Addresses
-                                  </button>
-
-                                  {!saved.isDefault && (
                                     <button
                                       type="button"
-                                      onClick={() => setDefaultSavedAddress(saved._id)}
-                                      className="text-xs font-semibold text-emerald-600 hover:underline"
+                                      onClick={() => navigate(`/products/${item.productId}`)}
+                                      className="modern-product-image-wrap"
+                                      aria-label={`View ${item.title || "product"}`}
                                     >
-                                      Set Default
+                                      <img
+                                        src={item.image || item.thumbnail || item.images?.[0] || ""}
+                                        alt={item.title || "Product"}
+                                        className="modern-product-image"
+                                        loading="lazy"
+                                      />
+                                      {itemUnavailable && <span className="modern-unavailable-badge">Unavailable</span>}
                                     </button>
-                                  )}
 
-                                </div>
-
-                              </div>
-                            );
-                          })}
-
-                        </div>
-
-                        {!selectedAddressId && (
-                          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs font-semibold text-amber-700">
-                            Please select an address before continuing.
-                          </div>
-                        )}
-
-                      </div>
-
-                    )}
-
-                    {/* NAME */}
-
-                    <div>
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-2
-                          mb-1.5
-                        "
-                      >
-
-                        <label
-                          className="
-                            text-xs
-                            font-semibold
-                            text-slate-600
-                          "
-                        >
-
-                          <span
-                            className="
-                              flex
-                              items-center
-                              gap-1
-                            "
-                          >
-
-                            <FaUser
-                              className="
-                                text-indigo-500
-                              "
-                              size={12}
-                            />
-
-                            Full Name
-
-                          </span>
-
-                        </label>
-
-
-                        <span className="req-badge">
-                          Required
-                        </span>
-
-                      </div>
-
-
-                      <input
-                        className="f-input-bare"
-                        type="text"
-                        placeholder="e.g. Bom Bhole"
-                        value={
-                          address.name
-                        }
-                        onChange={(e) =>
-                          setAddress({
-                            ...address,
-                            name:
-                              e.target.value,
-                          })
-                        }
-                      />
-
-                    </div>
-
-
-                    {/* EMAIL */}
-
-                    <div>
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-2
-                          mb-1.5
-                        "
-                      >
-
-                        <label
-                          className="
-                            text-xs
-                            font-semibold
-                            text-slate-600
-                          "
-                        >
-
-                          <span
-                            className="
-                              flex
-                              items-center
-                              gap-1
-                            "
-                          >
-
-                            <FaEnvelope
-                              className="
-                                text-indigo-500
-                              "
-                              size={12}
-                            />
-
-                            Email Address
-
-                          </span>
-
-                        </label>
-
-
-                        <span className="req-badge">
-                          Required
-                        </span>
-
-
-                        {emailTouched && (
-
-                          <span
-                            className={`
-                              check-in
-                              text-xs
-                              font-semibold
-                              flex
-                              items-center
-                              gap-1
-
-                              ${
-                                emailValid
-                                  ? "text-emerald-600"
-                                  : "text-rose-500"
-                              }
-                            `}
-                          >
-
-                            {emailValid
-                              ? "✅ Valid"
-                              : "❌ Invalid"}
-
-                          </span>
-
-                        )}
-
-                      </div>
-
-
-                      <input
-                        className={`
-                          f-input-bare
-
-                          ${
-                            emailTouched &&
-                            !emailValid
-                              ? "error"
-                              : emailTouched &&
-                                emailValid
-                              ? "valid"
-                              : ""
-                          }
-                        `}
-                        type="email"
-                        placeholder="Account email"
-                        value={
-                          address.email ||
-                          ""
-                        }
-                        onChange={(e) =>
-                          setAddress({
-                            ...address,
-                            email:
-                              e.target.value,
-                          })
-                        }
-                      />
-
-
-                      {emailTouched &&
-                        !emailValid && (
-
-                          <p
-                            className="
-                              text-xs
-                              text-rose-500
-                              mt-1
-                              font-medium
-                            "
-                          >
-                            Please enter a valid email address
-                          </p>
-
-                        )}
-
-                    </div>
-
-
-                    {/* PHONE */}
-
-                    <div>
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-2
-                          mb-1.5
-                        "
-                      >
-
-                        <label
-                          className="
-                            text-xs
-                            font-semibold
-                            text-slate-600
-                          "
-                        >
-
-                          <span
-                            className="
-                              flex
-                              items-center
-                              gap-1
-                            "
-                          >
-
-                            <BsTelephoneFill
-                              className="
-                                text-indigo-500
-                              "
-                              size={11}
-                            />
-
-                            Phone Number
-
-                          </span>
-
-                        </label>
-
-
-                        <span className="req-badge">
-                          Required
-                        </span>
-
-                      </div>
-
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          f-input-bare
-                          pr-0
-                          pl-0
-                          overflow-hidden
-                        "
-                      >
-
-                        <span
-                          className="
-                            text-indigo-400
-                            text-sm
-                            font-bold
-                            flex-shrink-0
-                            border-r
-                            border-indigo-100
-                            mr-1
-                            px-3
-                          "
-                        >
-                          +91
-                        </span>
-
-
-                        <input
-                          type="tel"
-                          name="phone"
-                          placeholder="10-digit mobile number"
-                          maxLength="10"
-                          inputMode="numeric"
-                          value={
-                            address.phone ||
-                            ""
-                          }
-                          onChange={(e) => {
-
-                            const value =
-                              e.target.value
-                                .replace(
-                                  /[^0-9]/g,
-                                  ""
-                                )
-                                .slice(
-                                  0,
-                                  10
+                                    <div className="modern-product-info">
+                                      <div className="flex items-start justify-between gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => navigate(`/products/${item.productId}`)}
+                                          className="modern-product-title text-left"
+                                        >
+                                          {item.title || "Product"}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setSelectedItem({ productId: item.productId, variantSku: item.variantSku || "" });
+                                            onDeleteOpen();
+                                          }}
+                                          className="modern-delete-btn"
+                                          aria-label="Remove item"
+                                        >
+                                          <FaRegTrashAlt size={13} />
+                                        </button>
+                                      </div>
+
+                                      {item.variantSku && (
+                                        <p className="modern-variant">SKU: {item.variantSku}</p>
+                                      )}
+
+                                      <div className="modern-product-bottom">
+                                        <div>
+                                          <p className="modern-product-price">₹{Number(item.price || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                          <p className="modern-product-note"><FaCheckCircle size={10} /> Free delivery</p>
+                                        </div>
+
+                                        <div className="modern-qty-control" aria-label="Quantity controls">
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDecrease(item.productId, item.quantity, item.variantSku);
+                                            }}
+                                            aria-label="Decrease quantity"
+                                          >
+                                            <AiOutlineMinus size={12} />
+                                          </button>
+                                          <span>{item.quantity}</span>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              increaseQty(item.productId, item.variantSku);
+                                            }}
+                                            aria-label="Increase quantity"
+                                          >
+                                            <AiOutlinePlus size={12} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </article>
                                 );
+                              })}
+                            </div>
 
+                            <button type="button" onClick={() => navigate("/products")} className="modern-add-products">
+                              <span className="modern-add-icon"><AiOutlinePlus size={16} /></span>
+                              <span className="text-left flex-1">
+                                <strong>Add more products</strong>
+                                <small>Keep shopping and discover more</small>
+                              </span>
+                              <IoArrowForward size={18} />
+                            </button>
+                          </section>
+                        </div>
 
-                            setAddress({
-                              ...address,
-                              phone:
-                                value,
-                            });
+                        {/* ===================== SUMMARY ===================== */}
+                        <aside className="modern-cart-summary">
+                          <div className="modern-summary-card">
+                            <div className="modern-summary-head">
+                              <div>
+                                <p className="modern-eyebrow">ORDER SUMMARY</p>
+                                <h3>Price details</h3>
+                              </div>
+                              <div className="modern-summary-bag"><GiShoppingBag size={18} /></div>
+                            </div>
 
+                            <div className="modern-summary-rows">
+                              <div><span>Items</span><strong>₹{Number(subtotalAfterDiscount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+                              <div><span>Tax</span><strong>₹{Number(itemTax || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+                              <div><span>Delivery</span><strong className="free">FREE</strong></div>
+                            </div>
+
+                            <div className="modern-savings-note">
+                              <FaCheckCircle size={13} />
+                              <span>Offer prices are applied automatically at checkout.</span>
+                            </div>
+
+                            <div className="modern-total-row">
+                              <div>
+                                <span>Total payable</span>
+                                <small>Inclusive of applicable charges</small>
+                              </div>
+                              <strong>₹{Number(finalTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                            </div>
+
+                            <div className="modern-trust-row">
+                              <span><FaShieldAlt size={12} /> Secure checkout</span>
+                              <span><FaCheckCircle size={12} /> Free delivery</span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!canProceedStep1) return;
+                                if (serviceability.checked && serviceability.unavailableItems.length > 0) {
+                                  toast.warning("Remove unavailable products or change your PIN code first.");
+                                  return;
+                                }
+                                setStep(2);
+                              }}
+                              disabled={!canProceedStep1 || (serviceability.checked && serviceability.unavailableItems.length > 0)}
+                              className="modern-checkout-btn"
+                            >
+                              <span>Continue to delivery</span>
+                              <IoArrowForward size={18} />
+                            </button>
+
+                            <p className="modern-checkout-caption">You can review your address and payment method next.</p>
+                          </div>
+                        </aside>
+                      </div>
+
+                      {/* MOBILE STICKY CHECKOUT */}
+                      <div className="modern-mobile-checkout">
+                        <div>
+                          <span>Total</span>
+                          <strong>₹{Number(finalTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!canProceedStep1) return;
+                            if (serviceability.checked && serviceability.unavailableItems.length > 0) {
+                              toast.warning("Remove unavailable products or change your PIN code first.");
+                              return;
+                            }
+                            setStep(2);
                           }}
-                          className="
-                            flex-1
-                            py-1
-                            px-1
-                            bg-transparent
-                            text-slate-800
-                            placeholder-indigo-200
-                            focus:outline-none
-                            text-sm
-                          "
-                        />
-
-                      </div>
-
-                    </div>
-
-
-                    {/* STREET */}
-
-                    <div>
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-2
-                          mb-1.5
-                        "
-                      >
-
-                        <label
-                          className="
-                            text-xs
-                            font-semibold
-                            text-slate-600
-                          "
+                          disabled={!canProceedStep1 || (serviceability.checked && serviceability.unavailableItems.length > 0)}
                         >
-
-                          <span
-                            className="
-                              flex
-                              items-center
-                              gap-1
-                            "
-                          >
-
-                            <FaMapMarkerAlt
-                              className="
-                                text-indigo-500
-                              "
-                              size={11}
-                            />
-
-                            Street Address
-
-                          </span>
-
-                        </label>
-
-
-                        <span className="req-badge">
-                          Required
-                        </span>
-
+                          Continue <IoArrowForward size={17} />
+                        </button>
                       </div>
-
-
-                      <input
-                        className="f-input-bare"
-                        type="text"
-                        placeholder="Street / City / Area"
-                        value={
-                          address.street ||
-                          ""
-                        }
-                        onChange={(e) =>
-                          setAddress({
-
-                            ...address,
-
-                            street:
-                              e.target.value,
-
-                            addressLine1:
-                              e.target.value,
-
-                          })
-                        }
-                      />
-
-                    </div>
-
-
-                    {/* ADDRESS LINE 2 */}
-
-                    <div>
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-2
-                          mb-1.5
-                        "
-                      >
-
-                        <label
-                          className="
-                            text-xs
-                            font-semibold
-                            text-slate-600
-                          "
-                        >
-                          Apartment / Flat / Building
-                        </label>
-
-
-                        <span className="opt-badge">
-                          Optional
-                        </span>
-
-                      </div>
-
-
-                      <input
-                        className="f-input-bare"
-                        type="text"
-                        placeholder="Flat / Apartment / Building"
-                        value={
-                          address.addressLine2 ||
-                          ""
-                        }
-                        onChange={(e) =>
-                          setAddress({
-                            ...address,
-                            addressLine2:
-                              e.target.value,
-                          })
-                        }
-                      />
-
-                    </div>
-
-
-                    {/* AREA */}
-
-                    <div>
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-2
-                          mb-1.5
-                        "
-                      >
-
-                        <label
-                          className="
-                            text-xs
-                            font-semibold
-                            text-slate-600
-                          "
-                        >
-                          Area / Locality
-                        </label>
-
-
-                        <span className="req-badge">
-                          Required
-                        </span>
-
-                      </div>
-
-
-                      <input
-                        className="f-input-bare"
-                        type="text"
-                        placeholder="e.g. Saheed Nagar"
-                        value={
-                          address.area ||
-                          ""
-                        }
-                        onChange={(e) =>
-                          setAddress({
-                            ...address,
-                            area:
-                              e.target.value,
-                          })
-                        }
-                      />
-
-                    </div>
-
-
-                    {/* VILLAGE */}
-
-                    <div>
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-2
-                          mb-1.5
-                        "
-                      >
-                        <label
-                          className="
-                            text-xs
-                            font-semibold
-                            text-slate-600
-                          "
-                        >
-                          Village
-                        </label>
-
-                        <span className="opt-badge">
-                          Optional
-                        </span>
-                      </div>
-
-                      <input
-                        className="f-input-bare"
-                        type="text"
-                        placeholder="e.g. Village name"
-                        value={address.village || ""}
-                        onChange={(e) =>
-                          setAddress({
-                            ...address,
-                            village: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-
-
-                    {/* LANDMARK */}
-
-                    <div>
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-2
-                          mb-1.5
-                        "
-                      >
-
-                        <label
-                          className="
-                            text-xs
-                            font-semibold
-                            text-slate-600
-                          "
-                        >
-                          Landmark
-                        </label>
-
-
-                        <span className="opt-badge">
-                          Optional
-                        </span>
-
-                      </div>
-
-
-                      <input
-                        className="f-input-bare"
-                        type="text"
-                        placeholder="e.g. Near XYZ Mall"
-                        value={
-                          address.landmark ||
-                          ""
-                        }
-                        onChange={(e) =>
-                          setAddress({
-                            ...address,
-                            landmark:
-                              e.target.value,
-                          })
-                        }
-                      />
-
-                    </div>
-
-
-                    {/* CITY + DISTRICT */}
-
-                    <div
-                      className="
-                        grid
-                        grid-cols-1
-                        sm:grid-cols-2
-                        gap-3
-                      "
-                    >
-
-                      <div>
-
-                        <div
-                          className="
-                            flex
-                            items-center
-                            gap-1.5
-                            mb-1.5
-                          "
-                        >
-
-                          <label
-                            className="
-                              text-xs
-                              font-semibold
-                              text-slate-600
-                            "
-                          >
-                            City
-                          </label>
-
-
-                          <span className="req-badge">
-                            Required
-                          </span>
-
-                        </div>
-
-
-                        <input
-                          className="f-input-bare"
-                          type="text"
-                          placeholder="e.g. Bhubaneswar"
-                          value={
-                            address.city ||
-                            ""
-                          }
-                          onChange={(e) =>
-                            setAddress({
-                              ...address,
-                              city:
-                                e.target.value,
-                            })
-                          }
-                        />
-
-                      </div>
-
-
-                      <div>
-
-                        <div
-                          className="
-                            flex
-                            items-center
-                            gap-1.5
-                            mb-1.5
-                          "
-                        >
-
-                          <label
-                            className="
-                              text-xs
-                              font-semibold
-                              text-slate-600
-                            "
-                          >
-                            District
-                          </label>
-
-
-                          <span className="req-badge">
-                            Required
-                          </span>
-
-                        </div>
-
-
-                        <input
-                          className="f-input-bare"
-                          type="text"
-                          placeholder="e.g. Khordha"
-                          value={
-                            address.district ||
-                            ""
-                          }
-                          onChange={(e) =>
-                            setAddress({
-                              ...address,
-                              district:
-                                e.target.value,
-                            })
-                          }
-                        />
-
-                      </div>
-
-                    </div>
-
-
-                    {/* STATE + PIN */}
-
-                    <div
-                      className="
-                        grid
-                        grid-cols-2
-                        gap-3
-                      "
-                    >
-
-                      <div>
-
-                        <div
-                          className="
-                            flex
-                            items-center
-                            gap-1.5
-                            mb-1.5
-                          "
-                        >
-
-                          <label
-                            className="
-                              text-xs
-                              font-semibold
-                              text-slate-600
-                            "
-                          >
-
-                            <span
-                              className="
-                                flex
-                                items-center
-                                gap-1
-                              "
-                            >
-
-                              <MdLocationCity
-                                className="
-                                  text-indigo-500
-                                "
-                                size={13}
-                              />
-
-                              State
-
-                            </span>
-
-                          </label>
-
-
-                          <span className="req-badge">
-                            Required
-                          </span>
-
-                        </div>
-
-
-                        <input
-                          className="f-input-bare"
-                          type="text"
-                          placeholder="e.g. Odisha"
-                          value={
-                            address.state ||
-                            ""
-                          }
-                          onChange={(e) =>
-                            setAddress({
-                              ...address,
-                              state:
-                                e.target.value,
-                            })
-                          }
-                        />
-
-                      </div>
-
-
-                      <div>
-
-                        <div
-                          className="
-                            flex
-                            items-center
-                            gap-1.5
-                            mb-1.5
-                          "
-                        >
-
-                          <label
-                            className="
-                              text-xs
-                              font-semibold
-                              text-slate-600
-                            "
-                          >
-
-                            <span
-                              className="
-                                flex
-                                items-center
-                                gap-1
-                              "
-                            >
-
-                              <MdMyLocation
-                                className="
-                                  text-indigo-500
-                                "
-                                size={13}
-                              />
-
-                              Post Code
-
-                            </span>
-
-                          </label>
-
-
-                          <span className="req-badge">
-                            Required
-                          </span>
-
-                        </div>
-
-
-                        <input
-                          className="f-input-bare"
-                          type="text"
-                          placeholder="e.g. 751001"
-                          maxLength="6"
-                          inputMode="numeric"
-                          value={
-                            address.postcode ||
-                            ""
-                          }
-                          onChange={handlePostalCodeChange}
-                        />
-
-                        {postalLookupLoading && (
-                          <p className="mt-1.5 text-xs text-indigo-600">
-                            🔎 Finding address details for PIN {address.postcode}...
-                          </p>
-                        )}
-
-                      </div>
-
-                    </div>
-
-
-                    {/* =================================================
-                        SERVICEABILITY STATUS
-                    ================================================= */}
-
-                    {serviceability.checking && (
-
-                      <div
-                        className="
-                          rounded-2xl
-                          border
-                          border-indigo-100
-                          bg-indigo-50
-                          px-4
-                          py-3
-                          text-sm
-                          text-indigo-700
-                        "
-                      >
-                        🚚 Checking delivery availability for PIN{" "}
-                        {address.postcode}...
-                      </div>
-
-                    )}
-
-
-                    {serviceability.checked &&
-                      serviceability
-                        .unavailableItems
-                        .length === 0 && (
-
-                      <div
-                        className="
-                          rounded-2xl
-                          border
-                          border-emerald-200
-                          bg-emerald-50
-                          px-4
-                          py-3
-                        "
-                      >
-
-                        <p
-                          className="
-                            text-sm
-                            font-bold
-                            text-emerald-700
-                          "
-                        >
-                          ✅ Delivery available to{" "}
-                          {
-                            serviceability.postalCode
-                          }
-                        </p>
-
-
-                        <p
-                          className="
-                            text-xs
-                            text-emerald-600
-                            mt-1
-                          "
-                        >
-                          All products in your cart
-                          can be delivered to this PIN code.
-                        </p>
-
-                      </div>
-
-                    )}
-
-
-                    {/* =================================================
-                        CHECK DELIVERY BUTTON
-                    ================================================= */}
-
-                    <button
-                      type="button"
-                      onClick={
-                        checkServiceability
-                      }
-                      disabled={
-                        serviceability.checking ||
-                        !/^[1-9][0-9]{5}$/.test(
-                          String(
-                            address.postcode ||
-                            ""
-                          )
-                        )
-                      }
-                      className="
-                        btn-secondary
-                        w-full
-                        py-3
-                        text-sm
-                        disabled:opacity-50
-                      "
-                    >
-
-                      <MdMyLocation
-                        size={16}
-                      />
-
-                      {serviceability.checking
-                        ? "Checking..."
-                        : serviceability.checked
-                        ? "Check Again"
-                        : "Check Delivery Availability"}
-
-                    </button>
-
-
-                    {/* COUNTRY */}
-
-                    <div>
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-2
-                          mb-1.5
-                        "
-                      >
-
-                        <label
-                          className="
-                            text-xs
-                            font-semibold
-                            text-slate-600
-                          "
-                        >
-
-                          <span
-                            className="
-                              flex
-                              items-center
-                              gap-1
-                            "
-                          >
-
-                            <AiFillEnvironment
-                              className="
-                                text-indigo-500
-                              "
-                              size={13}
-                            />
-
-                            Country
-
-                          </span>
-
-                        </label>
-
-
-                        <span className="req-badge">
-                          Required
-                        </span>
-
-                      </div>
-
-
-                      <input
-                        className="f-input-bare"
-                        type="text"
-                        placeholder="e.g. India"
-                        value={
-                          address.country ||
-                          "India"
-                        }
-                        onChange={(e) =>
-                          setAddress({
-                            ...address,
-                            country:
-                              e.target.value,
-                          })
-                        }
-                      />
-
-                    </div>
-
-
-                    {/* DELIVERY ADDRESS MUST COME FROM SAVED ADDRESSES */}
-
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-xs text-slate-500">
-                      Delivery address is taken only from the selected saved address.
-                      Your current GPS location should be used only as the pickup location.
-                    </div>
-
-                  </div>
-
-
-                  {/* =================================================
-                      DELIVERY ACTIONS
-                  ================================================= */}
-
-                  <div
-                    className="
-                      flex
-                      gap-3
-                      mt-5
-                    "
-                  >
-
-                    <button
-                      onClick={() =>
-                        setStep(1)
-                      }
-                      className="
-                        btn-secondary
-                        flex-1
-                        py-4
-                        text-sm
-                      "
-                    >
-
-                      <IoArrowBack
-                        size={15}
-                      />
-
-                      Back
-
-                    </button>
-
-
-                    <button
-                      onClick={
-                        handleContinueToPayment
-                      }
-                      disabled={
-                        !canProceedStep2 ||
-                        serviceability.checking
-                      }
-                      className="
-                        btn-primary
-                        flex-[2]
-                        py-4
-                        text-sm
-                        disabled:opacity-50
-                      "
-                    >
-
-                      <span
-                        className="
-                          relative
-                          z-10
-                        "
-                      >
-                        Continue to Payment
-                      </span>
-
-
-                      <IoArrowForward
-                        size={15}
-                        className="
-                          relative
-                          z-10
-                        "
-                      />
-
-                    </button>
-
-                  </div>
-
+                    </>
+                  )}
                 </div>
-
               )}
 
+              {/* =================================================
+                  STEP 2 — REVIEW
+              ================================================= */}
+
+              {step === 2 && (
+                <div className="step-panel anime-step-panel space-y-5 pb-36">
+
+                  {/* REVIEW HEADER */}
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+                          <FaCheckCircle className="text-blue-600" size={18} />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                            Review your order
+                          </h2>
+                          <p className="text-sm text-slate-500 mt-0.5">
+                            Check your details before placing the order.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="hidden sm:flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-100 px-3 py-2 text-xs font-semibold text-emerald-700">
+                      <FaShieldAlt size={12} />
+                      Secure checkout
+                    </div>
+                  </div>
+
+                  {/* DELIVERY ADDRESS */}
+                  <section className="review-card p-5 sm:p-6">
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <div className="review-icon bg-blue-50 text-blue-600">
+                            <FaMapMarkerAlt size={15} />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-slate-900">
+                              Delivery Address
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              Where should we deliver your order?
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={redirectToSavedAddresses}
+                        className="review-outline-btn"
+                      >
+                        Change
+                      </button>
+                    </div>
+
+                    {addressLoading ? (
+                      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 text-sm text-blue-700">
+                        Loading your saved delivery address...
+                      </div>
+                    ) : selectedAddressId ? (
+                      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5">
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5 w-9 h-9 rounded-xl bg-white border border-blue-100 flex items-center justify-center flex-shrink-0">
+                            <FaUser className="text-blue-600" size={13} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-bold text-slate-900">
+                                {address.name || "Customer"}
+                              </p>
+                              <span className="rounded-full bg-white border border-blue-100 px-2 py-1 text-[10px] font-bold text-blue-700">
+                                {savedAddresses.find((item) => String(item._id) === String(selectedAddressId))?.label || "Address"}
+                              </span>
+                            </div>
+
+                            <p className="text-sm text-slate-600 leading-6 mt-2">
+                              {address.street || address.addressLine1}
+                              {address.addressLine2 ? `, ${address.addressLine2}` : ""}
+                              {address.area ? `, ${address.area}` : ""}
+                              {address.city ? `, ${address.city}` : ""}
+                              {address.district ? `, ${address.district}` : ""}
+                              {address.state ? `, ${address.state}` : ""}
+                              {address.postcode ? ` - ${address.postcode}` : ""}
+                            </p>
+
+                            <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-xs text-slate-500">
+                              <span className="inline-flex items-center gap-1.5">
+                                <BsTelephoneFill size={10} className="text-blue-500" />
+                                +91 {address.phone || ""}
+                              </span>
+                              <span className="inline-flex items-center gap-1.5 min-w-0">
+                                <FaEnvelope size={10} className="text-blue-500" />
+                                <span className="truncate">{address.email || user?.email || ""}</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          <FaCheckCircle className="text-emerald-500 flex-shrink-0" size={18} />
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={redirectToSavedAddresses}
+                        className="w-full rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 p-5 text-left hover:bg-blue-50 transition"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-11 h-11 rounded-full bg-white border border-blue-100 flex items-center justify-center">
+                            <AiOutlinePlus className="text-blue-600" size={22} />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-bold text-slate-900">Add delivery address</p>
+                            <p className="text-xs text-slate-500 mt-1">Add an address to continue</p>
+                          </div>
+                          <IoArrowForward className="text-slate-400" size={20} />
+                        </div>
+                      </button>
+                    )}
+
+                    {serviceability.checked && serviceability.unavailableItems.length === 0 && (
+                      <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-3.5 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+                          <FaCheckCircle className="text-emerald-500" size={16} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-emerald-700">
+                            Delivery available
+                          </p>
+                          <p className="text-xs text-emerald-600 mt-0.5">
+                            This order can be delivered to PIN {serviceability.postalCode}.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* ORDER SUMMARY */}
+                  <section className="review-card p-5 sm:p-6">
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="review-icon bg-indigo-50 text-indigo-600">
+                          <FaShoppingBag size={15} />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900">Order Summary</h3>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {cartItem.length} item{cartItem.length !== 1 ? "s" : ""} in your order
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {cartItem.map((item, index) => {
+                        const variant = getSelectedVariant(item);
+                        const image =
+                          item?.image ||
+                          item?.thumbnail ||
+                          item?.images?.[0] ||
+                          variant?.image ||
+                          variant?.images?.[0] ||
+                          "";
+                        const qty = Number(item?.quantity || 1);
+                        const lineTotal = getItemBaseAmount(item);
+                        const sku = item?.variantSku || variant?.sku || "";
+
+                        return (
+                          <div
+                            key={`${item?.productId || item?._id || index}-${sku || "default"}`}
+                            className="review-product"
+                          >
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-100">
+                              {image ? (
+                                <img
+                                  src={image}
+                                  alt={item?.title || "Product"}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                  <FaShoppingBag size={22} />
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="min-w-0 flex-1 py-0.5">
+                              <p className="font-bold text-slate-900 truncate">
+                                {item?.title || item?.name || "Product"}
+                              </p>
+                              {sku && (
+                                <p className="text-xs text-slate-500 mt-1 truncate">
+                                  {sku}
+                                </p>
+                              )}
+                              <div className="flex flex-wrap items-center gap-2 mt-2">
+                                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                                  Qty: {qty}
+                                </span>
+                                {variant?.attributes && Object.entries(variant.attributes).slice(0, 2).map(([key, value]) => (
+                                  <span key={key} className="text-[11px] text-slate-500">
+                                    {key}: {String(value)}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="text-right flex-shrink-0">
+                              <p className="text-base sm:text-lg font-bold text-blue-600">
+                                ₹{Number(lineTotal || 0).toLocaleString("en-IN", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </p>
+                              <p className="text-[11px] text-slate-400 mt-1">
+                                ₹{Number(item?.price || 0).toLocaleString("en-IN")} × {qty}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+
+                  {/* COUPON */}
+                  <section className="review-card p-5 sm:p-6">
+                    <div className="flex items-center gap-2.5 mb-4">
+                      <div className="review-icon bg-emerald-50 text-emerald-600">
+                        <FaHistory size={15} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900">Apply Coupon</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Use a valid coupon to save on your order
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2.5">
+                      <input
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          setCouponError("");
+                          setCouponSuccess("");
+                        }}
+                        placeholder="Enter coupon code"
+                        className={`review-input flex-1 ${couponError ? "border-rose-300" : ""}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={applyCoupon}
+                        disabled={couponLoading}
+                        className="review-apply-btn"
+                      >
+                        {couponLoading ? "Applying..." : "Apply"}
+                      </button>
+                    </div>
+
+                    {couponError && (
+                      <p className="text-xs font-medium text-rose-500 mt-2">
+                        {couponError}
+                      </p>
+                    )}
+
+                    {couponSuccess && (
+                      <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <FaCheckCircle className="text-emerald-500" />
+                          <div>
+                            <p className="text-sm font-bold text-emerald-700">Coupon applied</p>
+                            <p className="text-xs text-emerald-600 mt-0.5">{couponSuccess}</p>
+                          </div>
+                        </div>
+                        <span className="text-sm font-bold text-emerald-700">
+                          -₹{Number(couponDiscount || 0).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* PAYMENT METHOD */}
+                  <section className="review-card p-5 sm:p-6">
+                    <div className="flex items-center gap-2.5 mb-4">
+                      <div className="review-icon bg-blue-50 text-blue-600">
+                        <MdPayments size={17} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900">Payment Method</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Choose how you want to pay</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentType("cod")}
+                        className={`review-payment-option ${paymentType === "cod" ? "review-payment-active" : ""}`}
+                      >
+                        <div className="payment-radio">
+                          {paymentType === "cod" && <div className="payment-radio-dot" />}
+                        </div>
+                        <div className="payment-method-icon cod-icon">
+                          <FaWallet size={17} />
+                        </div>
+                        <div className="text-left flex-1 min-w-0">
+                          <p className="font-bold text-slate-900">Cash on Delivery</p>
+                          <p className="text-xs text-slate-500 mt-1">Pay after your order arrives</p>
+                        </div>
+                        <span className="text-xs font-semibold text-emerald-600 hidden sm:block">Available</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentType("razorpay")}
+                        className={`review-payment-option ${paymentType === "razorpay" ? "review-payment-active" : ""}`}
+                      >
+                        <div className="payment-radio">
+                          {paymentType === "razorpay" && <div className="payment-radio-dot" />}
+                        </div>
+                        <div className="payment-method-icon online-icon">
+                          <FaCreditCard size={17} />
+                        </div>
+                        <div className="text-left flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-bold text-slate-900">Pay Online</p>
+                            <span className="rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                              Secure
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">UPI, Cards, Wallets & Netbanking</p>
+                        </div>
+                        <span className="text-xs font-semibold text-blue-600 hidden sm:block">Razorpay</span>
+                      </button>
+                    </div>
+                  </section>
+
+                  {/* PRICE DETAILS */}
+                  <section className="review-card p-5 sm:p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-bold text-slate-900">Price Details</h3>
+                      <span className="text-xs font-semibold text-slate-400">{cartItem.length} item{cartItem.length !== 1 ? "s" : ""}</span>
+                    </div>
+
+                    <div className="space-y-3 text-sm">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-slate-500">Items</span>
+                        <span className="font-semibold text-slate-800">₹{Number(totalPrice || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-slate-500">Product discount</span>
+                        <span className="font-semibold text-emerald-600">-₹{Number(itemDiscount || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-slate-500">Coupon discount</span>
+                        <span className="font-semibold text-emerald-600">-₹{Number(couponDiscount || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-slate-500">Delivery</span>
+                        <span className="font-bold text-emerald-600">FREE</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-slate-500">Tax</span>
+                        <span className="font-semibold text-slate-800">₹{Number(itemTax || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    <div className="my-4 border-t border-slate-100" />
+
+                    <div className="flex items-end justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Amount</p>
+                        <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
+                          ₹{Number(finalTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div className="rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                        Free delivery
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* SECURITY NOTE */}
+                  <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-slate-500 py-1">
+                    <FaShieldAlt className="text-emerald-500" />
+                    <span>Your order details are protected and securely processed.</span>
+                  </div>
+
+                  {/* ACTIONS */}
+                  <div className="fixed-review-bar">
+                    <div className="fixed-review-inner">
+                      <button
+                        type="button"
+                        onClick={() => setStep(1)}
+                        className="review-back-btn"
+                      >
+                        <IoArrowBack size={17} />
+                        <span className="hidden sm:inline">Back</span>
+                      </button>
+
+                      <div className="review-total-mini">
+                        <span>Total Amount</span>
+                        <strong>₹{Number(finalTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handlePlaceOrderFromReview}
+                        disabled={!selectedAddressId || !cartItem.length || serviceability.checking}
+                        className="review-place-btn"
+                      >
+                        <span>
+                          {paymentType === "cod" ? "Place Order" : "Continue"}
+                        </span>
+                        <IoArrowForward size={20} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* =================================================
                   STEP 3 — PAYMENT
@@ -7982,10 +7187,7 @@ total:
               {step === 3 && (
 
                 <div
-                  className="
-                    step-panel
-                    space-y-6
-                  "
+                  className="step-panel anime-step-panel space-y-6 pb-36"
                 >
 
                   {/* HEADER */}
@@ -9121,11 +8323,10 @@ total:
 
                   <div
                     className="
-                      flex
-                      gap-4
-                      pt-2
+                      payment-action-dock
                     "
                   >
+                    <div className="payment-action-inner">
 
                     <button
                       onClick={() =>
@@ -9220,6 +8421,7 @@ total:
 
                     </button>
 
+                    </div>
                   </div>
 
                 </div>

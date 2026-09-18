@@ -17,6 +17,7 @@ import PhoneLogin from "./pages/PhoneLogin";
 import { Toaster } from "sonner";
 
 import AOS from "aos";
+import SearchNavbar from "./components/SearchNavbar";
 import "aos/dist/aos.css";
 
 import PageSkeleton from "./components/PageSkeleton";
@@ -84,7 +85,6 @@ const Verify =
 
 const LegalPage =
   lazy(() => import("./pages/LegalPage.jsx"));
-import SearchNavbar from "./components/SearchNavbar";
 
 /* =========================================================
    LAZY COMPONENTS
@@ -264,6 +264,7 @@ const isProductDetailsPage =
   const showFullNavbar =
     isHomePage;
 const showSearchNavbar =
+  pathname !== "/cart" &&
   !isHomePage &&
   pathname !== "/search" &&
   !isAuthPage &&
@@ -907,6 +908,7 @@ const showSearchNavbar =
                 <div className="pt-14" />
               </>
             )}
+
 
 
             {/* =================================================

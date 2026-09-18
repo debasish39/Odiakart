@@ -330,14 +330,14 @@ if (loading) {
               <div className="popular-skeleton-shimmer absolute left-2.5 top-2.5 h-5 w-20 rounded-full sm:left-3 sm:top-3" />
 
               {/* Image dots */}
-              <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1 rounded-full bg-slate-900/10 px-2 py-1">
+              {/* <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1 rounded-full bg-slate-900/10 px-2 py-1">
                 {[1, 2, 3].map((dot) => (
                   <div
                     key={dot}
                     className="popular-skeleton-shimmer h-1.5 w-1.5 rounded-full"
                   />
                 ))}
-              </div>
+              </div> */}
 
               {/* Image counter */}
               <div className="popular-skeleton-shimmer absolute bottom-2 right-2 h-5 w-9 rounded-md" />
@@ -346,7 +346,7 @@ if (loading) {
             {/* PRODUCT CONTENT */}
             <div className="relative p-3 sm:p-4">
               {/* Category */}
-              <div className="popular-skeleton-shimmer mb-2 h-3 w-20 rounded-full" />
+              <div className="popular-skeleton-shimmer mb-1 h-3 w-20 rounded-full" />
 
               {/* Title */}
               <div className="min-h-[38px] space-y-2">
@@ -965,7 +965,7 @@ if (loading) {
 
                   {images.length > 1 && (
                     <>
-                      <div className="tr-dots">
+                      {/* <div className="tr-dots">
                         {images.map((_, imageIndex) => (
                           <button
                             key={imageIndex}
@@ -987,7 +987,7 @@ if (loading) {
                             }
                           />
                         ))}
-                      </div>
+                      </div> */}
 
                       <div className="tr-count">
                         {activeIdx + 1}/{images.length}
@@ -1006,7 +1006,7 @@ if (loading) {
                     onClick={() =>
                       openProduct(product)
                     }
-                    className="min-h-[38px] cursor-pointer line-clamp-2 text-[12.5px] font-semibold leading-[1.35] text-slate-800 transition-colors hover:text-indigo-600 sm:text-sm"
+                    className="min-h-[9px] cursor-pointer line-clamp-2 text-[12.5px] font-semibold leading-[1.35] text-slate-800 transition-colors hover:text-indigo-600 sm:text-sm"
                   >
                     {product?.title || "Product"}
                   </h3>
@@ -1054,7 +1054,7 @@ if (loading) {
                       </span>
                     )}
                   </div>
-<div className="mt-2 flex items-baseline gap-1.5 border-t border-slate-100 pt-2.5">
+<div className="flex items-baseline gap-1.5 border-t border-slate-100 pt-2">
                     <span className="text-sm font-extrabold sm:text-base">
                       <span className="mr-0.5 text-indigo-600">
                         ₹
