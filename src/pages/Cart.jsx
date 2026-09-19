@@ -3353,7 +3353,7 @@ total:
         setTimeout(() => {
 
           navigate(
-            "/order-history"
+            "/account/orders"
           );
 
         }, 700);

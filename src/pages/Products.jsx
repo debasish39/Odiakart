@@ -777,8 +777,199 @@ export default function Products() {
               transition: none !important;
             }
           }
+
+          /* =========================================================
+             EXTRA UI POLISH — ANIMATED SHINE + ALIGNMENT
+             (visual only; no logic changes)
+          ========================================================= */
+
+          @keyframes animeShineSweep {
+            0% {
+              transform: translateX(-150%) skewX(-18deg);
+              opacity: 0;
+            }
+            18% {
+              opacity: 0;
+            }
+            32% {
+              opacity: .9;
+            }
+            48% {
+              opacity: .15;
+            }
+            62% {
+              opacity: 0;
+            }
+            100% {
+              transform: translateX(300%) skewX(-18deg);
+              opacity: 0;
+            }
+          }
+
+          @keyframes animeSoftGlow {
+            0%, 100% {
+              opacity: .35;
+              transform: scale(.96);
+            }
+            50% {
+              opacity: .8;
+              transform: scale(1);
+            }
+          }
+
+          .anime-shine {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+          }
+
+          .anime-shine::after {
+            content: "";
+            position: absolute;
+            top: -35%;
+            bottom: -35%;
+            left: -45%;
+            width: 28%;
+            z-index: 5;
+            pointer-events: none;
+            transform: skewX(-18deg);
+            background: linear-gradient(
+              90deg,
+              transparent 0%,
+              rgba(255,255,255,0) 15%,
+              rgba(255,255,255,.78) 48%,
+              rgba(255,255,255,.18) 62%,
+              transparent 100%
+            );
+            filter: blur(.3px);
+            animation: animeShineSweep 4.8s ease-in-out infinite;
+          }
+
+          .anime-shine-soft::before {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            z-index: -1;
+            pointer-events: none;
+            border-radius: inherit;
+            background: radial-gradient(
+              circle,
+              rgba(99,102,241,.13) 0%,
+              rgba(99,102,241,.05) 34%,
+              transparent 68%
+            );
+            animation: animeSoftGlow 3.4s ease-in-out infinite;
+          }
+
+          .anime-shine-fast::after {
+            animation-duration: 3.2s;
+          }
+
+          .anime-shine-slow::after {
+            animation-duration: 6s;
+          }
+
+          .products-toolbar,
+          .products-category-heading,
+          .products-empty-card {
+            position: relative;
+          }
+
+          .products-toolbar > *,
+          .products-category-heading > *,
+          .products-empty-card > * {
+            position: relative;
+            z-index: 2;
+          }
+
+          /* Keep controls perfectly aligned on narrow screens. */
+          .products-toolbar {
+            align-items: center;
+            min-height: 52px;
+          }
+
+          .products-toolbar {
+            width: 100%;
+            max-width: 100%;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            overscroll-behavior-x: contain;
+            touch-action: pan-x;
+            cursor: grab;
+          }
+
+          .products-toolbar:active {
+            cursor: grabbing;
+          }
+
+          .products-toolbar::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+          }
+
+          .products-toolbar > * {
+            flex: 0 0 auto;
+          }
+
+          .products-toolbar button {
+            flex: 0 0 auto;
+            vertical-align: middle;
+          }
+
+
+          .products-category-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+          }
+
+          .products-category-heading::after {
+            position: absolute;
+            left: 0;
+            bottom: -8px;
+            margin-top: 0;
+          }
+
+          .products-app-card {
+            display: flex;
+            min-width: 0;
+            width: 100%;
+            align-self: stretch;
+          }
+
+          .products-app-card > * {
+            width: 100%;
+            min-width: 0;
+          }
+
+          @media (max-width: 640px) {
+            .products-toolbar {
+              min-height: 48px;
+            }
+
+            .products-category-heading {
+              display: block;
+            }
+
+            .products-category-heading + * {
+              flex-shrink: 0;
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .anime-shine::after,
+            .anime-shine-soft::before {
+              animation: none !important;
+            }
+          }
+
         `}</style>
-      <main className="products-page-shell min-h-screen max-w-7xl mx-auto mt-3">
+      <main className="products-page-shell min-h-screen max-w-7xl mx-auto mt-3 anime-shine-soft">
 
       {/* =====================================================
           PAGE
@@ -840,10 +1031,6 @@ export default function Products() {
               CATEGORY NAVIGATION
           ================================================= */}
 
-          <section className="mb-5">
-
-
-          </section>
 
           {/* =================================================
               ACTIVE FILTERS
@@ -945,13 +1132,17 @@ export default function Products() {
               MODERN COMPACT FILTER TOOLBAR
           ================================================= */}
 
-          <section className="mb-5">
+          <section className="mb-3">
             <div
               className="
                 products-toolbar
                 flex items-center gap-2
-                overflow-x-auto rounded-2xl p-1.5
+                overflow-x-auto overflow-y-hidden
+                rounded-2xl p-1.5
                 px-1.5 pb-1.5
+                whitespace-nowrap
+                touch-pan-x
+                overscroll-x-contain
                 [scrollbar-width:none]
                 [&::-webkit-scrollbar]:hidden
                 sm:rounded-[20px] sm:p-2
@@ -1148,7 +1339,7 @@ export default function Products() {
 
               {/* Heading */}
 
-              <div className="mb-5 flex items-end justify-between rounded-2xl border border-slate-100 bg-white/70 px-3 py-3 shadow-sm backdrop-blur sm:px-4">
+              <div className="anime-shine mb-5 flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white/70 px-3 py-3 shadow-sm backdrop-blur sm:px-4">
 
                 <div>
 
@@ -1177,7 +1368,7 @@ export default function Products() {
               <div
                 className={
                   gridView
-                    ? "grid grid-cols-2 items-stretch gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6"
+                    ? "grid grid-cols-2 items-stretch gap-3 sm:grid-cols-3 sm:gap-1 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6"
                     : "flex flex-col gap-4"
                 }
               >
@@ -1189,7 +1380,7 @@ export default function Products() {
                         product?._id ||
                         product?.id
                       }
-                      className="min-w-0 w-full"
+                      className="products-app-card min-w-0 w-full"
                     >
                       <ProductCard
                         product={
@@ -1347,7 +1538,7 @@ export default function Products() {
           )
         }
         aria-label="Open filters"
-        className="products-pulse products-filter-button fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-white bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-xl shadow-indigo-300 transition hover:-translate-y-1 active:scale-90 sm:hidden"
+        className="products-pulse products-filter-button anime-shine fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-white bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-xl shadow-indigo-300 transition hover:-translate-y-1 active:scale-90 sm:hidden"
       >
 
         <FaFilter
@@ -1405,7 +1596,7 @@ function CategoryBanner({
 
       <div
         className="
-          group
+          group anime-shine
           relative
           isolate
           min-h-[220px]
@@ -1779,7 +1970,7 @@ function AllProductsBanner({
   return (
     <section className="mb-5">
 
-      <div className="relative overflow-hidden rounded-[30px] bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 shadow-xl">
+      <div className="anime-shine relative overflow-hidden rounded-[30px] bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 shadow-xl">
 
         <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full blur-3xl" />
 
@@ -2066,7 +2257,7 @@ function EmptyProducts({
   return (
     <section className="flex min-h-[500px] items-center justify-center">
 
-      <div className="products-empty-card w-full max-w-lg rounded-[30px] border border-slate-200 bg-white px-6 py-10 text-center shadow-[0_20px_60px_rgba(15,23,42,.08)]">
+      <div className="products-empty-card anime-shine w-full max-w-lg rounded-[30px] border border-slate-200 bg-white px-6 py-10 text-center shadow-[0_20px_60px_rgba(15,23,42,.08)]">
 
         <Lottie
           animationData={notfound}

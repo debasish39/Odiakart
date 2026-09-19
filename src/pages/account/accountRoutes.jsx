@@ -13,7 +13,6 @@ import NotificationsPage from "./NotificationsPage";
 import HelpSupportPage from "./HelpSupportPage";
 import LegalPage from "./LegalPage";
 import DeleteAccountPage from "./DeleteAccountPage";
-
 /*
 React Router:
 <Route path="/account" element={<ProfilePage/>}/>
@@ -36,5 +35,5 @@ React Router:
 export {
  ProfilePage,PersonalInfoPage,AddressesPage,AddAddressPage,EditAddressPage,
  OrdersPage,OrderDetailsPage,TrackOrderPage,WishlistPage,PaymentMethodsPage,
- SecurityPage,NotificationsPage,HelpSupportPage,LegalPage,DeleteAccountPage
+ SecurityPage,NotificationsPage,HelpSupportPage,LegalPage,DeleteAccountPage,TrackOrderPage
 };

@@ -410,18 +410,14 @@ export default function PersonalInfoPage() {
     }
   };
 
-  /* =========================================================
+/* =========================================================
      LOADING
   ========================================================= */
 
   if (!user) {
     return (
-      <AccountShell
-        title="Personal information"
-      >
-      <div className="pi-loading">
-        <Spinner />
-      </div>
+      <AccountShell title="Personal information">
+        <PersonalInfoSkeleton />
       </AccountShell>
     );
   }
@@ -431,12 +427,7 @@ export default function PersonalInfoPage() {
   ========================================================= */
 
   const name =
-    [
-      user.firstName,
-      user.lastName,
-    ]
-      .filter(Boolean)
-      .join(" ") ||
+    [user.firstName, user.lastName].filter(Boolean).join(" ") ||
     "Odikart User";
 
   const image =
@@ -444,54 +435,36 @@ export default function PersonalInfoPage() {
     user.image ||
     "https://i.pravatar.cc/300";
 
-  /* =========================================================
-     RETURN
-  ========================================================= */
+  const hasPendingPhoto = Boolean(file);
 
   return (
-    <AccountShell
-      title="Personal information"
-    >
-      <div className="pi-page">
+    <AccountShell title="Personal information">
+      <div className="w-full pb-28 sm:pb-32">
+        {/* PAGE HEADER / HERO */}
+        <section className="group relative w-full overflow-hidden rounded-[22px] border border-slate-800/40 bg-slate-950 shadow-[0_18px_55px_rgba(15,23,42,0.14)] sm:rounded-[26px]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_16%,rgba(99,102,241,0.35),transparent_30%),radial-gradient(circle_at_15%_115%,rgba(37,99,235,0.20),transparent_35%),linear-gradient(135deg,#0f172a_0%,#1e1b4b_52%,#312e81_100%)]" />
+          <div className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-indigo-400/20 blur-3xl transition-transform duration-700 group-hover:scale-110" />
+          <div className="pointer-events-none absolute -bottom-32 left-[12%] h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
 
-        {/* =====================================================
-            HERO
-        ===================================================== */}
-
-        <section className="pi-hero mt-18">
-
-          <div className="pi-hero-glow pi-glow-one" />
-          <div className="pi-hero-glow pi-glow-two" />
-
-          <div className="pi-hero-content">
-
-            {/* =================================================
-                AVATAR
-            ================================================= */}
-
-            <div className="pi-avatar-container">
-
-              <div className="pi-avatar-ring">
-
+          <div className="relative flex min-h-[190px] flex-col items-center justify-center gap-5 px-5 py-7 text-center sm:min-h-[205px] sm:flex-row sm:justify-start sm:gap-6 sm:px-8 sm:py-8 sm:text-left">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <div className="absolute -inset-2 rounded-full bg-white/10 blur-md" />
+              <div className="relative h-[104px] w-[104px] rounded-full bg-gradient-to-br from-white/80 to-white/20 p-1 shadow-[0_14px_35px_rgba(0,0,0,0.28)] sm:h-[112px] sm:w-[112px]">
                 <img
                   src={image}
                   alt="Profile"
-                  className="pi-avatar"
+                  className="h-full w-full rounded-full border-4 border-white/95 bg-slate-100 object-cover"
                 />
-
               </div>
-
-              {/* CAMERA */}
 
               <button
                 type="button"
-                className="pi-camera-button"
-                onClick={() =>
-                  fileInputRef.current?.click()
-                }
+                onClick={() => fileInputRef.current?.click()}
                 aria-label="Change profile photo"
+                className="group/camera absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-white bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg transition duration-200 hover:scale-110 hover:shadow-indigo-500/30 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300/40 active:scale-95"
               >
-                <FaCamera size={14} />
+                <FaCamera size={13} className="transition-transform duration-200 group-hover/camera:scale-110" />
               </button>
 
               <input
@@ -499,1077 +472,247 @@ export default function PersonalInfoPage() {
                 type="file"
                 accept="image/*"
                 hidden
-                onChange={
-                  handleImageChange
-                }
+                onChange={handleImageChange}
               />
-
             </div>
 
-            {/* =================================================
-                USER INFO
-            ================================================= */}
-
-            <div className="pi-user-info">
-
-              <div className="pi-name-row">
-
-                <h1>
+            {/* User identity */}
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                <h1 className="max-w-full break-words text-[24px] font-extrabold tracking-[-0.04em] text-white sm:text-[29px]">
                   {name}
                 </h1>
 
                 {user.isVerified && (
                   <MdVerified
-                    className="pi-verified"
+                    className="shrink-0 text-[23px] text-blue-400 drop-shadow-[0_2px_6px_rgba(96,165,250,0.35)]"
                     title="Verified account"
                   />
                 )}
-
               </div>
 
-              <p className="pi-email">
-                {user.email ||
-                  user.phone ||
-                  "No contact information"}
+              <p className="mt-1.5 max-w-xl break-all text-[12px] leading-5 text-white/65 sm:text-[13px]">
+                {user.email || user.phone || "No contact information"}
               </p>
 
-              <div className="pi-member-badge">
-                <FaCheck size={10} />
+              <div className="mt-3 inline-flex min-h-7 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 text-[10px] font-bold text-white/90 shadow-sm backdrop-blur-md">
+                <FaCheck size={9} />
                 Odikart member
               </div>
-
             </div>
-
           </div>
 
+          {/* subtle shine */}
+          <div className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent transition-all duration-1000 group-hover:left-[120%]" />
         </section>
 
-        {/* =====================================================
-            PHOTO ACTION
-        ===================================================== */}
-
-        <section className="pi-photo-section">
-
-          <div>
-            <h3>
+        {/* PROFILE PHOTO TOOLBAR */}
+        <section className="mt-3.5 flex w-full flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_5px_22px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="min-w-0">
+            <h2 className="text-[13px] font-extrabold text-slate-900">
               Profile photo
-            </h3>
-
-            <p>
-              Use a clear photo so your
-              account is easy to recognize.
+            </h2>
+            <p className="mt-1 text-[11px] leading-5 text-slate-500">
+              Use a clear photo so your account is easy to recognize.
             </p>
           </div>
 
-          <div className="pi-photo-actions">
-
+          <div className="flex w-full gap-2 sm:w-auto">
             <button
               type="button"
-              className="pi-outline-button"
-              onClick={() =>
-                fileInputRef.current?.click()
-              }
+              onClick={() => fileInputRef.current?.click()}
+              className="group relative flex h-10 flex-1 items-center justify-center gap-2 overflow-hidden rounded-xl border border-slate-200 bg-white px-3 text-[11.5px] font-bold text-slate-700 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 active:scale-[0.98] focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100 sm:flex-none"
             >
-              <FaCamera />
-              Change photo
+              <span className="pointer-events-none absolute inset-y-0 -left-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-indigo-500/10 to-transparent transition-all duration-700 group-hover:left-[120%]" />
+              <FaCamera className="relative z-10" />
+              <span className="relative z-10">Change photo</span>
             </button>
 
             {preview && (
               <button
                 type="button"
-                className="pi-remove-button"
-                onClick={
-                  removeSelectedImage
-                }
+                onClick={removeSelectedImage}
+                className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 text-[11.5px] font-bold text-red-600 transition-all duration-200 hover:bg-red-100 active:scale-[0.98] focus:outline-none focus-visible:ring-4 focus-visible:ring-red-100 sm:flex-none"
               >
                 <FaTimes />
                 Remove
               </button>
             )}
-
           </div>
-
         </section>
 
-        {/* =====================================================
-            PERSONAL INFORMATION
-        ===================================================== */}
+        {/* PERSONAL INFORMATION */}
+        <section className="mt-3.5 w-full rounded-2xl border border-slate-200 bg-white shadow-[0_5px_22px_rgba(15,23,42,0.04)]">
+          <SectionHeader
+            icon={<FaUser />}
+            title="Personal information"
+            description="Keep your account details up to date."
+          />
 
-        <section className="pi-card">
+          <div className="mx-4 h-px bg-slate-100 sm:mx-5" />
 
-          <div className="pi-card-header">
-
-            <div className="pi-card-icon">
-              <FaUser />
-            </div>
-
-            <div>
-              <h2>
-                Personal information
-              </h2>
-
-              <p>
-                Keep your account details
-                up to date.
-              </p>
-            </div>
-
-          </div>
-
-          <div className="pi-divider" />
-
-          <div className="pi-form-grid">
-
-            {/* FIRST NAME */}
-
+          <div className="grid grid-cols-1 gap-x-5 px-4 py-5 sm:grid-cols-2 sm:px-5">
             <Field
               label="First name"
-              value={
-                user.firstName || ""
-              }
+              value={user.firstName || ""}
               placeholder="Enter your first name"
               icon={<FaUser />}
               required
-              onChange={(value) =>
-                setUser({
-                  ...user,
-                  firstName: value,
-                })
-              }
+              onChange={(value) => setUser({ ...user, firstName: value })}
             />
-
-            {/* LAST NAME */}
 
             <Field
               label="Last name"
-              value={
-                user.lastName || ""
-              }
+              value={user.lastName || ""}
               placeholder="Enter your last name"
               icon={<FaUser />}
-              onChange={(value) =>
-                setUser({
-                  ...user,
-                  lastName: value,
-                })
+              onChange={(value) => setUser({ ...user, lastName: value })}
+            />
+          </div>
+        </section>
+
+        {/* CONTACT INFORMATION */}
+        <section className="mt-3.5 w-full rounded-2xl border border-slate-200 bg-white shadow-[0_5px_22px_rgba(15,23,42,0.04)]">
+          <SectionHeader
+            icon={<FaEnvelope />}
+            title="Contact information"
+            description="Your contact details are used for account communication and orders."
+          />
+
+          <div className="mx-4 h-px bg-slate-100 sm:mx-5" />
+
+          <div className="px-4 py-5 sm:px-5">
+            <Field
+              label="Email address"
+              value={user.email || ""}
+              placeholder="Enter your email address"
+              icon={<FaEnvelope />}
+              disabled={emailLocked}
+              verified={Boolean(user.isEmailVerified)}
+              helper={
+                isPhoneLogin
+                  ? user.email
+                    ? "You can update your email address. A changed email should be verified with OTP."
+                    : "Add an email address to receive account communication."
+                  : "Your email address is your protected login identity and cannot be changed here."
               }
+              onChange={(value) => setUser({ ...user, email: value })}
             />
 
+            <Field
+              label="Phone number"
+              value={user.phone || ""}
+              placeholder="Phone number"
+              icon={<FaPhoneAlt />}
+              disabled={phoneLocked}
+              verified={Boolean(user.isPhoneVerified)}
+              helper={
+                isPhoneLogin
+                  ? "This phone number is your verified login number and cannot be changed here."
+                  : "Phone number changes are protected and cannot be changed from this page."
+              }
+            />
           </div>
-
         </section>
 
-        {/* =====================================================
-            CONTACT INFORMATION
-        ===================================================== */}
+        {/* SECURITY */}
+        <section className="relative mt-3.5 flex w-full items-start gap-3 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 shadow-[0_4px_18px_rgba(37,99,235,0.04)] sm:p-5">
+          <div className="pointer-events-none absolute -right-12 -top-16 h-32 w-32 rounded-full bg-blue-200/30 blur-2xl" />
 
-        <section className="pi-card">
-
-          <div className="pi-card-header">
-
-            <div className="pi-card-icon">
-              <FaEnvelope />
-            </div>
-
-            <div>
-              <h2>
-                Contact information
-              </h2>
-
-              <p>
-                Your contact details are
-                used for account communication
-                and orders.
-              </p>
-            </div>
-
-          </div>
-
-          <div className="pi-divider" />
-
-          {/* ===================================================
-              EMAIL
-          =================================================== */}
-
-          <Field
-            label="Email address"
-            value={
-              user.email || ""
-            }
-            placeholder="Enter your email address"
-            icon={<FaEnvelope />}
-            disabled={
-              emailLocked
-            }
-            verified={
-              Boolean(
-                user.isEmailVerified
-              )
-            }
-            helper={
-              isPhoneLogin
-                ? user.email
-                  ? "You can update your email address. A changed email should be verified with OTP."
-                  : "Add an email address to receive account communication."
-                : "Your email address is your protected login identity and cannot be changed here."
-            }
-            onChange={(value) =>
-              setUser({
-                ...user,
-                email: value,
-              })
-            }
-          />
-
-          {/* ===================================================
-              PHONE
-          =================================================== */}
-
-          <Field
-            label="Phone number"
-            value={
-              user.phone || ""
-            }
-            placeholder="Phone number"
-            icon={<FaPhoneAlt />}
-            disabled={
-              phoneLocked
-            }
-            verified={
-              Boolean(
-                user.isPhoneVerified
-              )
-            }
-            helper={
-              isPhoneLogin
-                ? "This phone number is your verified login number and cannot be changed here."
-                : "Phone number changes are protected and cannot be changed from this page."
-            }
-          />
-
-        </section>
-
-        {/* =====================================================
-            SECURITY NOTICE
-        ===================================================== */}
-
-        <section className="pi-security">
-
-          <div className="pi-security-icon">
+          <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
             <FaShieldAlt />
           </div>
 
-          <div>
-
-            <h3>
+          <div className="relative z-10 min-w-0">
+            <h3 className="text-[12.5px] font-extrabold text-blue-950">
               Your information is protected
             </h3>
-
-            <p>
-
+            <p className="mt-1 text-[10.5px] leading-[1.6] text-blue-900/65">
               {isPhoneLogin
                 ? "You signed in with phone OTP. Your verified phone number is protected, while your email can be added or updated. Never share your OTP with anyone."
                 : "Your login identity is protected. Verified account credentials cannot be changed from this page. Never share your OTP or account credentials with anyone."}
-
             </p>
-
           </div>
-
         </section>
 
-        {/* =====================================================
-            SAVE
-        ===================================================== */}
-
-        <div className="pi-save-container">
-
-          <div className="pi-save-bar">
-            <div className="pi-save-status">
-              <div className="pi-save-status-icon">
-                <FaShieldAlt size={11} />
-              </div>
-
-              <div>
-                <strong>Profile settings</strong>
-                <span>Your changes are saved securely.</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="pi-save-button"
-              disabled={saving}
-              onClick={save}
-            >
-              {saving ? (
-                <>
-                  <span className="pi-button-spinner" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <FaSave />
-                  Save changes
-                </>
-              )}
-            </button>
+        {/* PENDING CHANGE INDICATOR */}
+        {hasPendingPhoto && (
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-amber-100 bg-amber-50 px-3.5 py-3 text-[11px] font-semibold text-amber-800">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500 shadow-[0_0_0_4px_rgba(245,158,11,0.12)]" />
+            New profile photo selected. Save your changes to upload it.
           </div>
-
-        </div>
-
+        )}
       </div>
 
-      {/* =======================================================
-          PAGE STYLES
-      ======================================================= */}
-
-      <style>{`
-
-        /* =====================================================
-           PERSONAL INFORMATION — MODERN UI
-        ===================================================== */
-
-        .pi-page {
-          width: 100%;
-          max-width: 1180px;
-          margin: 0 auto;
-          padding: 8px 0 120px;
-          box-sizing: border-box;
-        }
-
-        /* HERO */
-        .pi-hero {
-          position: relative;
-          overflow: hidden;
-          min-height: 188px;
-          border: 1px solid rgba(255,255,255,.12);
-          border-radius: 22px;
-          background:
-            radial-gradient(circle at 88% 18%, rgba(129,140,248,.32), transparent 30%),
-            radial-gradient(circle at 18% 120%, rgba(59,130,246,.18), transparent 34%),
-            linear-gradient(135deg, #0f172a 0%, #1e1b4b 52%, #312e81 100%);
-          box-shadow: 0 18px 45px rgba(15,23,42,.14);
-        }
-
-        .pi-hero-glow {
-          position: absolute;
-          width: 190px;
-          height: 190px;
-          border-radius: 50%;
-          filter: blur(48px);
-          pointer-events: none;
-          opacity: .55;
-        }
-
-        .pi-glow-one {
-          top: -125px;
-          right: -25px;
-          background: rgba(99,102,241,.38);
-        }
-
-        .pi-glow-two {
-          bottom: -135px;
-          left: 12%;
-          background: rgba(59,130,246,.20);
-        }
-
-        .pi-hero-content {
-          position: relative;
-          z-index: 2;
-          display: flex;
-          align-items: center;
-          gap: 22px;
-          min-height: 188px;
-          padding: 28px;
-          box-sizing: border-box;
-        }
-
-        /* AVATAR */
-        .pi-avatar-container {
-          position: relative;
-          flex-shrink: 0;
-        }
-
-        .pi-avatar-ring {
-          width: 102px;
-          height: 102px;
-          padding: 4px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, rgba(255,255,255,.72), rgba(255,255,255,.22));
-          box-shadow: 0 12px 30px rgba(0,0,0,.24);
-          box-sizing: border-box;
-        }
-
-        .pi-avatar {
-          width: 100%;
-          height: 100%;
-          display: block;
-          object-fit: cover;
-          border-radius: 50%;
-          border: 4px solid rgba(255,255,255,.96);
-          background: #f1f5f9;
-          box-sizing: border-box;
-        }
-
-        .pi-camera-button {
-          position: absolute;
-          right: 0;
-          bottom: 0;
-          width: 36px;
-          height: 36px;
-          display: grid;
-          place-items: center;
-          border: 3px solid #fff;
-          border-radius: 50%;
-          background: linear-gradient(135deg,#6366f1,#4f46e5);
-          color: #fff;
-          cursor: pointer;
-          box-shadow: 0 7px 18px rgba(0,0,0,.20);
-          transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
-        }
-
-        .pi-camera-button:hover {
-          transform: scale(1.07);
-          filter: brightness(1.04);
-          box-shadow: 0 9px 22px rgba(79,70,229,.32);
-        }
-
-        .pi-camera-button:focus-visible {
-          outline: 3px solid rgba(165,180,252,.55);
-          outline-offset: 2px;
-        }
-
-        /* USER INFO */
-        .pi-user-info {
-          min-width: 0;
-        }
-
-        .pi-name-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .pi-name-row h1 {
-          margin: 0;
-          color: #fff;
-          font-size: clamp(22px, 2.5vw, 28px);
-          line-height: 1.18;
-          font-weight: 800;
-          letter-spacing: -.035em;
-        }
-
-        .pi-verified {
-          color: #60a5fa;
-          font-size: 23px;
-          filter: drop-shadow(0 2px 5px rgba(96,165,250,.22));
-        }
-
-        .pi-email {
-          max-width: 620px;
-          margin: 7px 0 12px;
-          color: rgba(255,255,255,.70);
-          font-size: 13px;
-          overflow-wrap: anywhere;
-        }
-
-        .pi-member-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          min-height: 25px;
-          padding: 0 10px;
-          border: 1px solid rgba(255,255,255,.14);
-          border-radius: 999px;
-          background: rgba(255,255,255,.09);
-          color: rgba(255,255,255,.90);
-          font-size: 10.5px;
-          font-weight: 750;
-          backdrop-filter: blur(8px);
-        }
-
-        /* PHOTO TOOLBAR */
-        .pi-photo-section {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 18px;
-          margin-top: 14px;
-          padding: 15px 17px;
-          border: 1px solid #e8ebf0;
-          border-radius: 16px;
-          background: #fff;
-          box-shadow: 0 4px 16px rgba(15,23,42,.035);
-          box-sizing: border-box;
-        }
-
-        .pi-photo-section h3 {
-          margin: 0;
-          color: #111827;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .pi-photo-section p {
-          margin: 3px 0 0;
-          color: #8a909c;
-          font-size: 11px;
-          line-height: 1.45;
-        }
-
-        .pi-photo-actions {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          flex-shrink: 0;
-        }
-
-        .pi-outline-button,
-        .pi-remove-button {
-          min-height: 36px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 7px;
-          padding: 0 12px;
-          border-radius: 10px;
-          font-family: inherit;
-          font-size: 11.5px;
-          font-weight: 750;
-          cursor: pointer;
-          transition: .18s ease;
-          box-sizing: border-box;
-        }
-
-        .pi-outline-button {
-          border: 1px solid #dfe3ea;
-          background: #fff;
-          color: #374151;
-        }
-
-        .pi-outline-button:hover {
-          border-color: #a5b4fc;
-          background: #f5f3ff;
-          color: #4f46e5;
-          transform: translateY(-1px);
-        }
-
-        .pi-remove-button {
-          border: 1px solid #fecaca;
-          background: #fff7f7;
-          color: #dc2626;
-        }
-
-        .pi-remove-button:hover {
-          background: #fee2e2;
-          transform: translateY(-1px);
-        }
-
-        /* CARDS */
-        .pi-card {
-          margin-top: 14px;
-          padding: 20px;
-          border: 1px solid #e8ebf0;
-          border-radius: 18px;
-          background: #fff;
-          box-shadow: 0 5px 20px rgba(15,23,42,.035);
-          box-sizing: border-box;
-        }
-
-        .pi-card-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .pi-card-icon {
-          width: 40px;
-          height: 40px;
-          flex-shrink: 0;
-          display: grid;
-          place-items: center;
-          border-radius: 11px;
-          background: linear-gradient(135deg,#eef2ff,#e0e7ff);
-          color: #4f46e5;
-          font-size: 14px;
-        }
-
-        .pi-card-header h2 {
-          margin: 0;
-          color: #111827;
-          font-size: 14px;
-          font-weight: 800;
-          letter-spacing: -.01em;
-        }
-
-        .pi-card-header p {
-          margin: 3px 0 0;
-          color: #8a909c;
-          font-size: 11px;
-          line-height: 1.45;
-        }
-
-        .pi-divider {
-          height: 1px;
-          margin: 17px 0;
-          background: #eef0f4;
-        }
-
-        .pi-form-grid {
-          display: grid;
-          grid-template-columns: repeat(2,minmax(0,1fr));
-          gap: 15px;
-        }
-
-        /* FIELDS */
-        .pi-field {
-          margin-bottom: 15px;
-        }
-
-        .pi-field:last-child {
-          margin-bottom: 0;
-        }
-
-        .pi-field-label {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 6px;
-          color: #374151;
-          font-size: 11.5px;
-          font-weight: 750;
-        }
-
-        .pi-required {
-          color: #ef4444;
-        }
-
-        .pi-field-wrapper {
-          position: relative;
-        }
-
-        .pi-field-icon {
-          position: absolute;
-          left: 13px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #a0a6b1;
-          font-size: 11px;
-          pointer-events: none;
-          z-index: 2;
-          transition: color .18s ease;
-        }
-
-        .pi-field-wrapper:focus-within .pi-field-icon {
-          color: #6366f1;
-        }
-
-        .pi-input {
-          width: 100%;
-          height: 44px;
-          padding: 0 40px;
-          border: 1px solid #e4e7ec;
-          border-radius: 11px;
-          outline: none;
-          background: #fafbfc;
-          color: #111827;
-          font-family: inherit;
-          font-size: 12.5px;
-          box-sizing: border-box;
-          transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
-        }
-
-        .pi-input::placeholder {
-          color: #b3b8c1;
-        }
-
-        .pi-input:hover {
-          border-color: #d2d6de;
-          background: #fff;
-        }
-
-        .pi-input:focus {
-          border-color: #6366f1;
-          background: #fff;
-          box-shadow: 0 0 0 3px rgba(99,102,241,.09);
-        }
-
-        .pi-input:disabled,
-        .pi-locked-field {
-          color: #6b7280 !important;
-          background: #f5f6f8 !important;
-          border-color: #e7e9ed !important;
-          cursor: not-allowed;
-        }
-
-        .pi-lock-icon,
-        .pi-verified-field {
-          position: absolute;
-          right: 13px;
-          top: 50%;
-          transform: translateY(-50%);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          pointer-events: none;
-        }
-
-        .pi-lock-icon {
-          color: #9ca3af;
-          font-size: 10px;
-        }
-
-        .pi-verified-field {
-          gap: 4px;
-          color: #16a34a;
-          font-size: 9.5px;
-          font-weight: 750;
-        }
-
-        .pi-field-helper {
-          margin-top: 5px;
-          color: #9aa0aa;
-          font-size: 10px;
-          line-height: 1.5;
-        }
-
-        /* SECURITY */
-        .pi-security {
-          display: flex;
-          align-items: flex-start;
-          gap: 11px;
-          margin-top: 14px;
-          padding: 14px;
-          border: 1px solid #dbeafe;
-          border-radius: 15px;
-          background: linear-gradient(135deg,#f5f9ff,#eff6ff);
-          box-sizing: border-box;
-        }
-
-        .pi-security-icon {
-          width: 36px;
-          height: 36px;
-          flex-shrink: 0;
-          display: grid;
-          place-items: center;
-          border-radius: 10px;
-          background: #fff;
-          color: #2563eb;
-          box-shadow: 0 2px 7px rgba(37,99,235,.08);
-        }
-
-        .pi-security h3 {
-          margin: 0;
-          color: #1e3a8a;
-          font-size: 12.5px;
-          font-weight: 800;
-        }
-
-        .pi-security p {
-          margin: 4px 0 0;
-          color: #526d91;
-          font-size: 10.5px;
-          line-height: 1.55;
-        }
-
-        /* FIXED SAVE BAR */
-        .pi-save-container {
-          position: fixed;
-          left: 50%;
-          bottom: 16px;
-          transform: translateX(-50%);
-          z-index: 1000;
-          width: min(1180px, calc(100% - 32px));
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          pointer-events: none;
-        }
-
-        .pi-save-bar {
-          position: relative;
-          width: 100%;
-          min-height: 62px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          padding: 8px 9px 8px 13px;
-          border: 1px solid rgba(226,232,240,.92);
-          border-radius: 16px;
-          background: rgba(255,255,255,.94);
-          box-shadow:
-            0 18px 42px rgba(15,23,42,.14),
-            0 4px 12px rgba(15,23,42,.06);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          isolation: isolate;
-          box-sizing: border-box;
-          pointer-events: auto;
-        }
-
-        .pi-save-status {
-          min-width: 0;
-          display: flex;
-          align-items: center;
-          gap: 9px;
-        }
-
-        .pi-save-status-icon {
-          width: 31px;
-          height: 31px;
-          display: grid;
-          place-items: center;
-          flex-shrink: 0;
-          border-radius: 9px;
-          background: #eef2ff;
-          color: #4f46e5;
-        }
-
-        .pi-save-status strong {
-          display: block;
-          color: #1f2937;
-          font-size: 11.5px;
-          font-weight: 800;
-          line-height: 1.3;
-        }
-
-        .pi-save-status span {
-          display: block;
-          margin-top: 2px;
-          color: #9298a3;
-          font-size: 9.5px;
-          line-height: 1.3;
-        }
-
-        .pi-save-button {
-          min-width: 145px;
-          height: 42px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          flex-shrink: 0;
-          border: 0;
-          border-radius: 10px;
-          background: linear-gradient(135deg,#111827,#312e81);
-          color: #fff;
-          font-family: inherit;
-          font-size: 12px;
-          font-weight: 750;
-          cursor: pointer;
-          box-shadow: 0 7px 18px rgba(17,24,39,.15);
-          transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
-        }
-
-        .pi-save-button:hover:not(:disabled) {
-          transform: translateY(-1px);
-          filter: brightness(1.06);
-          box-shadow: 0 10px 23px rgba(17,24,39,.20);
-        }
-
-        .pi-save-button:focus-visible {
-          outline: 3px solid rgba(99,102,241,.18);
-          outline-offset: 2px;
-        }
-
-        .pi-save-button:disabled {
-          opacity: .65;
-          cursor: not-allowed;
-        }
-
-        .pi-button-spinner {
-          width: 14px;
-          height: 14px;
-          border: 2px solid rgba(255,255,255,.35);
-          border-top-color: #fff;
-          border-radius: 50%;
-          animation: pi-spin .7s linear infinite;
-        }
-
-        .pi-loading {
-          min-height: 260px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        @keyframes pi-spin {
-          to { transform: rotate(360deg); }
-        }
-
-        /* TABLET / MOBILE */
-        @media (max-width: 700px) {
-          .pi-page {
-            padding: 3px 0 108px;
-          }
-
-          .pi-hero {
-            border-radius: 20px;
-          }
-
-          .pi-hero-content {
-            min-height: auto;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 27px 18px;
-          }
-
-          .pi-avatar-ring {
-            width: 94px;
-            height: 94px;
-          }
-
-          .pi-name-row {
-            justify-content: center;
-          }
-
-          .pi-name-row h1 {
-            font-size: 22px;
-          }
-
-          .pi-email {
-            font-size: 12px;
-          }
-
-          .pi-form-grid {
-            grid-template-columns: 1fr;
-            gap: 0;
-          }
-
-          .pi-photo-section {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .pi-photo-actions {
-            width: 100%;
-          }
-
-          .pi-outline-button,
-          .pi-remove-button {
-            flex: 1;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .pi-hero {
-            border-radius: 17px;
-          }
-
-          .pi-hero-content {
-            padding: 24px 15px;
-          }
-
-          .pi-avatar-ring {
-            width: 88px;
-            height: 88px;
-          }
-
-          .pi-camera-button {
-            width: 33px;
-            height: 33px;
-          }
-
-          .pi-name-row h1 {
-            font-size: 20px;
-          }
-
-          .pi-photo-section,
-          .pi-card {
-            padding: 15px;
-            border-radius: 15px;
-          }
-
-          .pi-card-header {
-            align-items: flex-start;
-          }
-
-          .pi-card-icon {
-            width: 37px;
-            height: 37px;
-          }
-
-          .pi-input {
-            height: 43px;
-          }
-
-          .pi-security {
-            padding: 13px;
-          }
-
-          .pi-save-container {
-            left: 0;
-            bottom: 0;
-            transform: none;
-            width: 100%;
-            padding:
-              8px
-              8px
-              max(8px, env(safe-area-inset-bottom));
-            background: rgba(255,255,255,.82);
-            border-top: 1px solid rgba(226,232,240,.9);
-            box-shadow: 0 -8px 24px rgba(15,23,42,.06);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            box-sizing: border-box;
-          }
-
-          .pi-save-bar {
-            min-height: 58px;
-            gap: 9px;
-            padding: 7px;
-            border-radius: 14px;
-          }
-
-          .pi-save-status {
-            gap: 7px;
-          }
-
-          .pi-save-status-icon {
-            width: 29px;
-            height: 29px;
-          }
-
-          .pi-save-status strong {
-            font-size: 10.5px;
-          }
-
-          .pi-save-status span {
-            font-size: 8.5px;
-          }
-
-          .pi-save-button {
-            min-width: 128px;
-            height: 40px;
-            padding: 0 12px;
-            font-size: 11px;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .pi-button-spinner {
-            animation: none;
-          }
-
-          .pi-camera-button,
-          .pi-outline-button,
-          .pi-remove-button,
-          .pi-save-button,
-          .pi-save-bar {
-            transition: none;
-          }
-        }
-
-      `}</style>
+      {/* FIXED SAVE BAR */}
+      <div className="fixed inset-x-0 bottom-0 z-[1000] border-t border-slate-200/80 bg-white/85 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_30px_rgba(15,23,42,0.07)] backdrop-blur-xl sm:inset-x-auto sm:bottom-4 sm:left-1/2 sm:w-[min(1180px,calc(100%-32px))] sm:-translate-x-1/2 sm:border sm:border-slate-200 sm:rounded-2xl sm:bg-white/95 sm:px-3 sm:py-2">
+        <div className="mx-auto flex min-h-[54px] w-full items-center justify-between gap-2 rounded-xl bg-white/70 px-1 sm:min-h-[58px] sm:px-1.5">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 sm:h-9 sm:w-9">
+              <FaShieldAlt size={11} />
+            </div>
+
+            <div className="min-w-0">
+              <strong className="block truncate text-[10.5px] font-extrabold text-slate-800 sm:text-[11.5px]">
+                Profile settings
+              </strong>
+              <span className="hidden text-[9.5px] text-slate-400 sm:block">
+                Your changes are saved securely.
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            disabled={saving}
+            onClick={save}
+            className="group relative flex h-10 min-w-[128px] shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-800 px-4 text-[11px] font-extrabold text-white shadow-[0_7px_20px_rgba(17,24,39,0.16)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(17,24,39,0.22)] disabled:cursor-not-allowed disabled:opacity-60 sm:h-11 sm:min-w-[145px] sm:text-[12px] focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100"
+          >
+            <span className="pointer-events-none absolute inset-y-0 -left-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-all duration-700 group-hover:left-[120%]" />
+
+            {saving ? (
+              <>
+                <span className="relative z-10 h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                <span className="relative z-10">Saving...</span>
+              </>
+            ) : (
+              <>
+                <FaSave className="relative z-10" />
+                <span className="relative z-10">Save changes</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </AccountShell>
   );
 }
 
 /* =========================================================
-   FIELD COMPONENT
+   SECTION HEADER
+========================================================= */
+
+function SectionHeader({ icon, title, description }) {
+  return (
+    <div className="flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 shadow-sm ring-1 ring-indigo-100/70">
+        {icon}
+      </div>
+
+      <div className="min-w-0">
+        <h2 className="text-[14px] font-extrabold tracking-[-0.01em] text-slate-900">
+          {title}
+        </h2>
+        <p className="mt-1 text-[10.5px] leading-[1.5] text-slate-500">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   FIELD
 ========================================================= */
 
 function Field({
@@ -1584,86 +727,137 @@ function Field({
   helper = "",
 }) {
   return (
-    <div className="pi-field">
-
-      {/* =====================================================
-          LABEL
-      ===================================================== */}
-
-      <label className="pi-field-label">
-
+    <div className="mb-5 last:mb-0">
+      <label className="mb-1.5 flex items-center justify-between text-[11.5px] font-bold text-slate-700">
         <span>
           {label}
-
-          {required && (
-            <span className="pi-required">
-              {" "}*
-            </span>
-          )}
+          {required && <span className="ml-0.5 text-red-500">*</span>}
         </span>
-
       </label>
 
-      {/* =====================================================
-          INPUT
-      ===================================================== */}
-
-      <div className="pi-field-wrapper">
-
-        <span className="pi-field-icon">
+      <div className="group relative">
+        <span
+          className={`pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[11px] transition-colors ${
+            disabled ? "text-slate-400" : "text-slate-400 group-focus-within:text-indigo-500"
+          }`}
+        >
           {icon}
         </span>
 
         <input
-          className={`pi-input ${
+          className={`h-11 w-full rounded-xl border bg-slate-50 pl-10 pr-12 text-[12.5px] text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 ${
             disabled
-              ? "pi-locked-field"
-              : ""
+              ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500"
+              : "border-slate-200 hover:border-slate-300 hover:bg-white focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-50"
           }`}
           value={value}
           disabled={disabled}
           placeholder={placeholder}
-          onChange={(event) =>
-            onChange?.(
-              event.target.value
-            )
-          }
+          onChange={(event) => onChange?.(event.target.value)}
         />
 
-        {/* ===================================================
-            VERIFIED
-        =================================================== */}
-
         {verified && !disabled && (
-          <span className="pi-verified-field">
+          <span className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 text-[9.5px] font-bold text-emerald-600">
             <FaCheck size={9} />
             Verified
           </span>
         )}
 
-        {/* ===================================================
-            LOCKED
-        =================================================== */}
-
         {disabled && (
-          <span className="pi-lock-icon">
+          <span className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center text-[10px] text-slate-400">
             <FaLock size={10} />
           </span>
         )}
-
       </div>
 
-      {/* =====================================================
-          HELPER
-      ===================================================== */}
-
       {helper && (
-        <div className="pi-field-helper">
+        <p className="mt-1.5 text-[10px] leading-[1.5] text-slate-400">
           {helper}
-        </div>
+        </p>
       )}
-
     </div>
   );
 }
 
+/* =========================================================
+   SKELETON
+========================================================= */
+
+function PersonalInfoSkeleton() {
+  return (
+    <div className="w-full animate-pulse pb-28 sm:pb-10">
+      <div className="relative h-[190px] w-full overflow-hidden rounded-[22px] bg-slate-200 sm:h-[205px] sm:rounded-[26px]">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/45 to-transparent [animation:skeletonShine_1.6s_infinite] -translate-x-full" />
+
+        <div className="flex h-full items-center gap-6 px-6">
+          <div className="h-[104px] w-[104px] shrink-0 rounded-full bg-slate-300 sm:h-[112px] sm:w-[112px]" />
+          <div className="hidden space-y-3 sm:block">
+            <div className="h-7 w-52 rounded-lg bg-slate-300" />
+            <div className="h-3.5 w-64 rounded-full bg-slate-300" />
+            <div className="h-7 w-28 rounded-full bg-slate-300" />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3.5 h-20 rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-3.5 w-28 rounded bg-slate-200" />
+            <div className="h-3 w-52 rounded bg-slate-100" />
+          </div>
+          <div className="h-10 w-32 rounded-xl bg-slate-200" />
+        </div>
+      </div>
+
+      <SkeletonFormSection fields={2} grid />
+
+      <SkeletonFormSection fields={2} />
+
+      <div className="mt-3.5 h-24 rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="flex gap-3">
+          <div className="h-10 w-10 shrink-0 rounded-xl bg-slate-200" />
+          <div className="flex-1 space-y-2">
+            <div className="h-3.5 w-44 rounded bg-slate-200" />
+            <div className="h-3 w-full max-w-2xl rounded bg-slate-100" />
+            <div className="h-3 w-4/5 rounded bg-slate-100" />
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes skeletonShine {
+          100% { transform: translateX(300%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-pulse { animation: none !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function SkeletonFormSection({ fields = 2, grid = false }) {
+  return (
+    <div className="mt-3.5 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl bg-slate-200" />
+        <div className="space-y-2">
+          <div className="h-3.5 w-36 rounded bg-slate-200" />
+          <div className="h-3 w-56 rounded bg-slate-100" />
+        </div>
+      </div>
+
+      <div className="my-4 h-px bg-slate-100" />
+
+      <div className={grid ? "grid grid-cols-1 gap-4 sm:grid-cols-2" : "space-y-5"}>
+        {Array.from({ length: fields }).map((_, index) => (
+          <div key={index}>
+            <div className="mb-2 h-3 w-24 rounded bg-slate-200" />
+            <div className="h-11 w-full rounded-xl bg-slate-100" />
+            <div className="mt-2 h-2.5 w-3/4 rounded bg-slate-100" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

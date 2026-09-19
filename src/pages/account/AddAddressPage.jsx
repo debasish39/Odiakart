@@ -59,59 +59,69 @@ export default function AddAddressPage() {
   const queryClient = useQueryClient();
   const savingRef = useRef(false);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const set = (key, value) => {
     setF((prev) => ({
       ...prev,
       [key]: value,
     }));
+
+    setErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   };
 
   const validate = () => {
-    if (!f.fullName.trim()) {
-      toast.error("Please enter your full name");
-      return false;
-    }
+    const nextErrors = {};
 
-    if (!f.phone.trim()) {
-      toast.error("Please enter your phone number");
-      return false;
+    if (!f.fullName.trim()) {
+      nextErrors.fullName = "Full name is required";
     }
 
     const phone = f.phone.replace(/\D/g, "");
-
-    if (phone.length !== 10) {
-      toast.error("Please enter a valid 10-digit phone number");
-      return false;
+    if (!f.phone.trim()) {
+      nextErrors.phone = "Phone number is required";
+    } else if (phone.length !== 10) {
+      nextErrors.phone = "Enter a valid 10-digit phone number";
     }
 
     if (!f.addressLine1.trim()) {
-      toast.error("Please enter your address");
-      return false;
+      nextErrors.addressLine1 = "Address is required";
     }
 
     if (!f.area.trim()) {
-      toast.error("Please enter your area");
-      return false;
+      nextErrors.area = "Area is required";
     }
 
     if (!f.city.trim()) {
-      toast.error("Please enter your city");
-      return false;
+      nextErrors.city = "City is required";
     }
 
     if (!f.district.trim()) {
-      toast.error("Please enter your district");
-      return false;
+      nextErrors.district = "District is required";
     }
 
     if (!f.state.trim()) {
-      toast.error("Please enter your state");
-      return false;
+      nextErrors.state = "State is required";
     }
 
     if (!/^[1-9][0-9]{5}$/.test(f.postalCode)) {
-      toast.error("Please enter a valid 6-digit PIN code");
+      nextErrors.postalCode = "Enter a valid 6-digit PIN code";
+    }
+
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      const firstField = Object.keys(nextErrors)[0];
+      requestAnimationFrame(() => {
+        document
+          .querySelector(`[data-field="${firstField}"]`)
+          ?.focus();
+      });
       return false;
     }
 
@@ -232,6 +242,7 @@ export default function AddAddressPage() {
       save={save}
       saving={saving}
       submit="Save address"
+      errors={errors}
     />
   );
 }
@@ -249,6 +260,7 @@ export function AddressForm({
   save,
   saving,
   submit,
+  errors = {},
 }) {
   const navigate = useNavigate();
 
@@ -455,1815 +467,412 @@ export function AddressForm({
 
   return (
     <AccountShell title={title}>
-      <div className="address-app">
+      <style>{`
+        @keyframes addressPageIn {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes addressCardIn {
+          from { opacity: 0; transform: translateY(14px) scale(.985); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes addressFloat {
+          0%,100% { transform: translate3d(0,0,0); }
+          50% { transform: translate3d(0,-5px,0); }
+        }
+        @keyframes addressPulse {
+          0%,100% { box-shadow: 0 0 0 0 rgba(99,102,241,.18); }
+          50% { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
+        }
+        @keyframes addressShine {
+          0% { transform: translateX(-130%) skewX(-18deg); }
+          55%,100% { transform: translateX(240%) skewX(-18deg); }
+        }
+        @keyframes addressSuccess {
+          0% { transform: scale(.7); opacity: 0; }
+          70% { transform: scale(1.12); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes addressSpin { to { transform: rotate(360deg); } }
 
-        {/* ======================================================
-           MAIN CARD
-        ====================================================== */}
+        .address-page-motion { animation: addressPageIn .48s cubic-bezier(.22,1,.36,1) both; }
+        .address-card-motion { animation: addressCardIn .55s cubic-bezier(.22,1,.36,1) both; }
+        .address-float { animation: addressFloat 5s ease-in-out infinite; }
+        .address-pulse { animation: addressPulse 2.2s ease-in-out infinite; }
+        .address-success { animation: addressSuccess .35s cubic-bezier(.22,1,.36,1) both; }
+        .address-spin { animation: addressSpin .7s linear infinite; }
+        .address-shine::after {
+          content: "";
+          position: absolute;
+          inset: -20%;
+          width: 38%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+          transform: translateX(-130%) skewX(-18deg);
+          animation: addressShine 3.6s ease-in-out infinite;
+          pointer-events: none;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .address-page-motion,.address-card-motion,.address-float,.address-pulse,
+          .address-success,.address-spin,.address-shine::after {
+            animation: none !important;
+          }
+        }
+      `}</style>
 
-        <main className="address-card mt-18">
+      <div className="address-page-motion w-full px-0 pb-28 pt-1 sm:px-1 sm:pb-10">
+        <div className="relative mx-auto w-full max-w-3xl">
 
-          {/* ====================================================
-             PIN HERO
-          ==================================================== */}
 
-          <section className="pin-hero">
+          {/* App header */}
+       
 
-            <div className="pin-hero-top">
+          {/* PIN / location hero */}
+          <section className="address-card-motion relative border-b border-slate-200/80 py-5 sm:py-7">
+            <div className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 rounded-full bg-indigo-200/30 blur-3xl" />
+            <div className="pointer-events-none absolute bottom-[-70px] left-[-30px] h-40 w-40 rounded-full bg-violet-100/30 blur-3xl" />
 
-              <div className="pin-icon">
+            <div className="relative flex items-start gap-3">
+              <div className="address-float flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-[0_10px_24px_rgba(79,70,229,.24)]">
                 <FaMapMarkerAlt size={17} />
               </div>
 
-              <div className="pin-copy">
-                <span className="pin-eyebrow">
-                  QUICK START
+              <div className="min-w-0 flex-1">
+                <span className="text-[9px] font-extrabold uppercase tracking-[.16em] text-indigo-600">
+                  Quick start
                 </span>
-
-                <h2>
-                  Start with your PIN code
+                <h2 className="mt-0.5 text-[17px] font-extrabold tracking-[-.02em] text-slate-900 sm:text-lg">
+                  Find your delivery location
                 </h2>
-
-                <p>
-                  We'll automatically find your
-                  delivery location.
+                <p className="mt-0.5 text-[11px] leading-4 text-slate-500 sm:text-xs">
+                  Enter your PIN and we'll fill the location details automatically.
                 </p>
               </div>
 
               {locationFound && (
-                <div className="location-success">
-                  <FaCheck size={9} />
+                <span className="address-success inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-extrabold text-emerald-700 ring-1 ring-emerald-100">
+                  <FaCheck size={8} />
                   Found
-                </div>
+                </span>
               )}
-
             </div>
 
-            <div className="pin-input-area">
-
-              <label className="input-label">
-                PIN code
-                <span>*</span>
+            <div className="relative mt-4">
+              <label className="mb-1.5 block text-[11px] font-bold text-slate-700">
+                PIN code <span className="text-red-500">*</span>
               </label>
 
-              <div
-                className={`pin-input-container ${
-                  pinLoading ? "loading" : ""
-                } ${
-                  locationFound ? "success" : ""
-                }`}
-              >
-
-                <div className="pin-input-icon">
+              <div className={`relative flex h-14 items-center overflow-hidden rounded-2xl border bg-white transition-all duration-300 ${
+                errors.postalCode
+                  ? "border-red-400 bg-red-50/20 focus-within:border-red-500"
+                  : locationFound
+                    ? "border-emerald-300 shadow-[0_0_0_4px_rgba(16,185,129,.08)]"
+                    : "border-indigo-200 shadow-[0_8px_28px_rgba(79,70,229,.07)] focus-within:border-indigo-500 focus-within:shadow-[0_0_0_4px_rgba(99,102,241,.10)]"
+              }`}>
+                <div className="flex w-12 shrink-0 items-center justify-center text-indigo-500">
                   <FaMapMarkerAlt size={14} />
                 </div>
 
                 <input
                   ref={pinInputRef}
-                  className="pin-input"
                   type="text"
                   inputMode="numeric"
                   autoComplete="postal-code"
                   maxLength={6}
                   value={f.postalCode || ""}
-                  onChange={(e) =>
-                    handlePinChange(
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handlePinChange(e.target.value)}
                   placeholder="Enter 6-digit PIN"
                   aria-label="PIN code"
+                  className="h-full min-w-0 flex-1 bg-transparent pr-12 text-[19px] font-extrabold tracking-[.18em] text-slate-900 outline-none placeholder:text-[12px] placeholder:font-semibold placeholder:tracking-normal placeholder:text-slate-400"
                 />
 
                 {pinLoading && (
-                  <span className="input-spinner" />
+                  <span className="address-spin absolute right-4 h-5 w-5 rounded-full border-2 border-indigo-100 border-t-indigo-600" />
                 )}
 
-                {locationFound && (
-                  <span className="input-success">
+                {locationFound && !pinLoading && (
+                  <span className="address-success absolute right-3.5 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white">
                     <FaCheck size={9} />
                   </span>
                 )}
-
               </div>
 
-              <div className="pin-meta">
+              {errors.postalCode && (
+                <p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-red-500">
+                  <span className="h-1 w-1 rounded-full bg-red-500" />
+                  {errors.postalCode}
+                </p>
+              )}
 
-                <div className="pin-bars">
-                  {[0, 1, 2, 3, 4, 5].map(
-                    (index) => (
-                      <span
-                        key={index}
-                        className={
-                          String(
-                            f.postalCode || ""
-                          ).length > index
-                            ? "filled"
-                            : ""
-                        }
-                      />
-                    )
-                  )}
+              <div className="mt-2 flex items-center gap-2">
+                <div className="grid flex-1 grid-cols-6 gap-1">
+                  {[0,1,2,3,4,5].map((index) => (
+                    <span
+                      key={index}
+                      className={`h-1 rounded-full transition-all duration-300 ${
+                        String(f.postalCode || "").length > index
+                          ? "bg-indigo-500"
+                          : "bg-slate-200"
+                      }`}
+                    />
+                  ))}
                 </div>
-
-                <span>
+                <span className="shrink-0 text-[10px] font-semibold text-slate-400">
                   {pinLoading
-                    ? "Finding your location..."
+                    ? "Finding location..."
                     : locationFound
                     ? `${f.city || f.area}, ${f.state}`
                     : "6 digits required"}
                 </span>
-
               </div>
-
             </div>
-
           </section>
 
-          {/* ====================================================
-             ADDRESS TYPE
-          ==================================================== */}
+          {/* Address type */}
+          <section className="address-card-motion border-b border-slate-200/80 py-5 sm:py-7">
+            <SectionHeader number="01" title="Address type" description="Choose where this address belongs." />
 
-          <section className="form-section">
-
-            <SectionHeader
-              number="01"
-              title="Address type"
-              description="Choose a label for this address."
-            />
-
-            <div className="address-types">
-
+            <div className="grid grid-cols-3 gap-2.5">
               {addressTypes.map((item) => {
-
-                const active =
-                  f.label === item.value;
-
+                const active = f.label === item.value;
                 return (
                   <button
                     type="button"
                     key={item.value}
-                    className={`address-type ${
-                      active ? "active" : ""
+                    onClick={() => set("label", item.value)}
+                    className={`group relative flex min-h-[76px] flex-col items-center justify-center gap-1.5 overflow-hidden rounded-2xl border px-2 py-3 text-center transition-all duration-300 active:scale-[.97] ${
+                      active
+                        ? "border-indigo-500 bg-indigo-50 text-indigo-700 shadow-[0_8px_22px_rgba(79,70,229,.10)]"
+                        : "border-slate-200 bg-white text-slate-500 hover:border-indigo-200 hover:bg-indigo-50/40"
                     }`}
-                    onClick={() =>
-                      set(
-                        "label",
-                        item.value
-                      )
-                    }
                   >
-
-                    <span className="type-icon">
-                      {item.icon}
+                    {active && <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-indigo-500" />}
+                    <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300 ${
+                      active ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" : "bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600"
+                    }`}>
+                      {React.cloneElement(item.icon, { size: 15 })}
                     </span>
-
-                    <span className="type-text">
-                      <strong>
-                        {item.value}
-                      </strong>
-
-                      <small>
-                        {item.description}
-                      </small>
-                    </span>
-
-                    {active && (
-                      <span className="type-selected">
-                        <FaCheck size={8} />
-                      </span>
-                    )}
-
+                    <span className="text-[11px] font-extrabold">{item.value}</span>
+                    <span className="hidden text-[9px] text-slate-400 sm:block">{item.description}</span>
                   </button>
                 );
               })}
-
             </div>
-
           </section>
 
-          {/* ====================================================
-             CONTACT
-          ==================================================== */}
-
-          <section className="form-section">
-
-            <SectionHeader
-              number="02"
-              title="Contact details"
-              description="Who should receive the delivery?"
-            />
-
-            <div className="form-grid">
-
-              <Field
-                icon={<FaUser />}
-                label="Full name"
-                required
-                value={f.fullName}
-                onChange={(value) =>
-                  set("fullName", value)
-                }
-                placeholder="Enter full name"
-                autoComplete="name"
-              />
-
-              <Field
-                icon={<FaPhoneAlt />}
-                label="Phone number"
-                required
-                value={f.phone}
-                onChange={(value) =>
-                  set(
-                    "phone",
-                    value
-                      .replace(/\D/g, "")
-                      .slice(0, 10)
-                  )
-                }
-                placeholder="10-digit phone number"
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel"
-              />
-
-              <Field
-                icon={<FaPhoneAlt />}
-                label="Alternate phone"
-                value={f.alternatePhone}
-                onChange={(value) =>
-                  set(
-                    "alternatePhone",
-                    value
-                      .replace(/\D/g, "")
-                      .slice(0, 10)
-                  )
-                }
-                placeholder="Optional"
-                type="tel"
-                inputMode="numeric"
-              />
-
+          {/* Contact */}
+          <section className="address-card-motion border-b border-slate-200/80 py-5 sm:py-7">
+            <SectionHeader number="02" title="Contact details" description="Who should receive the delivery?" />
+            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+              <Field fieldKey="fullName" error={errors.fullName} icon={<FaUser />} label="Full name" required value={f.fullName} onChange={(value) => set("fullName", value)} placeholder="Enter full name" autoComplete="name" />
+              <Field fieldKey="phone" error={errors.phone} icon={<FaPhoneAlt />} label="Phone number" required value={f.phone} onChange={(value) => set("phone", value.replace(/\D/g, "").slice(0, 10))} placeholder="10-digit phone number" type="tel" inputMode="numeric" autoComplete="tel" />
+              <Field icon={<FaPhoneAlt />} label="Alternate phone" value={f.alternatePhone} onChange={(value) => set("alternatePhone", value.replace(/\D/g, "").slice(0, 10))} placeholder="Optional" type="tel" inputMode="numeric" />
             </div>
-
           </section>
 
-          {/* ====================================================
-             ADDRESS
-          ==================================================== */}
+          {/* Address details */}
+          <section className="address-card-motion border-b border-slate-200/80 py-5 sm:py-7">
+            <SectionHeader number="03" title="Address details" description="Add your complete delivery address." />
 
-          <section className="form-section">
-
-            <SectionHeader
-              number="03"
-              title="Address details"
-              description="Add your complete delivery address."
-            />
-
-            <div className="form-grid">
-              <Field
-                label="House / Flat / Door No."
-                value={f.houseNumber}
-                onChange={(value) =>
-                  set("houseNumber", value)
-                }
-                placeholder="e.g. 12/A"
-                autoComplete="address-line1"
-              />
-
-              <Field
-                label="Building / Apartment"
-                value={f.buildingName}
-                onChange={(value) =>
-                  set("buildingName", value)
-                }
-                placeholder="Building or apartment name"
-              />
-
-              <Field
-                label="Floor"
-                value={f.floor}
-                onChange={(value) =>
-                  set("floor", value)
-                }
-                placeholder="e.g. 2nd Floor"
-              />
-
-              <Field
-                label="Street / Road"
-                value={f.street}
-                onChange={(value) =>
-                  set("street", value)
-                }
-                placeholder="Street or road name"
-                autoComplete="street-address"
-              />
+            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+              <Field label="House / Flat / Door No." value={f.houseNumber} onChange={(value) => set("houseNumber", value)} placeholder="e.g. 12/A" autoComplete="address-line1" />
+              <Field label="Building / Apartment" value={f.buildingName} onChange={(value) => set("buildingName", value)} placeholder="Building or apartment name" />
+              <Field label="Floor" value={f.floor} onChange={(value) => set("floor", value)} placeholder="e.g. 2nd Floor" />
+              <Field label="Street / Road" value={f.street} onChange={(value) => set("street", value)} placeholder="Street or road name" autoComplete="street-address" />
             </div>
 
-            <Field
-              label="Address line 1"
-              required
-              value={f.addressLine1}
-              onChange={(value) =>
-                set("addressLine1", value)
-              }
-              placeholder="Complete address line 1"
-              autoComplete="street-address"
-            />
+            <Field fieldKey="addressLine1" error={errors.addressLine1} label="Address line 1" required value={f.addressLine1} onChange={(value) => set("addressLine1", value)} placeholder="Complete address line 1" autoComplete="street-address" />
+            <Field label="Address line 2" value={f.addressLine2} onChange={(value) => set("addressLine2", value)} placeholder="Apartment, floor, block, etc. (optional)" />
 
-            <Field
-              label="Address line 2"
-              value={f.addressLine2}
-              onChange={(value) =>
-                set("addressLine2", value)
-              }
-              placeholder="Apartment, floor, block, etc. (optional)"
-            />
+            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+              <Field label="Landmark" value={f.landmark} onChange={(value) => set("landmark", value)} placeholder="Nearby landmark" />
 
-            <div className="form-grid">
-
-              <Field
-                label="Landmark"
-                value={f.landmark}
-                onChange={(value) =>
-                  set("landmark", value)
-                }
-                placeholder="Nearby landmark"
-              />
-
-              <div className="field">
-
-                <label className="input-label">
-                  Area / Post
-                  <span>*</span>
+              <div className="mb-4 min-w-0">
+                <label className="mb-1.5 block text-[11px] font-bold text-slate-600">
+                  Area / Post <span className="text-red-500">*</span>
                 </label>
-
                 {postOffices.length > 1 ? (
-
-                  <div className="select-box">
-
-                    <select
-                      className="input"
-                      value={f.area || ""}
-                      onChange={(e) =>
-                        handlePostOfficeChange(
-                          e.target.value
-                        )
-                      }
-                    >
-                      {postOffices.map(
-                        (office) => (
-                          <option
-                            key={`${office.Name}-${office.Pincode}`}
-                            value={office.Name}
-                          >
-                            {office.Name}
-                          </option>
-                        )
-                      )}
-                    </select>
-
-                  </div>
-
-                ) : (
-
-                  <input
-                    className="input"
+                  <select
                     value={f.area || ""}
-                    onChange={(e) =>
-                      set(
-                        "area",
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => handlePostOfficeChange(e.target.value)}
+                    className={`h-12 w-full rounded-xl border bg-white px-3 text-sm font-medium text-slate-800 outline-none transition-all duration-200 ${
+                      errors.area
+                        ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
+                        : "border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                    }` } data-field="area"
+                  >
+                    {postOffices.map((office) => (
+                      <option key={`${office.Name}-${office.Pincode}`} value={office.Name}>
+                        {office.Name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    value={f.area || ""}
+                    onChange={(e) => set("area", e.target.value)}
                     placeholder="Locality / area"
                     autoComplete="address-line2"
+                    className={`h-12 w-full rounded-xl border bg-white px-3 text-sm font-medium text-slate-800 outline-none transition-all duration-200 placeholder:text-slate-400 ${
+                      errors.area
+                        ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
+                        : "border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                    }`}
+                    data-field="area"
                   />
-
                 )}
-
               </div>
 
-              <Field
-                label="Village"
-                value={f.village}
-                onChange={(value) =>
-                  set("village", value)
-                }
-                placeholder="Enter village"
-              />
-
-            
-              <Field
-                label="Post office"
-                value={f.postOffice}
-                onChange={(value) =>
-                  set("postOffice", value)
-                }
-                placeholder="Post office"
-              />
-
-              <Field
-                label="Block"
-                value={f.block}
-                onChange={(value) =>
-                  set("block", value)
-                }
-                placeholder="Block / development block"
-              />
-
-</div>
-
+              <Field fieldKey="village" value={f.village} onChange={(value) => set("village", value)} placeholder="Enter village" />
+              <Field label="Post office" value={f.postOffice} onChange={(value) => set("postOffice", value)} placeholder="Post office" />
+              <Field label="Block" value={f.block} onChange={(value) => set("block", value)} placeholder="Block / development block" />
+            </div>
           </section>
 
-          {/* ====================================================
-             LOCATION
-          ==================================================== */}
+          {/* Location */}
+          <section className="address-card-motion border-b border-slate-200/80 py-5 sm:py-7">
+            <SectionHeader number="04" title="Location" description="These details are filled from your PIN." />
 
-          <section className="form-section">
+            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+              <Field fieldKey="city" error={errors.city} icon={<FaCity />} label="City" required value={f.city} onChange={(value) => set("city", value)} placeholder="Enter city" autoComplete="address-level2" />
+              <Field fieldKey="district" error={errors.district} label="District" required value={f.district} onChange={(value) => set("district", value)} placeholder="Enter district" />
+              <Field fieldKey="state" error={errors.state} label="State" required value={f.state} onChange={(value) => set("state", value)} placeholder="Enter state" autoComplete="address-level1" />
 
-            <SectionHeader
-              number="04"
-              title="Location"
-              description="These details are filled from your PIN."
-            />
-
-            <div className="form-grid">
-
-              <Field
-                icon={<FaCity />}
-                label="City"
-                required
-                value={f.city}
-                onChange={(value) =>
-                  set("city", value)
-                }
-                placeholder="Enter city"
-                autoComplete="address-level2"
-              />
-
-              <Field
-                label="District"
-                required
-                value={f.district}
-                onChange={(value) =>
-                  set("district", value)
-                }
-                placeholder="Enter district"
-              />
-
-              <Field
-                label="State"
-                required
-                value={f.state}
-                onChange={(value) =>
-                  set("state", value)
-                }
-                placeholder="Enter state"
-                autoComplete="address-level1"
-              />
-
-              <div className="field">
-
-                <label className="input-label">
-                  PIN code
-                  <span>*</span>
+              <div className="mb-4 min-w-0">
+                <label className="mb-1.5 block text-[11px] font-bold text-slate-600">
+                  PIN code <span className="text-red-500">*</span>
                 </label>
-
-                <div className="readonly-location">
-                  <FaMapMarkerAlt size={11} />
-
-                  <span>
-                    {f.postalCode ||
-                      "Waiting for PIN"}
-                  </span>
-
-                  {locationFound && (
-                    <FaCheck
-                      className="readonly-check"
-                      size={9}
-                    />
-                  )}
+                <div className="flex h-12 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-600">
+                  <FaMapMarkerAlt size={11} className="text-indigo-500" />
+                  <span>{f.postalCode || "Waiting for PIN"}</span>
+                  {locationFound && <FaCheck size={10} className="ml-auto text-emerald-500" />}
                 </div>
-
-              </div>
-
-            </div>
-
-          </section>
-          {/* ====================================================
-             DELIVERY INSTRUCTIONS
-          ==================================================== */}
-
-          <section className="form-section">
-            <SectionHeader
-              number="05"
-              title="Delivery instructions"
-              description="Optional notes to help the delivery partner."
-            />
-
-            <div className="field">
-              <label className="input-label">
-                Delivery instructions
-              </label>
-
-              <textarea
-                className="input address-textarea"
-                value={f.deliveryInstructions || ""}
-                maxLength={500}
-                rows={4}
-                onChange={(e) =>
-                  set("deliveryInstructions", e.target.value)
-                }
-                placeholder="e.g. Call before delivery, leave at the security desk..."
-              />
-
-              <div className="textarea-meta">
-                <span>Optional</span>
-                <span>
-                  {String(f.deliveryInstructions || "").length}/500
-                </span>
+                {errors.postalCode && (
+                  <p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-red-500">
+                    <span className="h-1 w-1 rounded-full bg-red-500" />
+                    {errors.postalCode}
+                  </p>
+                )}
               </div>
             </div>
           </section>
 
-
-
-          {/* ====================================================
-             COUNTRY
-          ==================================================== */}
-
-          <section className="form-section country-section">
-
-            <SectionHeader
-              number="06"
-              title="Country"
-              description="Where should this address be delivered?"
+          {/* Instructions */}
+          <section className="address-card-motion border-b border-slate-200/80 py-5 sm:py-7">
+            <SectionHeader number="05" title="Delivery instructions" description="Optional notes for the delivery partner." />
+            <label className="mb-1.5 block text-[11px] font-bold text-slate-600">Delivery instructions</label>
+            <textarea
+              value={f.deliveryInstructions || ""}
+              maxLength={500}
+              rows={4}
+              onChange={(e) => set("deliveryInstructions", e.target.value)}
+              placeholder="e.g. Call before delivery, leave at the security desk..."
+              className="min-h-[108px] w-full resize-y rounded-xl border border-slate-200 bg-white p-3 text-sm leading-6 text-slate-800 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
             />
-
-            <Field
-              label="Country"
-              required
-              value={f.country || "India"}
-              onChange={(value) =>
-                set("country", value)
-              }
-              placeholder="Country"
-              autoComplete="country-name"
-            />
-
+            <div className="mt-1.5 flex justify-between text-[10px] font-semibold text-slate-400">
+              <span>Optional</span>
+              <span>{String(f.deliveryInstructions || "").length}/500</span>
+            </div>
           </section>
 
-          {/* ====================================================
-             DEFAULT
-          ==================================================== */}
+          {/* Country + default */}
+          <section className="address-card-motion border-b border-slate-200/80 py-5 sm:py-7">
+            <SectionHeader number="06" title="Final details" description="Confirm your country and default address preference." />
+            <Field label="Country" required value={f.country || "India"} onChange={(value) => set("country", value)} placeholder="Country" autoComplete="country-name" />
 
-          <section className="default-section">
-
-            <label className="default-card">
-
+            <label className={`group mt-1 flex cursor-pointer items-center gap-3 rounded-2xl border p-3.5 transition-all duration-300 ${
+              f.isDefault
+                ? "border-indigo-200 bg-indigo-50/60"
+                : "border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50"
+            }`}>
               <input
                 type="checkbox"
-                checked={Boolean(
-                  f.isDefault
-                )}
-                onChange={(e) =>
-                  set(
-                    "isDefault",
-                    e.target.checked
-                  )
-                }
+                checked={Boolean(f.isDefault)}
+                onChange={(e) => set("isDefault", e.target.checked)}
+                className="sr-only"
               />
-
-              <span className="checkbox">
-                {f.isDefault && (
-                  <FaCheck size={9} />
-                )}
+              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 ${
+                f.isDefault
+                  ? "border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-200"
+                  : "border-slate-300 bg-white"
+              }`}>
+                {f.isDefault && <FaCheck size={10} />}
               </span>
-
-              <span className="default-copy">
-
-                <strong>
+              <span className="min-w-0">
+                <strong className="block text-[13px] font-extrabold text-slate-800">
                   Make this my default address
                 </strong>
-
-                <small>
-                  We'll use this address automatically
-                  during checkout.
+                <small className="mt-0.5 block text-[11px] leading-4 text-slate-500">
+                  We'll use this address automatically during checkout.
                 </small>
-
               </span>
-
             </label>
-
           </section>
 
-          {/* ====================================================
-             ACTIONS
-          ==================================================== */}
-
-          <footer className="form-actions">
-
+          {/* Desktop actions */}
+          <div className="mt-4 hidden items-center justify-end gap-2 sm:flex">
             <button
               type="button"
-              className="cancel-button"
               disabled={saving}
-              onClick={() =>
-                navigate(
-                  "/account/addresses"
-                )
-              }
+              onClick={() => navigate("/account/addresses")}
+              className="h-12 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
             </button>
 
             <button
               type="button"
-              className="save-button"
-              disabled={
-                saving ||
-                pinLoading
-              }
+              disabled={saving || pinLoading}
               onClick={save}
+              className="address-shine relative flex h-12 min-w-[170px] items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(79,70,229,.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(79,70,229,.30)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
             >
-
               {saving ? (
                 <>
-                  <span className="save-spinner" />
+                  <span className="address-spin h-4 w-4 rounded-full border-2 border-white/30 border-t-white" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <FaSave size={12} />
+                  <FaSave size={13} />
                   {submit}
                 </>
               )}
+            </button>
+          </div>
+        </div>
 
+        {/* Mobile bottom action dock */}
+        <div className="fixed inset-x-0 bottom-0 z-[100] border-t border-slate-200/80 bg-white/90 px-3 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-12px_35px_rgba(15,23,42,.10)] backdrop-blur-xl sm:hidden">
+          <div className="mx-auto flex max-w-3xl gap-2">
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => navigate("/account/addresses")}
+              className="h-12 flex-[.75] rounded-2xl border border-slate-200 bg-white text-[13px] font-bold text-slate-600 transition-all active:scale-[.97] disabled:opacity-50"
+            >
+              Cancel
             </button>
 
-          </footer>
-
-        </main>
-
+            <button
+              type="button"
+              disabled={saving || pinLoading}
+              onClick={save}
+              className="address-shine relative flex h-12 flex-[1.5] items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-[13px] font-extrabold text-white shadow-[0_10px_25px_rgba(79,70,229,.24)] transition-all active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? (
+                <>
+                  <span className="address-spin h-4 w-4 rounded-full border-2 border-white/30 border-t-white" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <FaSave size={13} />
+                  {submit}
+                </>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
-
-      {/* ========================================================
-         STYLES
-      ======================================================== */}
-
-      <style>{`
-        .address-app, .address-app * {
-          box-sizing: border-box;
-        }
-
-        .address-app {
-          width: 100%;
-          max-width: none;
-          margin: 0;
-          padding: 10px 0 40px;
-          color: #18181b;
-        }
-
-        /* ======================================================
-           HEADER
-        ====================================================== */
-
-        .address-header {
-          display: grid;
-          grid-template-columns: auto minmax(0, 1fr) auto;
-          align-items: center;
-          gap: 15px;
-          width: 100%;
-          margin-bottom: 20px;
-        }
-
-        .back-button {
-          width: 42px;
-          height: 42px;
-          flex: none;
-          display: grid;
-          place-items: center;
-          border: 1px solid #e7e7ec;
-          border-radius: 13px;
-          background: #fff;
-          color: #71717a;
-          cursor: pointer;
-          transition: all .18s ease;
-        }
-
-        .back-button:hover {
-          color: #4f46e5;
-          border-color: #d9d7ff;
-          background: #fafaff;
-          transform: translateX(-2px);
-        }
-
-        .header-content {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .header-eyebrow {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          margin-bottom: 4px;
-          color: #6366f1;
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: .12em;
-        }
-
-        .eyebrow-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #6366f1;
-          box-shadow:
-            0 0 0 4px rgba(99,102,241,.1);
-        }
-
-        .header-content h1 {
-          margin: 0 0 5px;
-          color: #18181b;
-          font-size: clamp(21px, 2.6vw, 27px);
-          line-height: 1.15;
-          font-weight: 850;
-          letter-spacing: -.8px;
-        }
-
-        .header-content p {
-          margin: 0;
-          color: #8a8a93;
-          font-size: 14px;
-          line-height: 1.5;
-        }
-
-        .secure-badge {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 11px;
-          border: 1px solid #e4e4e9;
-          border-radius: 999px;
-          color: #71717a;
-          background: #fff;
-          font-size: 12px;
-          font-weight: 800;
-        }
-
-        /* ======================================================
-           MAIN CARD
-        ====================================================== */
-
-        .address-card {
-          width: 100%;
-          overflow: visible;
-          border: 0;
-          border-radius: 0;
-          background: transparent;
-          box-shadow: none;
-        }
-
-        /* ======================================================
-           PIN HERO
-        ====================================================== */
-
-        .pin-hero {
-          width: 100%;
-          padding: 24px 28px;
-          border: 1px solid #ededf1;
-          border-radius: 18px;
-
-          background:
-            radial-gradient(
-              circle at 90% 0%,
-              rgba(99,102,241,.13),
-              transparent 32%
-            ),
-            linear-gradient(
-              135deg,
-              #fafaff,
-              #ffffff
-            );
-        }
-
-        .pin-hero-top {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .pin-icon {
-          width: 42px;
-          height: 42px;
-          flex: none;
-          display: grid;
-          place-items: center;
-          border: 1px solid #dedcff;
-          border-radius: 13px;
-          color: #4f46e5;
-          background: #eeedff;
-        }
-
-        .pin-copy {
-          flex: 1;
-        }
-
-        .pin-eyebrow {
-          display: block;
-          margin-bottom: 3px;
-          color: #6366f1;
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: .1em;
-        }
-
-        .pin-copy h2 {
-          margin: 0 0 3px;
-          color: #27272a;
-          font-size: 15px;
-          font-weight: 850;
-          letter-spacing: -.2px;
-        }
-
-        .pin-copy p {
-          margin: 0;
-          color: #85858d;
-          font-size: 13px;
-        }
-
-        .location-success {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          padding: 7px 9px;
-          border-radius: 999px;
-          color: #059669;
-          background: #ecfdf5;
-          font-size: 11px;
-          font-weight: 850;
-        }
-
-        .pin-input-area {
-          margin-top: 18px;
-        }
-
-        .input-label {
-          display: block;
-          margin-bottom: 6px;
-          color: #45454d;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .input-label span {
-          margin-left: 2px;
-          color: #ef4444;
-        }
-
-        .pin-input-container {
-          position: relative;
-          display: flex;
-          align-items: center;
-          height: 56px;
-          border: 1.5px solid #d9d7fa;
-          border-radius: 14px;
-          background: #fff;
-          box-shadow:
-            0 5px 20px rgba(79,70,229,.06);
-          transition:
-            border-color .18s ease,
-            box-shadow .18s ease;
-        }
-
-        .pin-input-container:focus-within {
-          border-color: #6366f1;
-          box-shadow:
-            0 0 0 4px rgba(99,102,241,.1),
-            0 8px 25px rgba(79,70,229,.08);
-        }
-
-        .pin-input-container.success {
-          border-color: #a7f3d0;
-        }
-
-        .pin-input-icon {
-          width: 48px;
-          display: grid;
-          place-items: center;
-          color: #6366f1;
-          pointer-events: none;
-        }
-
-        .pin-input {
-          width: 100%;
-          height: 100%;
-          padding: 0 50px 0 0;
-          border: 0;
-          outline: none;
-          background: transparent;
-          color: #18181b;
-          font-family: inherit;
-          font-size: 18px;
-          font-weight: 850;
-          letter-spacing: .18em;
-        }
-
-        .pin-input::placeholder {
-          color: #b2b2ba;
-          font-size: 13px;
-          letter-spacing: 0;
-          font-weight: 600;
-        }
-
-        .input-spinner {
-          position: absolute;
-          right: 17px;
-          width: 17px;
-          height: 17px;
-          border: 2px solid #e5e5f5;
-          border-top-color: #6366f1;
-          border-radius: 50%;
-          animation: spin .65s linear infinite;
-        }
-
-        .input-success {
-          position: absolute;
-          right: 15px;
-          width: 23px;
-          height: 23px;
-          display: grid;
-          place-items: center;
-          border-radius: 50%;
-          color: #fff;
-          background: #10b981;
-        }
-
-        .pin-meta {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          margin-top: 8px;
-          color: #8b8b94;
-          font-size: 11px;
-          font-weight: 700;
-        }
-
-        .pin-bars {
-          flex: 1;
-          display: grid;
-          grid-template-columns:
-            repeat(6, minmax(0, 1fr));
-          gap: 5px;
-        }
-
-        .pin-bars span {
-          height: 3px;
-          border-radius: 999px;
-          background: #e7e7ed;
-          transition: all .2s ease;
-        }
-
-        .pin-bars span.filled {
-          background: #6366f1;
-          transform: scaleY(1.25);
-        }
-
-        /* ======================================================
-           SECTIONS
-        ====================================================== */
-
-        .form-section {
-          width: 100%;
-          padding: 28px 0;
-          border-bottom: 1px solid #eeeef2;
-        }
-
-        .section-header {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          margin-bottom: 18px;
-        }
-
-        .section-number {
-          width: 28px;
-          height: 28px;
-          flex: none;
-          display: grid;
-          place-items: center;
-          border: 1px solid #e4e3f7;
-          border-radius: 9px;
-          color: #6366f1;
-          background: #f7f6ff;
-          font-size: 11px;
-          font-weight: 900;
-        }
-
-        .section-header h3 {
-          margin: 0 0 3px;
-          color: #27272a;
-          font-size: 13px;
-          font-weight: 850;
-        }
-
-        .section-header p {
-          margin: 0;
-          color: #9999a1;
-          font-size: 12px;
-        }
-
-        /* ======================================================
-           ADDRESS TYPES
-        ====================================================== */
-
-        .address-types {
-          display: grid;
-          grid-template-columns:
-            repeat(3, minmax(0, 1fr));
-          gap: 10px;
-        }
-
-        .address-type {
-          position: relative;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          min-height: 70px;
-          padding: 11px;
-          border: 1px solid #e5e5ea;
-          border-radius: 14px;
-          background: #fff;
-          text-align: left;
-          cursor: pointer;
-          transition: all .18s ease;
-        }
-
-        .address-type:hover {
-          transform: translateY(-1px);
-          border-color: #cfccf9;
-          background: #fbfbff;
-        }
-
-        .address-type.active {
-          border-color: #6366f1;
-          background: #f8f7ff;
-          box-shadow:
-            0 0 0 3px rgba(99,102,241,.07);
-        }
-
-        .type-icon {
-          width: 36px;
-          height: 36px;
-          flex: none;
-          display: grid;
-          place-items: center;
-          border-radius: 10px;
-          color: #777780;
-          background: #f3f3f6;
-          transition: all .18s ease;
-        }
-
-        .address-type.active .type-icon {
-          color: #4f46e5;
-          background: #e9e8ff;
-        }
-
-        .type-text {
-          min-width: 0;
-        }
-
-        .type-text strong {
-          display: block;
-          margin-bottom: 3px;
-          color: #34343b;
-          font-size: 13px;
-          font-weight: 850;
-        }
-
-        .type-text small {
-          display: block;
-          color: #9999a2;
-          font-size: 11px;
-        }
-
-        .type-selected {
-          position: absolute;
-          top: 8px;
-          right: 8px;
-          width: 17px;
-          height: 17px;
-          display: grid;
-          place-items: center;
-          border-radius: 50%;
-          color: #fff;
-          background: #4f46e5;
-        }
-
-        /* ======================================================
-           FORM
-        ====================================================== */
-
-        .form-grid {
-          display: grid;
-          grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-          gap: 0 13px;
-        }
-
-        .field {
-          min-width: 0;
-          margin-bottom: 16px;
-        }
-
-        .input {
-          width: 100%;
-          height: 45px;
-          padding: 0 12px;
-          border: 1px solid #e1e2e7;
-          border-radius: 11px;
-          outline: none;
-          background: #fff;
-          color: #18181b;
-          font-family: inherit;
-          font-size: 14px;
-          transition: all .17s ease;
-        }
-
-        .input:hover {
-          border-color: #d2d3da;
-        }
-
-        .input:focus {
-          border-color: #6366f1;
-          box-shadow:
-            0 0 0 3px rgba(99,102,241,.08);
-        }
-
-        .field-with-icon {
-          position: relative;
-        }
-
-        .field-icon {
-          position: absolute;
-          left: 13px;
-          top: 50%;
-          z-index: 1;
-          display: grid;
-          place-items: center;
-          color: #9b9ba4;
-          transform: translateY(-50%);
-          pointer-events: none;
-        }
-
-        .field-with-icon .input {
-          padding-left: 35px;
-        }
-
-        .select-box {
-          position: relative;
-        }
-
-        .select-box select {
-          cursor: pointer;
-          appearance: auto;
-        }
-
-        /* ======================================================
-           TEXTAREA
-        ====================================================== */
-
-        .address-textarea {
-          width: 100%;
-          min-height: 104px;
-          height: auto;
-          resize: vertical;
-          padding: 12px;
-          line-height: 1.5;
-        }
-
-        .textarea-meta {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          margin-top: 6px;
-          color: #9b9ba4;
-          font-size: 11px;
-          font-weight: 650;
-        }
-
-        /* ======================================================
-           READONLY LOCATION
-        ====================================================== */
-
-        .readonly-location {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          height: 45px;
-          padding: 0 12px;
-          border: 1px solid #ececf0;
-          border-radius: 11px;
-          color: #777780;
-          background: #f8f8fa;
-          font-size: 13px;
-          font-weight: 750;
-        }
-
-        .readonly-location svg {
-          color: #7774c7;
-        }
-
-        .readonly-check {
-          margin-left: auto;
-          color: #10b981 !important;
-        }
-
-        /* ======================================================
-           DEFAULT
-        ====================================================== */
-
-        .default-section {
-          width: 100%;
-          padding: 22px 0;
-          background:
-            linear-gradient(
-              90deg,
-              #fafafa,
-              #fff
-            );
-        }
-
-        .default-card {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-          cursor: pointer;
-        }
-
-        .default-card input {
-          position: absolute;
-          opacity: 0;
-          pointer-events: none;
-        }
-
-        .checkbox {
-          width: 21px;
-          height: 21px;
-          flex: none;
-          display: grid;
-          place-items: center;
-          border: 1.5px solid #cfd0d7;
-          border-radius: 6px;
-          color: #fff;
-          background: #fff;
-          transition: all .16s ease;
-        }
-
-        .default-card input:checked + .checkbox {
-          border-color: #4f46e5;
-          background: #4f46e5;
-        }
-
-        .default-copy strong {
-          display: block;
-          margin-bottom: 3px;
-          color: #34343b;
-          font-size: 13px;
-          font-weight: 850;
-        }
-
-        .default-copy small {
-          display: block;
-          color: #9999a1;
-          font-size: 11px;
-        }
-
-        /* ======================================================
-           ACTIONS
-        ====================================================== */
-
-        .form-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 9px;
-          padding: 22px 0 8px;
-          background: transparent;
-        }
-
-        .cancel-button,
-        .save-button {
-          min-height: 44px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 7px;
-          padding: 0 18px;
-          border-radius: 11px;
-          font-family: inherit;
-          font-size: 13px;
-          font-weight: 850;
-          cursor: pointer;
-          transition: all .18s ease;
-        }
-
-        .cancel-button {
-          min-width: 90px;
-          border: 1px solid #e2e3e8;
-          color: #666670;
-          background: #fff;
-        }
-
-        .cancel-button:hover {
-          background: #fafafa;
-          border-color: #d4d5dc;
-        }
-
-        .save-button {
-          min-width: 138px;
-          border: 1px solid #4f46e5;
-          color: #fff;
-          background: #4f46e5;
-          box-shadow:
-            0 8px 20px rgba(79,70,229,.18);
-        }
-
-        .save-button:hover:not(:disabled) {
-          transform: translateY(-1px);
-          background: #4338ca;
-          box-shadow:
-            0 11px 26px rgba(79,70,229,.23);
-        }
-
-        .save-button:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .cancel-button:disabled,
-        .save-button:disabled {
-          opacity: .55;
-          cursor: not-allowed;
-        }
-
-        .save-spinner {
-          width: 13px;
-          height: 13px;
-          border: 2px solid rgba(255,255,255,.35);
-          border-top-color: #fff;
-          border-radius: 50%;
-          animation: spin .65s linear infinite;
-        }
-
-        /* ======================================================
-           MODERN UI / UX POLISH
-        ====================================================== */
-
-        .address-app .field:focus-within .input-label {
-          color: #4f46e5;
-        }
-
-        .address-app .input::placeholder {
-          color: #a1a1aa;
-        }
-
-        .address-app .input:hover {
-          background: #fdfdff;
-        }
-
-        .address-app .address-type {
-          box-shadow: 0 2px 8px rgba(24,24,40,.025);
-        }
-
-        .address-app .address-type.active {
-          box-shadow:
-            0 0 0 3px rgba(99,102,241,.07),
-            0 8px 20px rgba(79,70,229,.07);
-        }
-
-        .address-app .default-card {
-          width: 100%;
-          padding: 13px 14px;
-          border: 1px solid #e7e7ec;
-          border-radius: 14px;
-          background: #fff;
-          transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
-        }
-
-        .address-app .default-card:hover {
-          border-color: #d8d6fb;
-          background: #fcfcff;
-          box-shadow: 0 6px 18px rgba(24,24,40,.05);
-        }
-
-        .address-app .save-button {
-          background: linear-gradient(135deg, #5b52e8, #4f46e5);
-        }
-
-        .address-app .save-button svg {
-          transition: transform .18s ease;
-        }
-
-        .address-app .save-button:hover:not(:disabled) svg {
-          transform: translateY(-1px);
-        }
-
-        /* ======================================================
-           ACCESSIBILITY
-        ====================================================== */
-
-        .back-button:focus-visible,
-        .address-type:focus-visible,
-        .input:focus-visible,
-        .pin-input:focus-visible,
-        .save-button:focus-visible,
-        .cancel-button:focus-visible {
-          outline: 3px solid rgba(99,102,241,.16);
-          outline-offset: 2px;
-        }
-
-        /* ======================================================
-           ANIMATION
-        ====================================================== */
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        @media (
-          prefers-reduced-motion: reduce
-        ) {
-          *,
-          *::before,
-          *::after {
-            animation-duration: .01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: .01ms !important;
-          }
-        }
-
-        /* ======================================================
-           TABLET
-        ====================================================== */
-
-        @media (max-width: 760px) {
-
-          .address-app {
-            padding-left: 8px;
-            padding-right: 8px;
-          }
-
-          .address-types {
-            grid-template-columns: 1fr;
-          }
-
-          .address-type {
-            min-height: 60px;
-          }
-
-        }
-
-        /* ======================================================
-           MOBILE
-        ====================================================== */
-
-        @media (max-width: 600px) {
-
-          .address-app {
-            padding:
-              0
-              4px
-              86px;
-          }
-
-          .address-header {
-            gap: 10px;
-            margin-bottom: 13px;
-          }
-
-          .back-button {
-            width: 36px;
-            height: 36px;
-            border-radius: 11px;
-          }
-
-          .header-content h1 {
-            font-size: 21px;
-          }
-
-          .header-content p {
-            max-width: 270px;
-            font-size: 12px;
-          }
-
-          .secure-badge {
-            display: none;
-          }
-
-          .address-card {
-            border-radius: 0;
-          }
-
-          .pin-hero {
-            padding: 18px 14px;
-            border-radius: 14px;
-          }
-
-          .pin-icon {
-            width: 37px;
-            height: 37px;
-            border-radius: 11px;
-          }
-
-          .pin-copy h2 {
-            font-size: 13px;
-          }
-
-          .pin-copy p {
-            font-size: 12px;
-          }
-
-          .location-success {
-            padding: 6px 8px;
-          }
-
-          .pin-input-container {
-            height: 52px;
-          }
-
-          .pin-input {
-            font-size: 16px;
-          }
-
-          .form-section {
-            padding: 20px 0;
-          }
-
-          .form-grid {
-            grid-template-columns: 1fr;
-            gap: 0;
-          }
-
-          .address-type {
-            min-height: 57px;
-          }
-
-          .address-textarea {
-            min-height: 96px;
-            font-size: 15px;
-          }
-
-          .default-section {
-            padding: 17px 0;
-          }
-
-          .form-actions {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 100;
-            display: grid;
-            grid-template-columns: .8fr 1.5fr;
-            gap: 8px;
-            padding:
-              9px
-              max(
-                9px,
-                env(safe-area-inset-right)
-              )
-              calc(
-                9px +
-                env(safe-area-inset-bottom)
-              )
-              max(
-                9px,
-                env(safe-area-inset-left)
-              );
-            border-top: 1px solid #e6e6eb;
-            background: rgba(255,255,255,.94);
-            box-shadow:
-              0 -8px 28px rgba(20,20,40,.08);
-            backdrop-filter: blur(14px);
-          }
-
-          .cancel-button,
-          .save-button {
-            width: 100%;
-            min-height: 45px;
-          }
-
-        }
-
-        /* ======================================================
-           SMALL MOBILE
-        ====================================================== */
-
-        .field .input::placeholder {
-          color: #a1a1aa;
-        }
-
-        .field .input:disabled {
-          background: #f7f7f9;
-          cursor: not-allowed;
-        }
-
-        .address-type:active {
-          transform: translateY(0);
-        }
-
-        .default-card {
-          width: 100%;
-          padding: 14px 15px;
-          border: 1px solid #e7e7ec;
-          border-radius: 14px;
-          background: #fff;
-          transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
-        }
-
-        .default-card:hover {
-          border-color: #d8d6fb;
-          background: #fcfcff;
-          box-shadow: 0 6px 18px rgba(24,24,40,.05);
-        }
-
-        .default-card input:focus-visible + .checkbox {
-          outline: 3px solid rgba(99,102,241,.16);
-          outline-offset: 2px;
-        }
-
-        @media (max-width: 380px) {
-
-          .header-content h1 {
-            font-size: 19px;
-          }
-
-          .pin-copy p {
-            max-width: 190px;
-          }
-
-          .pin-meta {
-            align-items: flex-start;
-            flex-direction: column;
-            gap: 6px;
-          }
-
-          .pin-bars {
-            width: 100%;
-          }
-
-          .form-section {
-            padding-left: 0;
-            padding-right: 0;
-          }
-
-          .section-number {
-            width: 25px;
-            height: 25px;
-          }
-
-        }
-
-        /* ============================================================
-           MOBILE APP TYPOGRAPHY — READABILITY
-        ============================================================ */
-        @media (max-width: 600px) {
-          .address-page,
-          .address-app { font-size: 15px; }
-
-          .address-eyebrow,
-          .header-eyebrow { font-size: 11px; }
-
-          .address-hero h1,
-          .header-content h1 {
-            font-size: 25px;
-            line-height: 1.2;
-          }
-
-          .address-hero p,
-          .header-content p {
-            font-size: 13px;
-            line-height: 1.5;
-          }
-
-          .address-hero-action,
-          .address-primary-btn,
-          .save-button,
-          .cancel-button {
-            min-height: 44px;
-            font-size: 13px;
-          }
-
-          .address-summary-main strong { font-size: 15px; }
-          .address-summary-main span { font-size: 12px; line-height: 1.4; }
-          .address-summary-badge { font-size: 11px; }
-
-          .address-title-row h2 { font-size: 16px; }
-          .address-default { font-size: 10px; }
-          .address-contact { font-size: 12px; }
-
-          .address-body p {
-            font-size: 14px;
-            line-height: 1.6;
-          }
-
-          .address-delivery-note { font-size: 11px; }
-
-          .address-action {
-            min-height: 38px;
-            padding: 0 11px;
-            font-size: 12px;
-          }
-
-          .address-empty-kicker { font-size: 11px; }
-          .address-empty h2 { font-size: 21px; }
-
-          .address-empty p {
-            font-size: 13px;
-            line-height: 1.6;
-          }
-
-          .address-empty-points span { font-size: 11px; }
-          .address-tip-copy strong { font-size: 13px; }
-
-          .address-tip-copy p {
-            font-size: 12px;
-            line-height: 1.5;
-          }
-
-          .pin-eyebrow { font-size: 10px; }
-
-          .pin-copy h2 {
-            font-size: 18px;
-            line-height: 1.3;
-          }
-
-          .pin-copy p {
-            font-size: 12px;
-            line-height: 1.45;
-          }
-
-          .location-success { font-size: 10px; }
-          .input-label { font-size: 13px; }
-          .pin-input { font-size: 18px; }
-          .pin-meta { font-size: 12px; }
-
-          .form-section h3,
-          .section-header h2 { font-size: 17px; }
-
-          .section-header p {
-            font-size: 12px;
-            line-height: 1.45;
-          }
-
-          .address-type strong { font-size: 14px; }
-          .address-type small { font-size: 11px; }
-
-          .field label,
-          .field .input-label { font-size: 13px; }
-
-          .input,
-          .field input,
-          .field select,
-          textarea {
-            min-height: 46px;
-            font-size: 15px;
-          }
-
-          .default-copy strong { font-size: 14px; }
-
-          .default-copy small {
-            font-size: 12px;
-            line-height: 1.45;
-          }
-
-          .secure-badge { font-size: 11px; }
-        }
-
-        @media (max-width: 390px) {
-          .address-hero h1,
-          .header-content h1 { font-size: 23px; }
-
-          .address-hero p,
-          .header-content p { font-size: 12px; }
-
-          .address-title-row h2 { font-size: 15px; }
-          .address-body p { font-size: 13px; }
-          .address-empty h2 { font-size: 20px; }
-          .pin-copy h2 { font-size: 17px; }
-
-          .input,
-          .field input,
-          .field select,
-          textarea { font-size: 14px; }
-        }
-
-      `}
-      </style>
     </AccountShell>
   );
 }
@@ -2272,31 +881,24 @@ export function AddressForm({
    SECTION HEADER
 ============================================================ */
 
-function SectionHeader({
-  number,
-  title,
-  description,
-}) {
-  return (
-    <div className="section-header">
 
-      <div className="section-number">
+function SectionHeader({ number, title, description }) {
+  return (
+    <div className="mb-5 flex items-start gap-3">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-[9px] font-extrabold text-indigo-600">
         {number}
       </div>
-
-      <div>
-        <h3>{title}</h3>
-
-        <p>{description}</p>
+      <div className="min-w-0">
+        <h3 className="text-[15px] font-extrabold tracking-[-.01em] text-slate-900">
+          {title}
+        </h3>
+        <p className="mt-0.5 text-[11px] leading-4 text-slate-500">
+          {description}
+        </p>
       </div>
-
     </div>
   );
 }
-
-/* ============================================================
-   REUSABLE FIELD
-============================================================ */
 
 function Field({
   icon,
@@ -2308,48 +910,47 @@ function Field({
   type = "text",
   inputMode,
   autoComplete,
+  error = "",
+  fieldKey,
 }) {
   return (
-    <div className="field">
-
-      <label className="input-label">
+    <div className="mb-4 min-w-0">
+      <label className="mb-1.5 block text-[11px] font-bold text-slate-600">
         {label}
-
-        {required && (
-          <span>*</span>
-        )}
+        {required && <span className="ml-0.5 text-red-500">*</span>}
       </label>
 
-      <div
-        className={
-          icon
-            ? "field-with-icon"
-            : ""
-        }
-      >
-
+      <div className="relative">
         {icon && (
-          <span className="field-icon">
-            {React.cloneElement(icon, {
-              size: 11,
-            })}
+          <span className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-slate-400">
+            {React.cloneElement(icon, { size: 11 })}
           </span>
         )}
 
         <input
-          className="input"
+          data-field={fieldKey}
           type={type}
           inputMode={inputMode}
           value={value || ""}
-          onChange={(e) =>
-            onChange(e.target.value)
-          }
+          onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           autoComplete={autoComplete}
+          aria-invalid={Boolean(error)}
+          className={`h-12 w-full rounded-xl border bg-white text-sm font-medium text-slate-800 outline-none transition-all duration-200 placeholder:text-slate-400 ${
+            error
+              ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
+              : "border-slate-200 hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+          } ${
+            icon ? "pl-9 pr-3" : "px-3"
+          }`}
         />
-
       </div>
-
+      {error && (
+        <p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-red-500">
+          <span className="h-1 w-1 shrink-0 rounded-full bg-red-500" />
+          {error}
+        </p>
+      )}
     </div>
   );
 }

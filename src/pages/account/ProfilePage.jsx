@@ -4,6 +4,7 @@ import {
   FaUser,
   FaMapMarkerAlt,
   FaShoppingBag,
+  FaTruck,
   FaHeart,
   FaBell,
   FaQuestionCircle,
@@ -13,14 +14,17 @@ import {
   FaShieldAlt,
   FaTimes,
 } from "react-icons/fa";
-
-import { AccountShell, api } from "./AccountShell";
 import { MdVerified } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { AccountShell, api } from "./AccountShell";
+
+/* =========================================================
+   PROFILE PAGE
+   Modern Tailwind / full-width account UI
+========================================================= */
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-
   const queryClient = useQueryClient();
 
   const [showSignOutModal, setShowSignOutModal] = useState(false);
@@ -53,8 +57,6 @@ export default function ProfilePage() {
   const handleSignOut = () => {
     setSigningOut(true);
 
-    // Remove authenticated query cache so another account on this
-    // device cannot temporarily see the previous user's cached data.
     queryClient.removeQueries({
       queryKey: ["currentUser", token],
     });
@@ -74,6 +76,10 @@ export default function ProfilePage() {
     }, 350);
   };
 
+  /* =======================================================
+     LOADING
+  ======================================================= */
+
   if (loading && !user) {
     return (
       <AccountShell title="Account">
@@ -82,28 +88,36 @@ export default function ProfilePage() {
     );
   }
 
+  /* =======================================================
+     ERROR
+  ======================================================= */
+
   if (userError && !user) {
     return (
       <AccountShell title="Account">
-        <div className="profile-loading">
-          <div style={{ textAlign: "center", color: "#6b7280" }}>
-            <p style={{ marginBottom: 10 }}>
-              Unable to load your profile.
+        <div className="flex min-h-[60vh] w-full items-center justify-center px-4">
+          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-[0_12px_40px_rgba(15,23,42,0.07)] sm:p-9">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+              <FaUser size={19} />
+            </div>
+
+            <h2 className="text-[18px] font-bold tracking-[-0.02em] text-slate-900">
+              Unable to load your profile
+            </h2>
+
+            <p className="mt-2 text-[13px] leading-5 text-slate-500">
+              Something went wrong while loading your account details.
+              Please try again.
             </p>
+
             <button
               type="button"
-              onClick={() => queryClient.invalidateQueries({
-                queryKey: ["currentUser", token],
-              })}
-              style={{
-                border: 0,
-                borderRadius: 10,
-                padding: "9px 14px",
-                background: "#4f46e5",
-                color: "#fff",
-                cursor: "pointer",
-                fontWeight: 700,
-              }}
+              onClick={() =>
+                queryClient.invalidateQueries({
+                  queryKey: ["currentUser", token],
+                })
+              }
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-5 text-[13px] font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-md active:translate-y-0"
             >
               Try again
             </button>
@@ -119,46 +133,67 @@ export default function ProfilePage() {
 
   return (
     <AccountShell title="Account">
-      <div className="profile-page">
+      <div className="w-full overflow-hidden pb-16">
 
-        {/* =========================================
-            PROFILE HEADER
-        ========================================== */}
-        <section className="ok-profile-header mt-18">
-          <div className="ok-profile-image-wrap">
-            <img
-              className="ok-profile-image"
-              src={user?.image || "https://i.pravatar.cc/200"}
-              alt="Profile"
-            />
-          </div>
+        {/* =====================================================
+            PROFILE HERO
+        ====================================================== */}
 
-          <div className="ok-profile-info">
-            <div className="ok-profile-name-row">
-              <h2>{name}</h2>
+        <section className="relative w-full overflow-hidden border-b border-slate-200/80 bg-gradient-to-br from-white via-white to-indigo-50/50 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+          {/* Decorative glow */}
+          <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-indigo-100/50 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-28 left-1/3 h-52 w-52 rounded-full bg-blue-100/30 blur-3xl" />
 
-              <span
-                className="verified-badge"
-                title="Verified account"
-                aria-label="Verified account"
-              >
-                <MdVerified size={24} />
+          <div className="relative flex w-full items-center gap-4 sm:gap-5">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-blue-500 opacity-20 blur-md" />
+
+              <div className="relative h-[72px] w-[72px] rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-blue-500 p-[3px] shadow-[0_8px_24px_rgba(79,70,229,0.20)] sm:h-[86px] sm:w-[86px]">
+                <img
+                  src={user?.image || "https://i.pravatar.cc/200"}
+                  alt="Profile"
+                  className="h-full w-full rounded-full border-[3px] border-white object-cover"
+                />
+              </div>
+
+              {/* Verified indicator */}
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-white text-blue-600 shadow-sm sm:h-7 sm:w-7">
+                <MdVerified size={19} />
               </span>
             </div>
 
-            <div className="ok-muted">
-              {user?.email || "No email added"}
-            </div>
+            {/* Profile information */}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="truncate text-[21px] font-bold tracking-[-0.035em] text-slate-900 sm:text-[25px]">
+                  {name}
+                </h1>
+              </div>
 
-            <div className="ok-profile-chips">
-              <span className="ok-chip">Odikart member</span>
+              <p className="mt-1 truncate text-[12px] font-medium text-slate-500 sm:text-[13px]">
+                {user?.email || "No email added"}
+              </p>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-2.5 text-[10px] font-bold text-indigo-700 sm:text-[11px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                  Odikart member
+                </span>
+
+                <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 text-[10px] font-bold text-emerald-700 sm:text-[11px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Verified
+                </span>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* =========================================
+        {/* =====================================================
             ACCOUNT
-        ========================================== */}
+        ====================================================== */}
+
         <AccountSection title="Account">
           <Tile
             icon={<FaUser />}
@@ -166,14 +201,16 @@ export default function ProfilePage() {
             sub="Name, phone number and photo"
             path="/account/personal-information"
             navigate={navigate}
+            iconClassName="bg-indigo-50 text-indigo-600"
           />
 
           <Tile
             icon={<FaMapMarkerAlt />}
             title="My addresses"
-            sub="Manage delivery addresses"
+            sub="Manage your delivery addresses"
             path="/account/addresses"
             navigate={navigate}
+            iconClassName="bg-blue-50 text-blue-600"
           />
 
           <Tile
@@ -182,6 +219,16 @@ export default function ProfilePage() {
             sub="View and track your purchases"
             path="/account/orders"
             navigate={navigate}
+            iconClassName="bg-violet-50 text-violet-600"
+          />
+
+          <Tile
+            icon={<FaTruck />}
+            title="Track an order"
+            sub="Check delivery status and shipment progress"
+            path="/track-order"
+            navigate={navigate}
+            iconClassName="bg-emerald-50 text-emerald-600"
           />
 
           <Tile
@@ -190,12 +237,14 @@ export default function ProfilePage() {
             sub="Products you saved"
             path="/account/wishlist"
             navigate={navigate}
+            iconClassName="bg-rose-50 text-rose-600"
           />
         </AccountSection>
 
-        {/* =========================================
+        {/* =====================================================
             PREFERENCES
-        ========================================== */}
+        ====================================================== */}
+
         <AccountSection title="Preferences">
           <Tile
             icon={<FaBell />}
@@ -203,6 +252,7 @@ export default function ProfilePage() {
             sub="Manage alerts and offers"
             path="/account/notifications"
             navigate={navigate}
+            iconClassName="bg-amber-50 text-amber-600"
           />
 
           <Tile
@@ -211,6 +261,7 @@ export default function ProfilePage() {
             sub="Get help with Odikart"
             path="/account/help"
             navigate={navigate}
+            iconClassName="bg-cyan-50 text-cyan-600"
           />
 
           <Tile
@@ -219,19 +270,25 @@ export default function ProfilePage() {
             sub="Policies and legal information"
             path="/account/legal"
             navigate={navigate}
+            iconClassName="bg-slate-100 text-slate-600"
           />
         </AccountSection>
 
-        {/* =========================================
+        {/* =====================================================
             ACCOUNT ACTIONS
-        ========================================== */}
-        <AccountSection title="Account actions" extraClass="account-actions-section">
+        ====================================================== */}
+
+        <AccountSection
+          title="Account actions"
+          extraClass="mt-9 border-t border-slate-200/80 pt-7"
+        >
           <Tile
             icon={<FaSignOutAlt />}
             title="Sign out"
             sub="Sign back in anytime"
             onClick={() => setShowSignOutModal(true)}
             navigate={navigate}
+            iconClassName="bg-slate-100 text-slate-600"
           />
 
           <Tile
@@ -241,16 +298,18 @@ export default function ProfilePage() {
             sub="Permanently remove your account"
             path="/account/delete"
             navigate={navigate}
+            iconClassName="bg-rose-50 text-rose-600"
           />
         </AccountSection>
       </div>
 
-      {/* =========================================
+      {/* =======================================================
           SIGN OUT MODAL
-      ========================================== */}
+      ======================================================= */}
+
       {showSignOutModal && (
         <div
-          className="signout-overlay"
+          className="fixed inset-0 z-[9999] flex items-end justify-center bg-slate-950/55 p-0 backdrop-blur-md sm:items-center sm:p-5"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget && !signingOut) {
               setShowSignOutModal(false);
@@ -258,1101 +317,210 @@ export default function ProfilePage() {
           }}
         >
           <div
-            className="signout-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="signout-title"
+            className="relative w-full overflow-hidden rounded-t-[28px] border border-white/70 bg-white shadow-[0_-10px_50px_rgba(15,23,42,0.18)] animate-[profileModalIn_.24s_ease-out] sm:max-w-[440px] sm:rounded-[28px] sm:shadow-[0_25px_70px_rgba(15,23,42,0.20)]"
+            onMouseDown={(e) => e.stopPropagation()}
           >
-            {/* Close */}
-            <button
-              type="button"
-              className="signout-close"
-              onClick={() => setShowSignOutModal(false)}
-              disabled={signingOut}
-              aria-label="Close sign out dialog"
-            >
-              <FaTimes size={14} />
-            </button>
+            {/* top accent */}
+            <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-blue-500" />
 
-            {/* Icon */}
-            <div className="signout-icon">
-              <FaSignOutAlt size={22} />
-            </div>
-
-            {/* Content */}
-            <div className="signout-content">
-              <span className="signout-eyebrow">
-                ACCOUNT ACTION
-              </span>
-
-              <h3 id="signout-title">
-                Sign out of your account?
-              </h3>
-
-              <p>
-                You will be signed out of this device. You can sign
-                back in anytime using your account credentials.
-              </p>
-            </div>
-
-            {/* Security note */}
-            <div className="signout-security">
-              <div className="signout-security-icon">
-                <FaShieldAlt size={13} />
-              </div>
-
-              <span>
-                Your account data will remain safe and available
-                when you sign back in.
-              </span>
-            </div>
-
-            {/* Actions */}
-            <div className="signout-actions">
+            <div className="p-5 sm:p-7">
               <button
                 type="button"
-                className="signout-cancel"
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={() => setShowSignOutModal(false)}
                 disabled={signingOut}
+                aria-label="Close sign out dialog"
               >
-                Cancel
+                <FaTimes size={13} />
               </button>
 
-              <button
-                type="button"
-                className="signout-confirm"
-                onClick={handleSignOut}
-                disabled={signingOut}
-              >
-                {signingOut ? (
-                  <>
-                    <span className="signout-spinner" />
-                    Signing out...
-                  </>
-                ) : (
-                  <>
-                    <FaSignOutAlt size={14} />
-                    Sign out
-                  </>
-                )}
-              </button>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.08)]">
+                <FaSignOutAlt size={21} />
+              </div>
+
+              <div className="mt-5 pr-8">
+                <span className="text-[10px] font-extrabold tracking-[0.12em] text-indigo-600">
+                  ACCOUNT ACTION
+                </span>
+
+                <h2
+                  id="signout-title"
+                  className="mt-1.5 text-[20px] font-bold tracking-[-0.025em] text-slate-900"
+                >
+                  Sign out of your account?
+                </h2>
+
+                <p className="mt-2 text-[12.5px] leading-5 text-slate-500 sm:text-[13px]">
+                  You will be signed out of this device. You can sign back
+                  in anytime using your account credentials.
+                </p>
+              </div>
+
+              <div className="mt-5 flex items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+                  <FaShieldAlt size={13} />
+                </span>
+
+                <p className="pt-0.5 text-[10.5px] leading-4 text-slate-600">
+                  Your account data will remain safe and available when
+                  you sign back in.
+                </p>
+              </div>
+
+              <div className="mt-5 grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  className="h-11 rounded-xl border border-slate-200 bg-white text-[12px] font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={() => setShowSignOutModal(false)}
+                  disabled={signingOut}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-900 text-[12px] font-bold text-white shadow-[0_7px_20px_rgba(15,23,42,0.16)] transition-all hover:-translate-y-0.5 hover:bg-indigo-600 hover:shadow-[0_10px_25px_rgba(79,70,229,0.22)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                >
+                  {signingOut ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Signing out...
+                    </>
+                  ) : (
+                    <>
+                      <FaSignOutAlt size={13} />
+                      Sign out
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* =========================================
-          STYLES
-      ========================================== */}
       <style>{`
-        /* =========================================
-           MODERN FULL-WIDTH ACCOUNT PAGE
-        ========================================== */
-
-        .profile-page {
-          width: 100%;
-          max-width: none;
-          margin: 0;
-          padding: 4px 0 70px;
-          box-sizing: border-box;
-          margin-top:69px;
-        }
-
-        .ok-profile-header {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          padding: 22px 20px 24px;
-          margin: 0 0 6px;
-          border-bottom: 1px solid #edf0f5;
-          box-sizing: border-box;
-          background: transparent;
-        }
-
-        .ok-profile-image-wrap {
-          width: 78px;
-          height: 78px;
-          padding: 3px;
-          flex-shrink: 0;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
-          box-shadow: 0 7px 20px rgba(79, 70, 229, 0.16);
-          box-sizing: border-box;
-        }
-
-        .ok-profile-image {
-          width: 100%;
-          height: 100%;
-          display: block;
-          object-fit: cover;
-          border-radius: 50%;
-          border: 3px solid #fff;
-          box-sizing: border-box;
-          background: #f8fafc;
-        }
-
-        .ok-profile-info {
-          min-width: 0;
-          flex: 1;
-        }
-
-        .ok-profile-name-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 4px;
-          flex-wrap: wrap;
-        }
-
-        .ok-profile-name-row h2 {
-          margin: 0;
-          font-size: 23px;
-          line-height: 1.2;
-          font-weight: 750;
-          letter-spacing: -0.02em;
-          color: #111827;
-        }
-
-        .verified-badge {
-          width: 25px;
-          height: 25px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          color: #4f46e5;
-        }
-
-        .ok-muted {
-          color: #6b7280;
-          font-size: 13px;
-          line-height: 1.5;
-        }
-
-        .ok-profile-chips {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          margin-top: 8px;
-          flex-wrap: wrap;
-        }
-
-        .ok-chip {
-          display: inline-flex;
-          align-items: center;
-          min-height: 26px;
-          padding: 0 10px;
-          border-radius: 999px;
-          background: #f4f3ff;
-          color: #5146a5;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.01em;
-        }
-
-        /* =========================================
-           FLAT PLAY-STORE STYLE SECTIONS
-        ========================================== */
-
-        .ok-section {
-          width: 100%;
-          margin-top: 25px;
-          box-sizing: border-box;
-        }
-
-        .account-actions-section {
-          margin-top: 32px;
-          padding-top: 18px;
-          border-top: 1px solid #edf0f5;
-        }
-
-        .ok-label {
-          margin: 0 20px 9px;
-          font-size: 11px;
-          line-height: 1.2;
-          font-weight: 800;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.09em;
-        }
-
-        .ok-list {
-          width: 100%;
-          overflow: hidden;
-          background: transparent;
-        }
-
-        .ok-list-item {
-          position: relative;
-          width: 100%;
-          min-height: 74px;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          padding: 13px 20px;
-          text-align: left;
-          border: 0;
-          border-bottom: 1px solid #eef0f4;
-          background: #fff;
-          color: #111827;
-          cursor: pointer;
-          font-family: inherit;
-          transition: background 0.18s ease, transform 0.18s ease;
-          box-sizing: border-box;
-        }
-
-        .ok-list-item:first-child {
-          border-top: 1px solid #eef0f4;
-        }
-
-        .ok-list-item:last-child {
-          border-bottom: 1px solid #eef0f4;
-        }
-
-        .ok-list-item:hover {
-          background: #fafbff;
-        }
-
-        .ok-list-item:active {
-          transform: scale(0.998);
-        }
-
-        .ok-list-item:focus-visible {
-          outline: 3px solid rgba(99, 102, 241, 0.18);
-          outline-offset: -3px;
-        }
-
-        .ok-circle {
-          width: 42px;
-          height: 42px;
-          display: grid;
-          place-items: center;
-          flex-shrink: 0;
-          border-radius: 13px;
-          background: #f3f4ff;
-          color: #4f46e5;
-          font-size: 15px;
-          transition: transform 0.18s ease, background 0.18s ease;
-        }
-
-        .ok-list-item:hover .ok-circle {
-          transform: translateY(-1px);
-          background: #ebe9ff;
-        }
-
-        .ok-grow {
-          min-width: 0;
-          flex: 1;
-        }
-
-        .ok-grow b {
-          display: block;
-          margin-bottom: 3px;
-          font-size: 14px;
-          line-height: 1.35;
-          font-weight: 700;
-          color: #171923;
-        }
-
-        .ok-small {
-          font-size: 11.5px;
-          line-height: 1.4;
-          color: #8a909c;
-        }
-
-        .ok-list-item > svg {
-          flex-shrink: 0;
-          transition: transform 0.18s ease;
-        }
-
-        .ok-list-item:hover > svg {
-          transform: translateX(2px);
-        }
-
-        /* =========================================
-           PROFILE SKELETON
-        ========================================== */
-
-        .profile-skeleton-page {
-          width: 100%;
-          max-width: none;
-        }
-
-        .skeleton {
-          position: relative;
-          overflow: hidden;
-          background: #e9ebf0;
-        }
-
-        .skeleton::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          transform: translateX(-100%);
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255,255,255,0.7),
-            transparent
-          );
-          animation: profileSkeletonShimmer 1.35s infinite;
-        }
-
-        @keyframes profileSkeletonShimmer {
-          100% {
-            transform: translateX(100%);
-          }
-        }
-
-        .profile-skeleton-header {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          padding: 22px 20px 24px;
-          border-bottom: 1px solid #edf0f5;
-          box-sizing: border-box;
-        }
-
-        .skeleton-avatar {
-          width: 78px;
-          height: 78px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-
-        .skeleton-profile-info {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .skeleton-name {
-          width: 190px;
-          height: 24px;
-          border-radius: 7px;
-          margin-bottom: 10px;
-        }
-
-        .skeleton-email {
-          width: 245px;
-          max-width: 75%;
-          height: 13px;
-          border-radius: 6px;
-          margin-bottom: 11px;
-        }
-
-        .skeleton-chips {
-          display: flex;
-          gap: 7px;
-        }
-
-        .skeleton-chip {
-          width: 92px;
-          height: 25px;
-          border-radius: 999px;
-        }
-
-        .skeleton-chip.small {
-          width: 66px;
-        }
-
-        .skeleton-section {
-          width: 100%;
-          margin-top: 25px;
-        }
-
-        .skeleton-label {
-          width: 88px;
-          height: 11px;
-          border-radius: 5px;
-          margin: 0 20px 10px;
-        }
-
-        .skeleton-label.short {
-          width: 110px;
-        }
-
-        .skeleton-list {
-          width: 100%;
-          background: #fff;
-        }
-
-        .skeleton-list-item {
-          width: 100%;
-          min-height: 74px;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          padding: 13px 20px;
-          border-top: 1px solid #eef0f4;
-          box-sizing: border-box;
-        }
-
-        .skeleton-list-item:last-child {
-          border-bottom: 1px solid #eef0f4;
-        }
-
-        .skeleton-icon {
-          width: 42px;
-          height: 42px;
-          border-radius: 13px;
-          flex-shrink: 0;
-        }
-
-        .skeleton-item-content {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .skeleton-item-title {
-          width: 155px;
-          max-width: 70%;
-          height: 14px;
-          border-radius: 5px;
-          margin-bottom: 8px;
-        }
-
-        .skeleton-item-title.medium {
-          width: 135px;
-        }
-
-        .skeleton-item-subtitle {
-          width: 220px;
-          max-width: 85%;
-          height: 10px;
-          border-radius: 4px;
-        }
-
-        .skeleton-arrow {
-          width: 9px;
-          height: 13px;
-          border-radius: 4px;
-          flex-shrink: 0;
-        }
-
-        .skeleton-actions {
-          margin-top: 32px;
-          padding-top: 18px;
-          border-top: 1px solid #edf0f5;
-        }
-
-        /* =========================================
-           MOBILE
-        ========================================== */
-
-        @media (max-width: 700px) {
-          .profile-page {
-            padding: 0 0 60px;
-          }
-
-          .ok-profile-header,
-          .profile-skeleton-header {
-            padding: 16px 14px 19px;
-            gap: 13px;
-          }
-
-          .ok-profile-image-wrap,
-          .skeleton-avatar {
-            width: 62px;
-            height: 62px;
-          }
-
-          .ok-profile-name-row h2 {
-            font-size: 19px;
-          }
-
-          .verified-badge {
-            width: 21px;
-            height: 21px;
-          }
-
-          .ok-muted {
-            font-size: 12px;
-          }
-
-          .ok-section,
-          .skeleton-section {
-            margin-top: 20px;
-          }
-
-          .ok-label,
-          .skeleton-label {
-            margin-left: 14px;
-            margin-right: 14px;
-            margin-bottom: 8px;
-            font-size: 10px;
-          }
-
-          .ok-list-item,
-          .skeleton-list-item {
-            min-height: 68px;
-            padding: 11px 14px;
-            gap: 11px;
-          }
-
-          .ok-circle,
-          .skeleton-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 11px;
-            font-size: 14px;
-          }
-
-          .ok-grow b {
-            font-size: 13px;
-          }
-
-          .ok-small {
-            font-size: 10.5px;
-          }
-
-          .skeleton-name {
-            width: 145px;
-            height: 21px;
-          }
-
-          .skeleton-email {
-            width: 175px;
-          }
-
-          .skeleton-chip {
-            width: 75px;
-            height: 22px;
-          }
-
-          .skeleton-chip.small {
-            width: 55px;
-          }
-
-          .skeleton-item-title {
-            height: 13px;
-          }
-
-          .skeleton-item-subtitle {
-            height: 9px;
-          }
-
-          .account-actions-section,
-          .skeleton-actions {
-            margin-top: 28px;
-            padding-top: 16px;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .skeleton::after,
-          .ok-list-item,
-          .ok-circle,
-          .ok-list-item > svg {
-            animation: none !important;
-            transition: none !important;
-          }
-        }
-
-        /* =========================================
-           SIGN OUT OVERLAY
-        ========================================== */
-
-        .signout-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 9999;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          background: rgba(15, 23, 42, 0.52);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          animation: signoutFadeIn 0.2s ease-out;
-          box-sizing: border-box;
-        }
-
-        /* =========================================
-           SIGN OUT MODAL
-        ========================================== */
-
-        .signout-modal {
-          position: relative;
-          width: min(100%, 440px);
-          padding: 28px;
-          border: 1px solid rgba(255, 255, 255, 0.7);
-          border-radius: 24px;
-          background: rgba(255, 255, 255, 0.98);
-          box-shadow:
-            0 25px 60px rgba(15, 23, 42, 0.18),
-            0 8px 24px rgba(15, 23, 42, 0.08);
-          animation: signoutModalIn 0.24s cubic-bezier(.2,.8,.2,1);
-          box-sizing: border-box;
-        }
-
-        .signout-close {
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          width: 34px;
-          height: 34px;
-          display: grid;
-          place-items: center;
-          border: 1px solid #e8eaf0;
-          border-radius: 10px;
-          background: #f8f9fb;
-          color: #7a8190;
-          cursor: pointer;
-          transition:
-            background 0.18s ease,
-            color 0.18s ease,
-            transform 0.18s ease;
-        }
-
-        .signout-close:hover:not(:disabled) {
-          background: #eef0f5;
-          color: #111827;
-          transform: rotate(4deg);
-        }
-
-        .signout-close:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .signout-icon {
-          width: 54px;
-          height: 54px;
-          display: grid;
-          place-items: center;
-          margin-bottom: 18px;
-          border-radius: 16px;
-          background: linear-gradient(
-            135deg,
-            #eef2ff,
-            #e0e7ff
-          );
-          color: #4f46e5;
-          box-shadow:
-            inset 0 0 0 1px rgba(99, 102, 241, 0.08);
-        }
-
-        .signout-content {
-          padding-right: 28px;
-        }
-
-        .signout-eyebrow {
-          display: block;
-          margin-bottom: 6px;
-          color: #6366f1;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 0.1em;
-        }
-
-        .signout-content h3 {
-          margin: 0 0 8px;
-          color: #111827;
-          font-size: 20px;
-          line-height: 1.25;
-          font-weight: 750;
-          letter-spacing: -0.02em;
-        }
-
-        .signout-content p {
-          margin: 0;
-          color: #6b7280;
-          font-size: 13px;
-          line-height: 1.65;
-        }
-
-        /* =========================================
-           SECURITY NOTE
-        ========================================== */
-
-        .signout-security {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          margin-top: 20px;
-          padding: 12px 13px;
-          border: 1px solid #e8eaff;
-          border-radius: 13px;
-          background: #f8f8ff;
-          color: #62697a;
-          font-size: 11px;
-          line-height: 1.5;
-        }
-
-        .signout-security-icon {
-          width: 25px;
-          height: 25px;
-          display: grid;
-          place-items: center;
-          flex-shrink: 0;
-          border-radius: 8px;
-          background: #e9e7ff;
-          color: #5146a5;
-        }
-
-        /* =========================================
-           MODAL ACTIONS
-        ========================================== */
-
-        .signout-actions {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-          margin-top: 22px;
-        }
-
-        .signout-cancel,
-        .signout-confirm {
-          min-height: 46px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 0 16px;
-          border-radius: 12px;
-          font-family: inherit;
-          font-size: 13px;
-          font-weight: 750;
-          cursor: pointer;
-          transition:
-            transform 0.18s ease,
-            box-shadow 0.18s ease,
-            background 0.18s ease;
-          box-sizing: border-box;
-        }
-
-        .signout-cancel {
-          border: 1px solid #e2e5eb;
-          background: #fff;
-          color: #374151;
-        }
-
-        .signout-cancel:hover:not(:disabled) {
-          background: #f8fafc;
-          border-color: #d6dae2;
-        }
-
-        .signout-confirm {
-          border: 0;
-          background: linear-gradient(
-            135deg,
-            #4f46e5,
-            #6366f1
-          );
-          color: #fff;
-          box-shadow:
-            0 7px 18px rgba(79, 70, 229, 0.22);
-        }
-
-        .signout-confirm:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow:
-            0 10px 24px rgba(79, 70, 229, 0.28);
-        }
-
-        .signout-cancel:active:not(:disabled),
-        .signout-confirm:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .signout-cancel:disabled,
-        .signout-confirm:disabled {
-          opacity: 0.65;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .signout-spinner {
-          width: 14px;
-          height: 14px;
-          border: 2px solid rgba(255,255,255,0.35);
-          border-top-color: #fff;
-          border-radius: 50%;
-          animation: signoutSpin 0.7s linear infinite;
-        }
-
-        /* =========================================
-           ANIMATIONS
-        ========================================== */
-
-        @keyframes signoutFadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes signoutModalIn {
-          from {
-            opacity: 0;
-            transform: translateY(12px) scale(0.97);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        @keyframes signoutSpin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        /* =========================================
-           MOBILE
-        ========================================== */
-
-        @media (max-width: 700px) {
-          .profile-page {
-            padding: 2px 0 70px;
-          }
-
-          .ok-profile-header {
-            padding: 16px 12px 20px;
-            gap: 13px;
-          }
-
-          .ok-profile-image-wrap {
-            width: 62px;
-            height: 62px;
-          }
-
-          .ok-profile-name-row h2 {
-            font-size: 19px;
-          }
-
-          .verified-badge {
-            width: 21px;
-            height: 21px;
-          }
-
-          .ok-muted {
-            font-size: 12px;
-          }
-
-          .ok-section {
-            margin-top: 20px;
-            padding: 0 12px;
-            box-sizing: border-box;
-          }
-
-          .account-actions-section {
-            margin-top: 32px;
-            padding-top: 18px;
-          }
-
-          .ok-label {
-            margin-bottom: 8px;
-            font-size: 10px;
-          }
-
-          .ok-card.ok-list {
-            border-radius: 14px;
-          }
-
-          .ok-list-item {
-            min-height: 66px;
-            padding: 11px 13px;
-            gap: 11px;
-          }
-
-          .ok-circle {
-            width: 37px;
-            height: 37px;
-            border-radius: 11px;
-            font-size: 14px;
-          }
-
-          .ok-grow b {
-            font-size: 12.5px;
-          }
-
-          .ok-small {
-            font-size: 10.5px;
-          }
-
-          .signout-overlay {
-            align-items: flex-end;
-            padding: 0;
-          }
-
-          .signout-modal {
-            width: 100%;
-            padding: 24px 18px 20px;
-            border-radius: 24px 24px 0 0;
-            border-bottom: 0;
-            animation: signoutSheetIn 0.25s cubic-bezier(.2,.8,.2,1);
-          }
-
-          .signout-icon {
-            width: 50px;
-            height: 50px;
-            margin-bottom: 15px;
-          }
-
-          .signout-content {
-            padding-right: 34px;
-          }
-
-          .signout-content h3 {
-            font-size: 18px;
-          }
-
-          .signout-content p {
-            font-size: 12px;
-          }
-
-          .signout-security {
-            margin-top: 16px;
-            font-size: 10.5px;
-          }
-
-          .signout-actions {
-            margin-top: 18px;
-          }
-
-          .signout-cancel,
-          .signout-confirm {
-            min-height: 44px;
-            font-size: 12px;
-          }
-        }
-
-        @keyframes signoutSheetIn {
-          from {
-            opacity: 0;
-            transform: translateY(100%);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .signout-overlay,
-          .signout-modal,
-          .signout-spinner,
-          .ok-list-item,
-          .ok-circle,
-          .ok-list-item > svg,
-          .signout-confirm,
-          .signout-cancel {
-            animation: none !important;
-            transition: none !important;
-          }
+        @keyframes profileModalIn {
+          from { opacity: 0; transform: translateY(12px) scale(.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes profileSkeleton {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
         }
       `}</style>
     </AccountShell>
   );
 }
 
-/* =====================================================
+/* =========================================================
    PROFILE SKELETON
-===================================================== */
+========================================================= */
 
 function ProfileSkeleton() {
   return (
-    <div className="profile-page profile-skeleton-page" aria-hidden="true">
-      <section className="profile-skeleton-header">
-        <div className="skeleton skeleton-avatar" />
+    <div
+      className="w-full pb-16"
+      aria-hidden="true"
+    >
+      {/* Profile skeleton */}
+      <section className="relative flex w-full items-center gap-4 overflow-hidden border-b border-slate-200 bg-white px-4 py-6 sm:gap-5 sm:px-6 sm:py-7 lg:px-8">
+        <Skeleton className="h-[72px] w-[72px] shrink-0 rounded-full sm:h-[86px] sm:w-[86px]" />
 
-        <div className="skeleton-profile-info">
-          <div className="skeleton skeleton-name" />
-          <div className="skeleton skeleton-email" />
+        <div className="min-w-0 flex-1">
+          <Skeleton className="h-6 w-40 rounded-lg sm:h-7 sm:w-52" />
+          <Skeleton className="mt-3 h-3.5 w-52 max-w-[75%] rounded-md" />
 
-          <div className="skeleton-chips">
-            <div className="skeleton skeleton-chip" />
-            <div className="skeleton skeleton-chip small" />
+          <div className="mt-3 flex gap-2">
+            <Skeleton className="h-7 w-24 rounded-full" />
+            <Skeleton className="h-7 w-20 rounded-full" />
           </div>
         </div>
       </section>
 
-      <section className="skeleton-section">
-        <div className="skeleton skeleton-label" />
-
-        <div className="skeleton-list">
-          {[1, 2, 3, 4].map((item) => (
-            <div className="skeleton-list-item" key={item}>
-              <div className="skeleton skeleton-icon" />
-
-              <div className="skeleton-item-content">
-                <div className="skeleton skeleton-item-title" />
-                <div className="skeleton skeleton-item-subtitle" />
-              </div>
-
-              <div className="skeleton skeleton-arrow" />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="skeleton-section">
-        <div className="skeleton skeleton-label" />
-
-        <div className="skeleton-list">
-          {[1, 2, 3].map((item) => (
-            <div className="skeleton-list-item" key={item}>
-              <div className="skeleton skeleton-icon" />
-
-              <div className="skeleton-item-content">
-                <div className="skeleton skeleton-item-title medium" />
-                <div className="skeleton skeleton-item-subtitle" />
-              </div>
-
-              <div className="skeleton skeleton-arrow" />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="skeleton-section skeleton-actions">
-        <div className="skeleton skeleton-label short" />
-
-        <div className="skeleton-list">
-          {[1, 2].map((item) => (
-            <div className="skeleton-list-item" key={item}>
-              <div className="skeleton skeleton-icon" />
-
-              <div className="skeleton-item-content">
-                <div className="skeleton skeleton-item-title" />
-                <div className="skeleton skeleton-item-subtitle" />
-              </div>
-
-              <div className="skeleton skeleton-arrow" />
-            </div>
-          ))}
-        </div>
-      </section>
+      <SkeletonSection rows={4} />
+      <SkeletonSection rows={3} />
+      <SkeletonSection rows={2} separated />
     </div>
   );
 }
 
-
-/* =====================================================
-   ACCOUNT SECTION
-===================================================== */
-
-function AccountSection({ title, children, extraClass = "" }) {
+function SkeletonSection({ rows = 3, separated = false }) {
   return (
-    <section className={`ok-section ${extraClass}`}>
-      <div className="ok-label">{title}</div>
+    <section
+      className={`w-full ${
+        separated
+          ? "mt-8 border-t border-slate-200 pt-7"
+          : "mt-7"
+      }`}
+    >
+      <Skeleton className="ml-4 h-3 w-24 rounded-md sm:ml-6" />
 
-      <div className="ok-list">
+      <div className="mt-2.5 w-full overflow-hidden border-y border-slate-200 bg-white">
+        {Array.from({ length: rows }).map((_, index) => (
+          <div
+            key={index}
+            className="flex min-h-[70px] items-center gap-3 border-b border-slate-100 px-4 last:border-b-0 sm:px-6"
+          >
+            <Skeleton className="h-10 w-10 shrink-0 rounded-xl" />
+
+            <div className="min-w-0 flex-1">
+              <Skeleton
+                className={`h-3.5 rounded-md ${
+                  index % 2 === 0
+                    ? "w-40 max-w-[70%]"
+                    : "w-32 max-w-[60%]"
+                }`}
+              />
+              <Skeleton className="mt-2 h-2.5 w-56 max-w-[85%] rounded-md" />
+            </div>
+
+            <Skeleton className="h-4 w-2.5 shrink-0 rounded" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Skeleton({ className = "" }) {
+  return (
+    <div
+      className={`relative overflow-hidden bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 bg-[length:200%_100%] animate-[profileSkeleton_1.4s_ease-in-out_infinite] ${className}`}
+    />
+  );
+}
+
+/* =========================================================
+   ACCOUNT SECTION
+========================================================= */
+
+function AccountSection({
+  title,
+  children,
+  extraClass = "",
+}) {
+  return (
+    <section className={`mt-7 w-full ${extraClass}`}>
+      <div className="mb-2.5 px-4 text-[10px] font-extrabold uppercase tracking-[0.11em] text-slate-500 sm:px-6">
+        {title}
+      </div>
+
+      <div className="w-full overflow-hidden border-y border-slate-200 bg-white">
         {children}
       </div>
     </section>
   );
 }
 
-/* =====================================================
+/* =========================================================
    TILE
-===================================================== */
+========================================================= */
 
 function Tile({
   icon,
@@ -1361,12 +529,13 @@ function Tile({
   path,
   onClick,
   navigate,
-  danger,
+  danger = false,
+  iconClassName = "",
 }) {
   return (
     <button
       type="button"
-      className="ok-list-item"
+      className="group relative flex min-h-[72px] w-full items-center gap-3.5 border-b border-slate-100 bg-white px-4 text-left transition-all duration-200 last:border-b-0 hover:bg-slate-50/80 active:scale-[0.998] focus:outline-none focus-visible:bg-indigo-50/40 sm:min-h-[76px] sm:px-6"
       onClick={
         onClick ||
         (() => {
@@ -1375,32 +544,31 @@ function Tile({
       }
       aria-label={title}
     >
-      <div
-        className="ok-circle"
-        style={
-          danger
-            ? {
-                background: "#fff1f2",
-                color: "#dc2626",
-              }
-            : undefined
-        }
+      {/* Hover indicator */}
+      <span className="absolute inset-y-0 left-0 w-0.5 bg-indigo-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+
+      {/* Icon */}
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[14px] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-sm sm:h-11 sm:w-11 sm:rounded-[13px] ${iconClassName}`}
       >
         {icon}
-      </div>
+      </span>
 
-      <div className="ok-grow">
-        <b>{title}</b>
+      {/* Content */}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[13px] font-bold leading-5 tracking-[-0.01em] text-slate-800 sm:text-[14px]">
+          {title}
+        </span>
 
-        <div className="ok-small">
+        <span className="mt-0.5 block truncate text-[10.5px] leading-4 text-slate-400 sm:text-[11.5px]">
           {sub}
-        </div>
-      </div>
+        </span>
+      </span>
 
-      <FaChevronRight
-        size={11}
-        color="#9ca3af"
-      />
+      {/* Arrow */}
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-300 transition-all duration-200 group-hover:translate-x-1 group-hover:bg-slate-100 group-hover:text-slate-500">
+        <FaChevronRight size={10} />
+      </span>
     </button>
   );
 }

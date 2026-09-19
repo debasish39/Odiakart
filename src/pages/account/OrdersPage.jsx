@@ -1230,7 +1230,7 @@ export default function OrdersPage() {
         {/* HEADER                                                         */}
         {/* -------------------------------------------------------------- */}
 
-        <header className="orders-header">
+        {/* <header className="orders-header">
           <button
             type="button"
             className="orders-back-button"
@@ -1258,7 +1258,7 @@ export default function OrdersPage() {
           >
             <FaSyncAlt />
           </button>
-        </header>
+        </header> */}
 
         {/* -------------------------------------------------------------- */}
         {/* PROMO                                                          */}

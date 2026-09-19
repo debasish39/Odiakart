@@ -237,6 +237,7 @@ const id = searchParams.get("id");
   const [cancelLoading, setCancelLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showNoticeModal, setShowNoticeModal] = useState(true);
   const navigate = useNavigate();
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -494,6 +495,14 @@ const isCancelled =
         minute: "2-digit",
       })
       : "";
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowNoticeModal(false);
+    }, 7000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Skeleton Loader
   const SkeletonLoader = () => (
@@ -1100,80 +1109,6 @@ const isCancelled =
           .to-root .tl-step { flex-basis: 86px; }
           .to-root .tl-label { font-size: 10px; }
         }
-        @media (max-width: 640px) {
-          .to-root {
-            padding-bottom: env(safe-area-inset-bottom);
-          }
-          .to-root > .relative.z-10 {
-            width: 100%;
-            max-width: 100%;
-            padding-inline: 12px !important;
-          }
-          .to-root .page-enter:first-child {
-            margin-bottom: 12px;
-          }
-          .to-root .page-enter:first-child h1 {
-            font-size: 21px;
-          }
-          .to-root .page-enter:first-child p {
-            max-width: 250px;
-          }
-          .to-root .search-card {
-            padding: 12px;
-          }
-          .to-root .search-card > div {
-            gap: 8px;
-          }
-          .to-root .s-input,
-          .to-root .s-btn {
-            width: 100%;
-            min-height: 44px;
-          }
-          .to-root .result-card {
-            box-shadow: 0 8px 28px rgba(15,23,42,.055);
-          }
-          .to-root .result-card > .p-6 {
-            padding: 14px !important;
-          }
-          .to-root .info-chip {
-            min-height: 70px;
-            padding: 10px;
-          }
-          .to-root .info-chip p {
-            font-size: 12px;
-          }
-          .to-root .timeline-wrap {
-            border-radius: 15px;
-            padding-block: 13px;
-          }
-          .to-root .tl-step {
-            flex-basis: 78px;
-          }
-          .to-root .tl-circle {
-            width: 36px;
-            height: 36px;
-          }
-          .to-root .tl-line {
-            top: 18px;
-            left: calc(50% + 18px);
-            right: calc(-50% + 18px);
-          }
-          .to-root .tl-label {
-            margin-top: 7px;
-            font-size: 9px;
-          }
-          .to-root .cancel-btn {
-            width: 100%;
-            min-height: 44px;
-          }
-        }
-
-        @media (min-width: 641px) {
-          .to-root .track-simple-tip {
-            max-width: 720px;
-          }
-        }
-
         @media (prefers-reduced-motion: reduce) {
           .track-top-icon::after { animation: none !important; }
         }
@@ -1199,13 +1134,13 @@ const isCancelled =
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-indigo-600">
-                  Track order
+                  Order tracking
                 </p>
                 <h1 className="mt-0.5 text-[23px] font-extrabold tracking-[-.035em] text-slate-900 sm:text-[28px]">
                   Track your order
                 </h1>
                 <p className="mt-0.5 text-[11px] leading-4 text-slate-500 sm:text-xs">
-                  Enter your order number to track delivery.
+                  Enter your Odikart Order Number to see delivery updates.
                 </p>
               </div>
             </div>
@@ -1238,11 +1173,6 @@ const isCancelled =
             </div>
           </div>
 
-          <div className="mb-4 flex w-full items-center gap-2 rounded-xl border border-amber-200/70 bg-amber-50/80 px-3 py-2.5 text-[11px] font-medium text-amber-800">
-            <FaEnvelope className="shrink-0 text-amber-600" size={12} />
-            <span>Keep your order number saved for tracking and support.</span>
-          </div>
-
           {/* ── NOT FOUND ── */}
           {!loading && searched && !order && (
             <div className="result-enter text-center py-16 w-full">
@@ -1251,7 +1181,7 @@ const isCancelled =
               </div>
               <h2 className="to-serif text-2xl font-bold text-indigo-950 mb-2">Order Not Found</h2>
               <p className="text-slate-400 text-sm mb-6">
-                Check the order number in your email and try again.
+                Double-check your  Odikart Order Number and try again. You can find it in your confirmation email.
               </p>
               <button
                 onClick={() => setSearched(false)}
@@ -1312,7 +1242,7 @@ const isCancelled =
                 {!isCancelled && (
                   <div>
                     <p className="text-[10px] font-bold tracking-widest text-indigo-500 uppercase mb-5">
-                      📦 Delivery progress
+                      📦 Shipment Progress
                     </p>
                     <div className="timeline-wrap">
                       {STATUS_STEPS.map((step, i) => {
@@ -1367,7 +1297,7 @@ const isCancelled =
                     <div>
                       <p className="font-bold text-red-700 text-sm">Order Cancelled</p>
                       <p className="text-xs text-red-600 mt-0.5">
-                        This order was cancelled. Your refund will be processed as per the refund policy.
+                        This order has been cancelled. A refund will be processed soon.
                       </p>
                     </div>
                   </div>
@@ -1404,13 +1334,13 @@ const isCancelled =
                           {label}
                         </span>
                       </div>
-                      <p className="text-sm font-semibold text-indigo-800 truncate">{value || "—"}</p>
+                      <p className="text-sm font-semibold text-slate-800 truncate">{value || "—"}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* ── TOTAL ── */}
-                <div className="flex items-center justify-between bg-indigo-900 rounded-2xl px-5 py-4 relative overflow-hidden">
+                <div className="flex items-center justify-between bg-slate-900 rounded-2xl px-5 py-4 relative overflow-hidden">
                   <div
                     className="absolute inset-0 opacity-10"
                     style={{
@@ -1423,7 +1353,7 @@ const isCancelled =
                     <p className="text-indigo-200 text-[10px] font-bold tracking-widest uppercase mb-1">
                       Order Total
                     </p>
-                    <p className="text-white/70 text-xs">Taxes & handling included</p>
+                    <p className="text-white/70 text-xs">Incl. taxes & handling</p>
                   </div>
                   <p className="relative to-serif text-3xl font-extrabold text-white flex items-baseline gap-1">
                     <FaRupeeSign size={18} />
@@ -1437,7 +1367,7 @@ const isCancelled =
                     <div className="flex items-center gap-2 mb-3">
                       <FaMapMarkerAlt size={13} style={{ color: "#6366f1" }} />
                       <p className="text-[10px] font-bold tracking-widest text-indigo-500 uppercase">
-                        Delivery address
+                        Delivery Address
                       </p>
                     </div>
                     <p className="text-sm text-slate-700 leading-relaxed font-medium">
@@ -1529,7 +1459,7 @@ const isCancelled =
                   ) : !isCancelled ? (
                     <p className="text-xs text-slate-400 flex items-center gap-1.5">
                       <FaClock size={11} />
-                      Cancellation is no longer available.
+                      Cancellation window has passed (7 days)
                     </p>
                   ) : null}
                 </div>
@@ -1547,35 +1477,35 @@ const isCancelled =
         backdrop="blur"
         size="sm"
       >
-        <ModalContent className="mx-3 w-[calc(100%-24px)] max-w-[360px] rounded-2xl bg-white shadow-xl border border-red-100">
+        <ModalContent className="rounded-2xl bg-white shadow-2xl border border-red-100">
           {(onClose) => (
             <>
-              <ModalHeader className="flex items-center gap-3 px-4 pt-4 pb-1">
-                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+              <ModalHeader className="flex items-center gap-4 pt-6 pb-2">
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
                   <FaTimesCircle size={18} style={{ color: "#ef4444" }} />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-indigo-950">Cancel Order?</h2>
-                  <p className="text-xs text-red-500 font-semibold mt-0.5">You cannot undo this action</p>
+                  <h2 className="text-lg font-bold text-indigo-950">Cancel Order?</h2>
+                  <p className="text-xs text-red-500 font-semibold mt-0.5">This action cannot be undone</p>
                 </div>
               </ModalHeader>
 
-              <ModalBody className="px-4 py-3">
+              <ModalBody className="py-4">
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Cancel this order? Your refund will follow our refund policy.
+                  Are you sure you want to cancel this order? You will receive a refund according to our refund policy.
                 </p>
 
-                <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200">
                   <p className="text-xs font-bold text-amber-800 mb-2">⏰ Refund Timeline</p>
                   <p className="text-xs text-amber-700">
-                    Refunds usually take 5–7 business days after approval.
+                    Refunds are processed within 5–7 business days after cancellation approval.
                   </p>
                 </div>
               </ModalBody>
 
-              <ModalFooter className="gap-2 px-4 pb-4 pt-1">
+              <ModalFooter className="gap-2 pb-6">
                 <Button
-                  className="h-10 flex-1 border border-indigo-200 bg-white text-indigo-600 text-xs font-bold rounded-xl hover:bg-indigo-50"
+                  className="flex-1 border-2 border-indigo-200 bg-white text-indigo-600 font-bold rounded-xl hover:bg-indigo-50"
                   variant="bordered"
                   onPress={onClose}
                 >
@@ -1583,11 +1513,83 @@ const isCancelled =
                 </Button>
 
                 <Button
-                  className="h-10 flex-1 bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs font-bold rounded-xl shadow-md"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-rose-500 text-white font-bold rounded-xl shadow-lg"
                   onPress={handleCancel}
                   disabled={cancelLoading}
                 >
                   {cancelLoading ? "Cancelling..." : "Yes, Cancel"}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* ── INFO NOTICE MODAL ── */}
+      <Modal
+        isOpen={showNoticeModal}
+        onClose={() => setShowNoticeModal(false)}
+        backdrop="blur"
+        placement="center"
+        size="md"
+        hideCloseButton
+      >
+        <ModalContent className="rounded-3xl overflow-hidden border bg-white border-amber-100 shadow-2xl">
+          {(onClose) => (
+            <>
+              {/* ── TOP ACCENT ── */}
+              <div
+                className="h-1.5 w-full"
+                style={{
+                  background: "linear-gradient(90deg, #f59e0b, #fbbf24, #fde68a)",
+                }}
+              />
+
+              <ModalHeader className="pt-7 pb-3 flex items-start gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-yellow-50 flex items-center justify-center shadow-lg flex-shrink-0">
+                  <FaEnvelope size={24} style={{ color: "#d97706" }} />
+                </div>
+
+                <div>
+                  <h2 className="text-xl font-extrabold text-slate-900">Save Your  Odikart Order Number</h2>
+                  <p className="text-xs text-amber-600 font-bold mt-1 tracking-widest uppercase">
+                    Important Notice
+                  </p>
+                </div>
+              </ModalHeader>
+
+              <ModalBody className="pb-4">
+                <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 p-5 space-y-3">
+                  <p className="text-sm leading-relaxed text-slate-700 font-medium">
+                    Your  Odikart Order Number has been sent to your registered email address. Please copy and save it for:
+                  </p>
+
+                  <div className="space-y-2">
+                    {["📍 Tracking your order", "💬 Requesting support", "❌ Cancelling your order", "📄 Invoice verification"].map(
+                      (item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 text-sm text-slate-700 font-medium"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
+                          {item}
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-center text-slate-400 mt-3 font-medium">
+                  This message will close automatically in a few seconds
+                </p>
+              </ModalBody>
+
+              <ModalFooter className="pb-6 pt-3">
+                <Button
+                  onPress={onClose}
+                  className="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-bold py-6 text-sm shadow-lg hover:shadow-xl transition"
+                >
+                  Got It
                 </Button>
               </ModalFooter>
             </>
