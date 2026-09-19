@@ -16,9 +16,14 @@ import {
   FaHome,
   FaHeart,
   FaUserCircle,
+  FaCheck,
   FaThLarge,
 } from "react-icons/fa";
-
+import {
+  FiShoppingBag,
+  FiMapPin,
+  FiCreditCard,
+} from "react-icons/fi";
 import {
   MdPayments,
   MdLocationCity,
@@ -32,6 +37,15 @@ import {
   AiOutlineMinus,
   AiFillEnvironment,
 } from "react-icons/ai";
+
+import {
+  FiEdit2,
+  FiTrash2,
+  FiStar,
+  FiPlus,
+  FiCheck,
+
+} from "react-icons/fi";
 
 import {
   IoArrowForward,
@@ -187,6 +201,103 @@ const loadRazorpay = () => {
   });
 };
 
+
+const CheckoutStepperSkeleton = () => (
+  <div className="w-full px-3 py-3 sm:px-5 sm:py-4 lg:px-8">
+    <div className="mx-auto w-full max-w-4xl">
+      <div className="relative flex items-start justify-between">
+
+        {[1, 2, 3].map((item, index) => (
+          <React.Fragment key={item}>
+
+            {/* Skeleton step */}
+            <div className="relative z-10 flex min-w-0 flex-1 flex-col items-center">
+
+              {/* Circle */}
+              <div
+                className="
+                  relative h-11 w-11
+                  animate-pulse
+                  rounded-full
+                  bg-slate-200
+                  ring-1 ring-slate-100
+                  sm:h-12 sm:w-12
+                "
+              >
+                {/* Soft inner highlight */}
+                <div
+                  className="
+                    absolute inset-2
+                    rounded-full
+                    bg-slate-100
+                  "
+                />
+              </div>
+
+              {/* Text skeleton */}
+              <div className="mt-2 flex w-full flex-col items-center gap-1.5">
+
+                <div
+                  className="
+                    h-2.5
+                    w-12
+                    animate-pulse
+                    rounded-full
+                    bg-slate-200
+                    sm:w-14
+                  "
+                />
+
+                <div
+                  className="
+                    h-3
+                    w-14
+                    animate-pulse
+                    rounded-full
+                    bg-slate-200
+                    sm:w-20
+                  "
+                />
+              </div>
+            </div>
+
+            {/* Connector skeleton */}
+            {index < 2 && (
+              <div
+                className="
+                  relative
+                  mx-1
+                  mt-[22px]
+                  h-[3px]
+                  flex-1
+                  overflow-hidden
+                  rounded-full
+                  bg-slate-200
+                  sm:mx-2
+                  sm:mt-6
+                "
+              >
+                <span
+                  className="
+                    absolute inset-y-0
+                    -left-1/2
+                    w-1/2
+                    animate-[checkoutSkeletonShimmer_1.5s_ease-in-out_infinite]
+                    rounded-full
+                    bg-gradient-to-r
+                    from-transparent
+                    via-white
+                    to-transparent
+                  "
+                />
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 /* =========================================================
    CART COMPONENT
@@ -411,45 +522,34 @@ const Cart = ({
      ADDRESS
   ======================================================= */
 
-  const [address, setAddress] =
-    useState({
+  const createEmptyAddress = () => ({
+    name: "",
+    email: "",
+    phone: "",
+    alternatePhone: "",
+    houseNumber: "",
+    buildingName: "",
+    floor: "",
+    street: "",
+    addressLine1: "",
+    addressLine2: "",
+    landmark: "",
+    area: "",
+    village: "",
+    postOffice: "",
+    block: "",
+    city: "",
+    district: "",
+    state: "",
+    postcode: "",
+    country: "India",
+    latitude: "",
+    longitude: "",
+    deliveryInstructions: "",
+    deliveryPreference: "",
+  });
 
-      name: "",
-
-      email: "",
-
-      phone: "",
-
-      street: "",
-
-      addressLine1: "",
-
-      addressLine2: "",
-
-      landmark: "",
-
-      area: "",
-
-      village: "",
-
-      city: "",
-
-      district: "",
-
-      state: "",
-
-      postcode: "",
-
-      country: "India",
-
-      latitude: "",
-
-      longitude: "",
-
-      deliveryPreference: "",
-
-    });
-
+  const [address, setAddress] = useState(createEmptyAddress());
 
   /* =======================================================
      SAVED DELIVERY ADDRESSES
@@ -482,6 +582,11 @@ const Cart = ({
   const [showAddressForm, setShowAddressForm] =
     useState(false);
 
+  // React Native-style checkout address sheet:
+  // list -> select, or list -> add/edit -> save & select.
+  const [addressSelectorOpen, setAddressSelectorOpen] =
+    useState(false);
+
   const [addressLabel, setAddressLabel] =
     useState("Home");
 
@@ -499,7 +604,7 @@ const Cart = ({
       );
     } catch (_) {}
 
-    navigate("/account/addresses");
+    navigate("/account/addresses/add");
   };
 
 
@@ -508,74 +613,48 @@ const Cart = ({
   ======================================================= */
 
   const normalizeSavedAddress = (item) => {
-
     const source = item?.address || item || {};
 
     return {
       ...item,
       _id: item?._id || item?.id,
       label: item?.label || "Home",
-      fullName:
-        item?.fullName ||
-        item?.name ||
-        source?.fullName ||
-        "",
-      phone:
-        item?.phone ||
-        source?.phone ||
-        "",
-      email:
-        user?.email ||
-        "",
+      fullName: item?.fullName || item?.name || source?.fullName || "",
+      phone: item?.phone || source?.phone || "",
+      alternatePhone: item?.alternatePhone || source?.alternatePhone || "",
+      houseNumber: item?.houseNumber || source?.houseNumber || "",
+      buildingName: item?.buildingName || source?.buildingName || "",
+      floor: item?.floor || source?.floor || "",
+      street: item?.street || source?.street || "",
       addressLine1:
         item?.addressLine1 ||
-        item?.street ||
         source?.addressLine1 ||
+        item?.street ||
         source?.street ||
         "",
-      addressLine2:
-        item?.addressLine2 ||
-        source?.addressLine2 ||
-        "",
-      landmark:
-        item?.landmark ||
-        source?.landmark ||
-        "",
-      area:
-        item?.area ||
-        source?.area ||
-        "",
-      village:
-        item?.village ||
-        source?.village ||
-        "",
-      city:
-        item?.city ||
-        source?.city ||
-        "",
-      district:
-        item?.district ||
-        source?.district ||
-        "",
-      state:
-        item?.state ||
-        source?.state ||
-        "",
+      addressLine2: item?.addressLine2 || source?.addressLine2 || "",
+      landmark: item?.landmark || source?.landmark || "",
+      area: item?.area || source?.area || "",
+      village: item?.village || source?.village || "",
+      postOffice: item?.postOffice || source?.postOffice || "",
+      block: item?.block || source?.block || "",
+      city: item?.city || source?.city || "",
+      district: item?.district || source?.district || "",
+      state: item?.state || source?.state || "",
       postalCode:
         item?.postalCode ||
         item?.postcode ||
         source?.postalCode ||
         source?.postcode ||
         "",
-      country:
-        item?.country ||
-        source?.country ||
-        "India",
-      location:
-        item?.location ||
-        source?.location ||
-        {},
+      country: item?.country || source?.country || "India",
+      deliveryInstructions:
+        item?.deliveryInstructions ||
+        source?.deliveryInstructions ||
+        "",
+      location: item?.location || source?.location || {},
       isDefault: item?.isDefault === true,
+      isDeleted: item?.isDeleted === true,
     };
   };
 
@@ -611,7 +690,9 @@ const Cart = ({
         ? data.data
         : [];
 
-      const normalized = list.map(normalizeSavedAddress);
+      const normalized = list
+        .filter((item) => item?.isDeleted !== true)
+        .map(normalizeSavedAddress);
       setSavedAddresses(normalized);
 
       const defaultAddress =
@@ -648,7 +729,10 @@ const Cart = ({
       !addressLoading &&
       savedAddresses.length === 0
     ) {
-      redirectToSavedAddresses();
+      // Keep checkout self-contained: show the selector modal first.
+      // The user can then choose Add address.
+      setAddressSelectorOpen(true);
+      setShowAddressForm(false);
     }
   }, [
     step,
@@ -660,11 +744,14 @@ const Cart = ({
 
 
   const fillAddressFromSaved = (item) => {
-
     const saved = normalizeSavedAddress(item);
 
-    setSelectedAddressId(String(saved._id));
+    if (!saved._id) {
+      toast.error("This address cannot be selected.");
+      return;
+    }
 
+    setSelectedAddressId(String(saved._id));
     setEditingAddressId(null);
     setAddressLabel(saved.label || "Home");
 
@@ -672,12 +759,18 @@ const Cart = ({
       name: saved.fullName || "",
       email: user?.email || "",
       phone: String(saved.phone || "").replace(/\D/g, "").slice(0, 10),
-      street: saved.addressLine1 || "",
+      alternatePhone: String(saved.alternatePhone || "").replace(/\D/g, "").slice(0, 10),
+      houseNumber: saved.houseNumber || "",
+      buildingName: saved.buildingName || "",
+      floor: saved.floor || "",
+      street: saved.street || "",
       addressLine1: saved.addressLine1 || "",
       addressLine2: saved.addressLine2 || "",
       landmark: saved.landmark || "",
       area: saved.area || "",
       village: saved.village || "",
+      postOffice: saved.postOffice || "",
+      block: saved.block || "",
       city: saved.city || "",
       district: saved.district || "",
       state: saved.state || "",
@@ -685,7 +778,8 @@ const Cart = ({
       country: saved.country || "India",
       latitude: saved.location?.latitude ?? "",
       longitude: saved.location?.longitude ?? "",
-      deliveryPreference: saved.deliveryPreference || "",
+      deliveryInstructions: saved.deliveryInstructions || "",
+      deliveryPreference: saved.deliveryInstructions || "",
     });
 
     setServiceability((prev) => ({
@@ -702,18 +796,7 @@ const Cart = ({
 
 
   const startNewAddress = () => {
-    redirectToSavedAddresses();
-  };
-
-
-  const startEditAddress = (item) => {
-    const saved = normalizeSavedAddress(item);
-
-    if (!saved._id) {
-      redirectToSavedAddresses();
-      return;
-    }
-
+    // Open the dedicated Add Address page, then return to checkout step 2.
     try {
       sessionStorage.setItem(
         "odicart_checkout_return",
@@ -724,7 +807,65 @@ const Cart = ({
       );
     } catch (_) {}
 
-    navigate(`/account/addresses/${saved._id}/edit`);
+    setAddressSelectorOpen(false);
+    setShowAddressForm(false);
+    setEditingAddressId(null);
+
+    navigate("/account/addresses/add");
+  };
+
+
+  const startEditAddress = (item) => {
+    const saved = normalizeSavedAddress(item);
+
+    if (!saved._id) {
+      toast.error("This address cannot be edited.");
+      return;
+    }
+
+    setSelectedAddressId(String(saved._id));
+    setEditingAddressId(String(saved._id));
+    setAddressLabel(saved.label || "Home");
+    setAddress({
+      name: saved.fullName || "",
+      email: user?.email || "",
+      phone: String(saved.phone || "").replace(/\D/g, "").slice(0, 10),
+      alternatePhone: String(saved.alternatePhone || "").replace(/\D/g, "").slice(0, 10),
+      houseNumber: saved.houseNumber || "",
+      buildingName: saved.buildingName || "",
+      floor: saved.floor || "",
+      street: saved.street || "",
+      addressLine1: saved.addressLine1 || "",
+      addressLine2: saved.addressLine2 || "",
+      landmark: saved.landmark || "",
+      area: saved.area || "",
+      village: saved.village || "",
+      postOffice: saved.postOffice || "",
+      block: saved.block || "",
+      city: saved.city || "",
+      district: saved.district || "",
+      state: saved.state || "",
+      postcode: String(saved.postalCode || "").replace(/\D/g, "").slice(0, 6),
+      country: saved.country || "India",
+      latitude: saved.location?.latitude ?? "",
+      longitude: saved.location?.longitude ?? "",
+      deliveryInstructions: saved.deliveryInstructions || "",
+      deliveryPreference: saved.deliveryInstructions || "",
+    });
+    setShowAddressForm(true);
+    setAddressSelectorOpen(true);
+  };
+
+
+  const openAddressSelector = () => {
+    setShowAddressForm(false);
+    setAddressSelectorOpen(true);
+  };
+
+  const handleSelectAddressFromModal = (item) => {
+    fillAddressFromSaved(item);
+    setAddressSelectorOpen(false);
+    toast.success("Delivery address selected");
   };
 
 
@@ -739,11 +880,21 @@ const Cart = ({
       return false;
     }
 
+    const existingAddress = savedAddresses.find(
+      (item) => String(item._id) === String(editingAddressId)
+    );
+
     const payload = {
       label: addressLabel || "Home",
       fullName: String(address.name || "").trim(),
-      email: String(user?.email || "").trim(),
       phone: String(address.phone || "").trim(),
+      alternatePhone: String(address.alternatePhone || "").trim(),
+
+      houseNumber: String(address.houseNumber || "").trim(),
+      buildingName: String(address.buildingName || "").trim(),
+      floor: String(address.floor || "").trim(),
+      street: String(address.street || "").trim(),
+
       addressLine1: String(
         address.addressLine1 || address.street || ""
       ).trim(),
@@ -751,26 +902,38 @@ const Cart = ({
       landmark: String(address.landmark || "").trim(),
       area: String(address.area || "").trim(),
       village: String(address.village || "").trim(),
+
+      postOffice: String(address.postOffice || "").trim(),
+      block: String(address.block || "").trim(),
       city: String(address.city || "").trim(),
       district: String(address.district || "").trim(),
       state: String(address.state || "").trim(),
       postalCode: String(address.postcode || "").trim(),
-      country: String(address.country || "India").trim(),
+      country: String(address.country || "India").trim() || "India",
+
+      deliveryInstructions: String(
+        address.deliveryInstructions || ""
+      ).trim(),
+
       location: {
         latitude:
           address.latitude !== "" &&
           address.latitude !== null &&
           address.latitude !== undefined
             ? Number(address.latitude)
-            : undefined,
+            : null,
         longitude:
           address.longitude !== "" &&
           address.longitude !== null &&
           address.longitude !== undefined
             ? Number(address.longitude)
-            : undefined,
+            : null,
       },
-      isDefault: savedAddresses.length === 0,
+
+      // First address becomes default. When editing, preserve its current state.
+      isDefault: editingAddressId
+        ? existingAddress?.isDefault === true
+        : savedAddresses.length === 0,
     };
 
     try {
@@ -804,6 +967,10 @@ const Cart = ({
       const returnedAddress =
         data.address || data.data || null;
 
+      const savedAddressId = returnedAddress
+        ? normalizeSavedAddress(returnedAddress)._id
+        : editingAddressId;
+
       if (returnedAddress) {
         const normalized = normalizeSavedAddress(returnedAddress);
         setSavedAddresses((prev) => {
@@ -822,8 +989,17 @@ const Cart = ({
       }
 
       await loadSavedAddresses();
+
+      // loadSavedAddresses selects the default for initial checkout;
+      // after an explicit Save/Edit, RN-style checkout keeps the edited
+      // address selected for this order.
+      if (savedAddressId) {
+        setSelectedAddressId(String(savedAddressId));
+      }
+
       setEditingAddressId(null);
       setShowAddressForm(false);
+      setAddressSelectorOpen(true);
       toast.success(
         isEditing
           ? "Address updated successfully"
@@ -914,6 +1090,8 @@ const Cart = ({
           postcode: value,
           area: postOffice.Name || "",
           village: postOffice.Block || address.village || "",
+          postOffice: postOffice.Name || address.postOffice || "",
+          block: postOffice.Block || address.block || "",
           city:
             postOffice.Block ||
             postOffice.Division ||
@@ -929,6 +1107,8 @@ const Cart = ({
           postcode: value,
           area: postOffice.Name || "",
           village: postOffice.Block || prev.village || "",
+          postOffice: postOffice.Name || prev.postOffice || "",
+          block: postOffice.Block || prev.block || "",
           city:
             postOffice.Block ||
             postOffice.Division ||
@@ -940,53 +1120,51 @@ const Cart = ({
         }));
 
         if (selectedAddressId && token) {
+          const currentSavedAddress = savedAddresses.find(
+            (item) => String(item._id) === String(selectedAddressId)
+          );
+
           const payload = {
             label: addressLabel || "Home",
             fullName: String(updatedAddress.name || "").trim(),
-            email: String(user?.email || "").trim(),
             phone: String(updatedAddress.phone || "").trim(),
+            alternatePhone: String(updatedAddress.alternatePhone || "").trim(),
+            houseNumber: String(updatedAddress.houseNumber || "").trim(),
+            buildingName: String(updatedAddress.buildingName || "").trim(),
+            floor: String(updatedAddress.floor || "").trim(),
+            street: String(updatedAddress.street || "").trim(),
             addressLine1: String(
-              updatedAddress.addressLine1 ||
-              updatedAddress.street ||
-              ""
+              updatedAddress.addressLine1 || updatedAddress.street || ""
             ).trim(),
-            addressLine2: String(
-              updatedAddress.addressLine2 || ""
-            ).trim(),
-            landmark: String(
-              updatedAddress.landmark || ""
-            ).trim(),
+            addressLine2: String(updatedAddress.addressLine2 || "").trim(),
+            landmark: String(updatedAddress.landmark || "").trim(),
             area: String(updatedAddress.area || "").trim(),
             village: String(updatedAddress.village || "").trim(),
+            postOffice: String(updatedAddress.postOffice || "").trim(),
+            block: String(updatedAddress.block || "").trim(),
             city: String(updatedAddress.city || "").trim(),
-            district: String(
-              updatedAddress.district || ""
-            ).trim(),
+            district: String(updatedAddress.district || "").trim(),
             state: String(updatedAddress.state || "").trim(),
             postalCode: value,
-            country: String(
-              updatedAddress.country || "India"
-            ).trim() || "India",
+            country: String(updatedAddress.country || "India").trim() || "India",
+            deliveryInstructions: String(
+              updatedAddress.deliveryInstructions || ""
+            ).trim(),
             location: {
               latitude:
                 updatedAddress.latitude !== "" &&
                 updatedAddress.latitude !== null &&
                 updatedAddress.latitude !== undefined
                   ? Number(updatedAddress.latitude)
-                  : undefined,
+                  : null,
               longitude:
                 updatedAddress.longitude !== "" &&
                 updatedAddress.longitude !== null &&
                 updatedAddress.longitude !== undefined
                   ? Number(updatedAddress.longitude)
-                  : undefined,
+                  : null,
             },
-            isDefault:
-              savedAddresses.find(
-                (item) =>
-                  String(item._id) ===
-                  String(selectedAddressId)
-              )?.isDefault === true,
+            isDefault: currentSavedAddress?.isDefault === true,
           };
 
           const saveResponse = await fetch(
@@ -1103,8 +1281,19 @@ const Cart = ({
       );
 
       if (String(selectedAddressId) === String(id)) {
-        setSelectedAddressId(null);
-        startNewAddress();
+        const remaining = savedAddresses.filter(
+          (item) => String(item._id) !== String(id) && item?.isDeleted !== true
+        );
+
+        const nextAddress =
+          remaining.find((item) => item.isDefault) || remaining[0] || null;
+
+        if (nextAddress) {
+          fillAddressFromSaved(nextAddress);
+        } else {
+          setSelectedAddressId(null);
+          setAddress(createEmptyAddress());
+        }
       }
 
       toast.success("Address deleted");
@@ -2360,7 +2549,7 @@ const Cart = ({
         toast.error(
           "Please select a saved delivery address first."
         );
-        redirectToSavedAddresses();
+        openAddressSelector();
         return;
       }
 
@@ -2418,7 +2607,7 @@ const Cart = ({
         toast.error(
           "Please select a saved delivery address before placing the order."
         );
-        redirectToSavedAddresses();
+        openAddressSelector();
         return;
       }
 
@@ -3745,12 +3934,13 @@ total:
 
   const validateDelivery = () => {
 
-    if (!selectedAddressId) {
+    if (!selectedAddressId && !showAddressForm) {
       toast.error(
         "Please select a saved delivery address first."
       );
 
-      redirectToSavedAddresses();
+      setAddressSelectorOpen(true);
+      setShowAddressForm(true);
 
       return false;
     }
@@ -4488,7 +4678,7 @@ total:
 
         .review-place-btn {
           flex: 1;
-          min-height: 58px;
+          min-height: 39px;
           border: 0;
           border-radius: 18px;
           background: #2563eb;
@@ -4514,7 +4704,7 @@ total:
           .review-total-mini strong { font-size: 17px; }
           .review-total-mini span { font-size: 10px; }
           .review-back-btn { min-width: 50px; min-height: 54px; padding: 0 13px; }
-          .review-place-btn { min-height: 54px; font-size: 14px; }
+          .review-place-btn { min-height: 39px; font-size: 14px; }
           .fixed-review-inner { gap: 9px; }
         }
 
@@ -5308,6 +5498,7 @@ total:
           padding-bottom: env(safe-area-inset-bottom);
           background: rgba(255,255,255,.90);
           backdrop-filter: blur(22px);
+          border-radius: 30px 30px 0 0;
           -webkit-backdrop-filter: blur(22px);
         }
 
@@ -5359,6 +5550,1339 @@ total:
           .modern-mobile-checkout * {
             transition: none !important;
             animation: none !important;
+          }
+        }
+
+
+        /* =========================================================
+           📍 REACT NATIVE STYLE ADDRESS SELECTOR
+           Modal + card selection + skeleton + shine animations.
+        ========================================================= */
+
+        /* =========================================================
+           PLAY STORE / MATERIAL-STYLE ADDRESS UI
+           Compact typography, clear hierarchy, touch-first controls.
+        ========================================================= */
+        .address-selector-modal,
+        .address-selector-modal * {
+          font-family:
+            "Roboto",
+            "Google Sans",
+            "Inter",
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            sans-serif;
+          -webkit-font-smoothing: antialiased;
+          text-rendering: optimizeLegibility;
+        }
+
+        .address-selector-modal {
+          width: min(100% - 24px, 620px) !important;
+          max-width: 620px !important;
+          margin: 12px auto !important;
+        }
+
+        .address-selector-shell {
+          max-height: min(88vh, 760px) !important;
+          border: 1px solid #e5e7eb !important;
+          border-radius: 22px !important;
+          background: #fff !important;
+          box-shadow:
+            0 18px 55px rgba(15, 23, 42, .16),
+            0 3px 12px rgba(15, 23, 42, .07) !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          animation: addressModalIn .28s cubic-bezier(.2,.8,.2,1) both;
+        }
+
+        .address-modal-shine {
+          display: none !important;
+        }
+
+        .address-selector-header {
+          min-height: 68px;
+          padding: 14px 16px !important;
+          background: #fff;
+          border-bottom: 1px solid #edf0f3 !important;
+        }
+
+        .address-selector-heading {
+          gap: 12px;
+        }
+
+        .address-selector-icon {
+          width: 40px;
+          height: 40px;
+          flex-basis: 40px;
+          border-radius: 50%;
+          color: #1a73e8;
+          background: #e8f0fe;
+          border: 0;
+          box-shadow: none;
+          animation: none;
+        }
+
+        .address-selector-heading h3 {
+          font-size: 18px;
+          line-height: 24px;
+          letter-spacing: -.15px;
+          font-weight: 500;
+          color: #202124;
+        }
+
+        .address-selector-heading p {
+          margin-top: 2px;
+          font-size: 12px;
+          line-height: 17px;
+          color: #5f6368;
+          font-weight: 400;
+        }
+
+        .address-add-btn {
+          height: 38px;
+          padding: 0 13px;
+          border-radius: 20px;
+          color: #1a73e8;
+          background: #e8f0fe;
+          box-shadow: none;
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: .05px;
+        }
+
+        .address-add-btn::after,
+        .address-save-btn::after,
+        .address-footer-done::after {
+          display: none !important;
+        }
+
+        .address-add-btn:hover {
+          background: #dbe8fd;
+          transform: none;
+        }
+
+        .address-selector-body {
+          padding: 12px !important;
+          background: #f8f9fa;
+          scrollbar-width: thin;
+        }
+
+        .address-choice-list {
+          gap: 9px;
+        }
+
+        .address-choice-card {
+          border: 1px solid #dadce0;
+          border-radius: 16px;
+          background: #fff;
+          box-shadow: 0 1px 3px rgba(60,64,67,.12);
+          animation: addressCardIn .25s ease both;
+        }
+
+        .address-choice-card::after {
+          display: none !important;
+        }
+
+        .address-choice-card:hover {
+          transform: none;
+          border-color: #b7c5d9;
+          box-shadow: 0 2px 7px rgba(60,64,67,.14);
+        }
+
+        .address-choice-card.selected {
+          border: 2px solid #1a73e8;
+          background: #fff;
+          box-shadow: 0 2px 8px rgba(26,115,232,.12);
+        }
+
+        .address-choice-main {
+          gap: 12px;
+          padding: 14px 14px 11px;
+        }
+
+        .address-choice-radio {
+          width: 20px;
+          height: 20px;
+          flex-basis: 20px;
+          margin-top: 1px;
+          border: 2px solid #9aa0a6;
+          box-shadow: none !important;
+        }
+
+        .address-choice-card.selected .address-choice-radio {
+          border-color: #1a73e8;
+          box-shadow: none !important;
+        }
+
+        .address-choice-radio span {
+          width: 10px;
+          height: 10px;
+          background: #1a73e8;
+          animation: none;
+        }
+
+        .address-choice-content {
+          gap: 5px;
+        }
+
+        .address-choice-top {
+          gap: 7px;
+        }
+
+        .address-choice-top strong {
+          font-size: 14px;
+          line-height: 20px;
+          font-weight: 500;
+          color: #202124;
+        }
+
+        .address-default-badge {
+          height: 20px;
+          padding: 0 8px;
+          border-radius: 10px;
+          background: #e6f4ea;
+          color: #137333;
+          font-size: 10px;
+          line-height: 20px;
+          font-weight: 500;
+        }
+
+        .address-choice-name {
+          gap: 6px;
+          color: #3c4043;
+          font-size: 12px;
+          line-height: 18px;
+          font-weight: 400;
+        }
+
+        .address-choice-name svg {
+          color: #5f6368;
+          flex: 0 0 auto;
+        }
+
+        .address-choice-text {
+          color: #5f6368;
+          font-size: 12px;
+          line-height: 18px;
+          font-weight: 400;
+        }
+
+        .address-choice-check {
+          width: 22px;
+          min-width: 22px;
+          color: #1a73e8;
+        }
+
+        .address-choice-actions {
+          justify-content: flex-start;
+          gap: 4px;
+          padding: 0 12px 12px 46px;
+          border-top: 1px solid #f1f3f4;
+          padding-top: 8px;
+        }
+
+        .address-choice-actions button.address-action-btn {
+          min-height: 32px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 0 9px;
+          border: 0;
+          border-radius: 16px;
+          background: transparent;
+          color: #5f6368;
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: .05px;
+        }
+
+        .address-choice-actions button.address-action-btn:hover {
+          background: #f1f3f4;
+          color: #202124;
+          transform: none;
+        }
+
+        .address-choice-actions button.address-action-btn svg {
+          color: currentColor;
+        }
+
+        .address-choice-actions button.address-action-btn.danger {
+          color: #b3261e;
+        }
+
+        .address-choice-actions button.address-action-btn.danger:hover {
+          background: #fce8e6;
+          color: #b3261e;
+        }
+
+        .address-empty-state {
+          width: 100%;
+          min-height: 112px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 16px;
+          border: 1px dashed #c7cdd4;
+          border-radius: 16px;
+          background: #fff;
+          color: #202124;
+          text-align: left;
+          cursor: pointer;
+          transition: background .18s ease, border-color .18s ease;
+        }
+
+        .address-empty-state:hover {
+          background: #f8fbff;
+          border-color: #8ab4f8;
+        }
+
+        .address-empty-icon {
+          width: 42px;
+          height: 42px;
+          flex: 0 0 42px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          color: #1a73e8;
+          background: #e8f0fe;
+        }
+
+        .address-empty-state strong {
+          display: block;
+          font-size: 14px;
+          line-height: 20px;
+          font-weight: 500;
+        }
+
+        .address-empty-state small {
+          display: block;
+          margin-top: 3px;
+          color: #5f6368;
+          font-size: 11px;
+          line-height: 16px;
+        }
+
+        .address-selector-footer {
+          min-height: 64px;
+          padding: 10px 12px calc(10px + env(safe-area-inset-bottom)) !important;
+          background: #fff;
+          border-top: 1px solid #edf0f3 !important;
+        }
+
+        .address-footer-add,
+        .address-footer-done {
+          min-height: 40px;
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: .05px;
+        }
+
+        .address-footer-add {
+          padding: 0 14px;
+          color: #1a73e8;
+          background: #e8f0fe;
+        }
+
+        .address-footer-add:hover {
+          background: #dbe8fd;
+          transform: none;
+        }
+
+        .address-footer-done {
+          min-width: 142px;
+          padding: 0 17px;
+          color: #fff;
+          background: #1a73e8;
+          box-shadow: 0 2px 5px rgba(26,115,232,.22);
+        }
+
+        .address-footer-done:hover {
+          background: #1769d1;
+          transform: none;
+        }
+
+        .address-form-enter {
+          background: #fff;
+          border-radius: 16px;
+          padding: 4px;
+        }
+
+        .address-form-labels {
+          margin-bottom: 14px;
+        }
+
+        .address-label-chip {
+          height: 36px;
+          min-width: 78px;
+          border-radius: 18px;
+          font-size: 12px;
+          font-weight: 500;
+        }
+
+        .address-field > span {
+          font-size: 11px;
+          line-height: 16px;
+          font-weight: 500;
+          color: #3c4043;
+        }
+
+        .address-field input,
+        .address-field textarea {
+          border: 1px solid #dadce0;
+          border-radius: 10px;
+          background: #fff;
+          font-size: 13px;
+          line-height: 20px;
+          color: #202124;
+        }
+
+        .address-field input {
+          height: 44px;
+        }
+
+        .address-field input:focus,
+        .address-field textarea:focus {
+          border-color: #1a73e8;
+          box-shadow: 0 0 0 2px rgba(26,115,232,.12);
+        }
+
+        .address-pin-hint {
+          color: #174ea6;
+          background: #e8f0fe;
+          border: 0;
+          border-radius: 10px;
+          font-size: 11px;
+        }
+
+        .address-form-actions {
+          margin-top: 16px;
+          padding-top: 12px;
+        }
+
+        .address-cancel-btn,
+        .address-save-btn {
+          min-height: 42px;
+          border-radius: 21px;
+          font-size: 12px;
+          font-weight: 500;
+        }
+
+        .address-cancel-btn {
+          color: #5f6368;
+          background: #f1f3f4;
+          border: 0;
+        }
+
+        .address-save-btn {
+          background: #1a73e8;
+          box-shadow: 0 2px 5px rgba(26,115,232,.22);
+        }
+
+        @media (max-width: 520px) {
+          .address-selector-modal {
+            width: calc(100% - 16px) !important;
+            max-width: none !important;
+          }
+
+          .address-selector-shell {
+            max-height: 92vh !important;
+            border-radius: 20px !important;
+          }
+
+          .address-selector-header {
+            padding: 13px 14px !important;
+          }
+
+          .address-selector-heading h3 {
+            font-size: 17px;
+          }
+
+          .address-add-btn {
+            width: 40px;
+            padding: 0;
+            border-radius: 50%;
+          }
+
+          .address-add-btn span {
+            display: none;
+          }
+
+          .address-selector-body {
+            padding: 9px !important;
+          }
+
+          .address-choice-main {
+            padding: 13px 12px 10px;
+          }
+
+          .address-choice-actions {
+            padding-left: 43px;
+            overflow-x: auto;
+          }
+
+          .address-choice-actions button.address-action-btn span {
+            display: none;
+          }
+
+          .address-choice-actions button.address-action-btn {
+            width: 36px;
+            padding: 0;
+            border-radius: 50%;
+          }
+
+          .address-selector-footer {
+            gap: 7px !important;
+          }
+
+          .address-footer-add,
+          .address-footer-done {
+            flex: 1;
+            min-width: 0;
+          }
+
+          .address-footer-add span {
+            white-space: nowrap;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .address-selector-shell,
+          .address-choice-card,
+          .address-selector-icon,
+          .address-modal-shine,
+          .address-choice-radio span {
+            animation: none !important;
+          }
+        }
+
+        .address-selector-modal {
+          width:min(100% - 20px, 680px) !important;
+          max-width:680px !important;
+          margin:auto !important;
+        }
+
+        .address-selector-shell {
+          position:relative !important;
+          overflow:hidden !important;
+          max-height:min(88vh, 820px) !important;
+          border:1px solid rgba(255,255,255,.9) !important;
+          border-radius:26px !important;
+          background:rgba(255,255,255,.90) !important;
+          box-shadow:0 30px 100px rgba(49,46,129,.28), inset 0 1px 0 rgba(255,255,255,.95) !important;
+          backdrop-filter:blur(28px) saturate(155%) !important;
+          -webkit-backdrop-filter:blur(28px) saturate(155%) !important;
+          animation:addressModalIn .38s cubic-bezier(.16,1,.3,1) both;
+        }
+
+        .address-modal-shine {
+          position:absolute;
+          top:-40%;
+          left:-28%;
+          width:28%;
+          height:180%;
+          z-index:0;
+          pointer-events:none;
+          transform:rotate(20deg);
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent);
+          filter:blur(8px);
+          animation:addressModalShine 5.5s ease-in-out infinite;
+        }
+
+        .address-selector-header,
+        .address-selector-body,
+        .address-selector-footer {
+          position:relative;
+          z-index:1;
+        }
+
+        .address-selector-header {
+          display:flex !important;
+          align-items:center !important;
+          justify-content:space-between !important;
+          gap:12px !important;
+          padding:17px 18px !important;
+          border-bottom:1px solid rgba(148,163,184,.16) !important;
+        }
+
+        .address-selector-heading {
+          display:flex;
+          align-items:center;
+          gap:11px;
+          min-width:0;
+        }
+
+        .address-selector-icon {
+          width:42px;
+          height:42px;
+          flex:0 0 42px;
+          border-radius:14px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:#4f46e5;
+          background:linear-gradient(135deg,#eef2ff,#ecfeff);
+          border:1px solid rgba(99,102,241,.14);
+          box-shadow:0 8px 22px rgba(79,70,229,.12), inset 0 1px 0 #fff;
+          animation:addressIconPulse 2.8s ease-in-out infinite;
+        }
+
+        .address-selector-heading h3 {
+          margin:0;
+          font-size:15px;
+          line-height:1.25;
+          font-weight:800;
+          color:#0f172a;
+        }
+
+        .address-selector-heading p {
+          margin:4px 0 0;
+          font-size:11px;
+          line-height:1.3;
+          color:#64748b;
+        }
+
+        .address-add-btn,
+        .address-footer-add,
+        .address-footer-done,
+        .address-save-btn,
+        .address-cancel-btn {
+          border:0;
+          cursor:pointer;
+          transition:transform .2s ease, box-shadow .2s ease, background .2s ease, opacity .2s ease;
+        }
+
+        .address-add-btn {
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          flex:0 0 auto;
+          height:38px;
+          padding:0 12px;
+          border-radius:12px;
+          color:#fff;
+          font-size:12px;
+          font-weight:800;
+          background:linear-gradient(135deg,#7c3aed,#2563eb,#06b6d4);
+          box-shadow:0 9px 24px rgba(79,70,229,.24);
+          position:relative;
+          overflow:hidden;
+        }
+
+        .address-add-btn::after,
+        .address-save-btn::after,
+        .address-footer-done::after {
+          content:"";
+          position:absolute;
+          inset:0 auto 0 -65%;
+          width:38%;
+          transform:skewX(-18deg);
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent);
+          animation:addressButtonShine 3.4s ease-in-out infinite;
+          pointer-events:none;
+        }
+
+        .address-add-btn:hover,
+        .address-save-btn:hover,
+        .address-footer-done:hover {
+          transform:translateY(-1px);
+        }
+
+        .address-selector-body {
+          padding:14px !important;
+          overflow-y:auto !important;
+          overscroll-behavior:contain;
+          scrollbar-width:thin;
+        }
+
+        .address-list-enter,
+        .address-form-enter {
+          animation:addressContentIn .3s cubic-bezier(.2,.8,.2,1) both;
+        }
+
+        .address-choice-list {
+          display:grid;
+          gap:10px;
+        }
+
+        .address-choice-card {
+          position:relative;
+          overflow:hidden;
+          border:1px solid rgba(148,163,184,.22);
+          border-radius:18px;
+          background:rgba(255,255,255,.72);
+          box-shadow:0 8px 25px rgba(15,23,42,.05), inset 0 1px 0 rgba(255,255,255,.9);
+          transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease;
+          animation:addressCardIn .35s both;
+        }
+
+        .address-choice-card:nth-child(2){animation-delay:.045s}
+        .address-choice-card:nth-child(3){animation-delay:.09s}
+        .address-choice-card:nth-child(4){animation-delay:.135s}
+        .address-choice-card:nth-child(5){animation-delay:.18s}
+
+        .address-choice-card::after {
+          content:"";
+          position:absolute;
+          top:-110%;
+          left:-45%;
+          width:25%;
+          height:320%;
+          transform:rotate(24deg);
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,.82),transparent);
+          pointer-events:none;
+          animation:addressCardShine 6.5s ease-in-out infinite;
+        }
+
+        .address-choice-card:hover {
+          transform:translateY(-2px);
+          box-shadow:0 14px 34px rgba(79,70,229,.11);
+          border-color:rgba(99,102,241,.28);
+        }
+
+        .address-choice-card.selected {
+          border-color:rgba(79,70,229,.48);
+          background:linear-gradient(135deg,rgba(238,242,255,.96),rgba(236,254,255,.82));
+          box-shadow:0 14px 38px rgba(79,70,229,.14), inset 0 1px 0 rgba(255,255,255,.95);
+        }
+
+        .address-choice-main {
+          width:100%;
+          display:flex;
+          align-items:flex-start;
+          gap:11px;
+          padding:14px;
+          border:0;
+          background:transparent;
+          color:inherit;
+          text-align:left;
+          cursor:pointer;
+          position:relative;
+          z-index:1;
+        }
+
+        .address-choice-radio {
+          width:20px;
+          height:20px;
+          flex:0 0 20px;
+          margin-top:1px;
+          border-radius:50%;
+          border:1.5px solid #cbd5e1;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:#fff;
+          transition:.2s ease;
+        }
+
+        .address-choice-card.selected .address-choice-radio {
+          border-color:#4f46e5;
+          box-shadow:0 0 0 4px rgba(79,70,229,.10);
+        }
+
+        .address-choice-radio span {
+          width:9px;
+          height:9px;
+          border-radius:50%;
+          background:linear-gradient(135deg,#7c3aed,#2563eb);
+          animation:addressRadioPop .22s cubic-bezier(.2,1.6,.4,1) both;
+        }
+
+        .address-choice-content {
+          min-width:0;
+          flex:1;
+          display:flex;
+          flex-direction:column;
+          gap:6px;
+        }
+
+        .address-choice-top {
+          display:flex;
+          align-items:center;
+          flex-wrap:wrap;
+          gap:7px;
+        }
+
+        .address-choice-top strong {
+          font-size:13px;
+          color:#0f172a;
+        }
+
+        .address-default-badge {
+          display:inline-flex;
+          align-items:center;
+          height:20px;
+          padding:0 7px;
+          border-radius:999px;
+          background:#dcfce7;
+          color:#15803d;
+          font-size:9px;
+          font-weight:800;
+        }
+
+        .address-choice-name {
+          display:flex;
+          align-items:center;
+          gap:5px;
+          color:#475569;
+          font-size:10.5px;
+          font-weight:600;
+        }
+
+        .address-choice-text {
+          color:#64748b;
+          font-size:11px;
+          line-height:1.55;
+          overflow-wrap:anywhere;
+        }
+
+        .address-choice-check {
+          width:22px;
+          min-width:22px;
+          color:#10b981;
+          display:flex;
+          justify-content:flex-end;
+        }
+
+        .address-choice-actions {
+          position:relative;
+          z-index:2;
+          display:flex;
+          justify-content:flex-end;
+          align-items:center;
+          gap:5px;
+          padding:0 11px 10px 45px;
+        }
+
+        .address-choice-actions button {
+          border:0;
+          background:rgba(248,250,252,.9);
+          color:#475569;
+          padding:6px 8px;
+          border-radius:8px;
+          font-size:9.5px;
+          font-weight:700;
+          cursor:pointer;
+          transition:.18s ease;
+        }
+
+        .address-choice-actions button:hover {
+          background:#eef2ff;
+          color:#4338ca;
+          transform:translateY(-1px);
+        }
+
+        .address-choice-actions button.danger:hover {
+          background:#fef2f2;
+          color:#dc2626;
+        }
+
+        .address-form-labels {
+          display:flex;
+          gap:7px;
+          margin-bottom:12px;
+        }
+
+        .address-label-chip {
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:6px;
+          min-width:78px;
+          height:34px;
+          padding:0 10px;
+          border-radius:11px;
+          border:1px solid #e2e8f0;
+          background:#fff;
+          color:#64748b;
+          font-size:11px;
+          font-weight:800;
+          cursor:pointer;
+          transition:.2s ease;
+        }
+
+        .address-label-chip.active {
+          color:#4338ca;
+          border-color:#c7d2fe;
+          background:#eef2ff;
+          box-shadow:0 7px 18px rgba(79,70,229,.10);
+        }
+
+        .address-form-grid {
+          display:grid;
+          grid-template-columns:repeat(2,minmax(0,1fr));
+          gap:10px;
+        }
+
+        .address-field {
+          display:flex;
+          flex-direction:column;
+          gap:6px;
+          min-width:0;
+        }
+
+        .address-field-wide {
+          grid-column:1/-1;
+        }
+
+        .address-field > span {
+          color:#334155;
+          font-size:10px;
+          font-weight:800;
+        }
+
+        .address-field > span em {
+          color:#94a3b8;
+          font-style:normal;
+          font-weight:600;
+          margin-left:3px;
+        }
+
+        .address-field input {
+          width:100%;
+          height:42px;
+          padding:0 12px;
+          border:1px solid #e2e8f0;
+          border-radius:11px;
+          outline:none;
+          background:rgba(255,255,255,.86);
+          color:#0f172a;
+          font-size:12px;
+          transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+          box-sizing:border-box;
+        }
+
+        .address-field input:focus {
+          border-color:#818cf8;
+          background:#fff;
+          box-shadow:0 0 0 4px rgba(99,102,241,.10);
+        }
+
+        .address-pin-wrap {
+          position:relative;
+        }
+
+        .address-pin-wrap input {
+          padding-right:45px;
+        }
+
+        .address-pin-loader {
+          position:absolute;
+          top:50%;
+          right:12px;
+          transform:translateY(-50%);
+          display:flex;
+          gap:3px;
+        }
+
+        .address-pin-loader span {
+          width:4px;
+          height:4px;
+          border-radius:50%;
+          background:#6366f1;
+          animation:addressDots .8s ease-in-out infinite;
+        }
+
+        .address-pin-loader span:nth-child(2){animation-delay:.12s}
+        .address-pin-loader span:nth-child(3){animation-delay:.24s}
+
+        .address-pin-hint {
+          margin-top:10px;
+          display:flex;
+          align-items:flex-start;
+          gap:7px;
+          padding:10px 11px;
+          border-radius:11px;
+          color:#4338ca;
+          background:rgba(238,242,255,.78);
+          border:1px solid #e0e7ff;
+          font-size:10px;
+          line-height:1.45;
+        }
+
+        .address-form-actions {
+          display:flex;
+          justify-content:flex-end;
+          gap:8px;
+          margin-top:14px;
+          padding-top:13px;
+          border-top:1px solid #eef2f7;
+        }
+
+        .address-cancel-btn,
+        .address-save-btn {
+          min-height:42px;
+          padding:0 14px;
+          border-radius:12px;
+          font-size:11px;
+          font-weight:800;
+          position:relative;
+          overflow:hidden;
+        }
+
+        .address-cancel-btn {
+          color:#64748b;
+          background:#f8fafc;
+          border:1px solid #e2e8f0;
+        }
+
+        .address-save-btn {
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:7px;
+          color:#fff;
+          background:linear-gradient(135deg,#7c3aed,#2563eb,#06b6d4);
+          box-shadow:0 10px 25px rgba(79,70,229,.23);
+        }
+
+        .address-save-btn:disabled,
+        .address-cancel-btn:disabled,
+        .address-footer-done:disabled {
+          opacity:.55;
+          cursor:not-allowed;
+          transform:none !important;
+        }
+
+        .address-btn-spinner {
+          width:13px;
+          height:13px;
+          border:2px solid rgba(255,255,255,.38);
+          border-top-color:#fff;
+          border-radius:50%;
+          animation:addressSpin .65s linear infinite;
+        }
+
+        .address-selector-footer {
+          display:flex !important;
+          justify-content:space-between !important;
+          gap:8px !important;
+          padding:12px 14px calc(12px + env(safe-area-inset-bottom)) !important;
+          border-top:1px solid rgba(148,163,184,.16) !important;
+        }
+
+        .address-footer-add,
+        .address-footer-done {
+          min-height:40px;
+          padding:0 13px;
+          border-radius:11px;
+          font-size:11px;
+          font-weight:800;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:6px;
+          position:relative;
+          overflow:hidden;
+        }
+
+        .address-footer-add {
+          color:#4338ca;
+          background:#eef2ff;
+        }
+
+        .address-footer-done {
+          color:#fff;
+          background:linear-gradient(135deg,#7c3aed,#2563eb,#06b6d4);
+          box-shadow:0 9px 23px rgba(79,70,229,.20);
+        }
+
+        .address-empty-state {
+          width:100%;
+          display:flex;
+          align-items:center;
+          gap:12px;
+          padding:17px;
+          border-radius:18px;
+          border:1.5px dashed #c7d2fe;
+          background:linear-gradient(135deg,rgba(238,242,255,.78),rgba(236,254,255,.68));
+          color:#334155;
+          text-align:left;
+          cursor:pointer;
+          transition:.22s ease;
+        }
+
+        .address-empty-state:hover {
+          transform:translateY(-2px);
+          box-shadow:0 14px 30px rgba(79,70,229,.10);
+        }
+
+        .address-empty-icon {
+          width:44px;
+          height:44px;
+          flex:0 0 44px;
+          border-radius:14px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:#4f46e5;
+          background:#fff;
+          box-shadow:0 8px 20px rgba(79,70,229,.10);
+        }
+
+        .address-empty-state strong,
+        .address-empty-state small {
+          display:block;
+        }
+
+        .address-empty-state strong {
+          font-size:12px;
+          font-weight:800;
+          color:#0f172a;
+        }
+
+        .address-empty-state small {
+          margin-top:4px;
+          font-size:10px;
+          line-height:1.4;
+          color:#64748b;
+        }
+
+        .address-loading-list {
+          display:grid;
+          gap:10px;
+        }
+
+        .address-loading-card {
+          display:flex;
+          align-items:flex-start;
+          gap:11px;
+          padding:15px;
+          border-radius:18px;
+          border:1px solid #e5e7eb;
+          background:rgba(248,250,252,.78);
+        }
+
+        .address-loading-avatar,
+        .address-loading-dot,
+        .address-loading-line {
+          position:relative;
+          overflow:hidden;
+          background:#e2e8f0;
+        }
+
+        .address-loading-avatar {
+          width:20px;
+          height:20px;
+          flex:0 0 20px;
+          border-radius:50%;
+        }
+
+        .address-loading-dot {
+          width:18px;
+          height:18px;
+          border-radius:50%;
+        }
+
+        .address-loading-line {
+          height:9px;
+          border-radius:5px;
+        }
+
+        .address-loading-avatar::after,
+        .address-loading-dot::after,
+        .address-loading-line::after {
+          content:"";
+          position:absolute;
+          inset:0 auto 0 -80%;
+          width:55%;
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);
+          animation:addressSkeletonShine 1.35s ease-in-out infinite;
+        }
+
+        @media (max-width:640px) {
+          .address-selector-modal {
+            width:calc(100% - 12px) !important;
+            max-width:none !important;
+            margin:6px auto !important;
+          }
+
+          .address-selector-shell {
+            max-height:92vh !important;
+            border-radius:23px !important;
+          }
+
+          .address-selector-header {
+            padding:14px !important;
+          }
+
+          .address-selector-body {
+            padding:11px !important;
+          }
+
+          .address-form-grid {
+            grid-template-columns:1fr;
+          }
+
+          .address-field-wide {
+            grid-column:auto;
+          }
+
+          .address-form-labels {
+            overflow-x:auto;
+            padding-bottom:2px;
+          }
+
+          .address-label-chip {
+            min-width:74px;
+          }
+
+          .address-choice-actions {
+            padding-left:45px;
+            justify-content:flex-start;
+            flex-wrap:wrap;
+          }
+
+          .address-form-actions,
+          .address-selector-footer {
+            flex-direction:column;
+          }
+
+          .address-cancel-btn,
+          .address-save-btn,
+          .address-footer-add,
+          .address-footer-done {
+            width:100%;
+          }
+        }
+
+
+        .address-field textarea {
+          width:100%;
+          resize:vertical;
+          min-height:78px;
+          border:1px solid #dbe3ef;
+          border-radius:12px;
+          padding:10px 11px;
+          outline:none;
+          background:rgba(255,255,255,.92);
+          color:#0f172a;
+          font-size:11px;
+          line-height:1.45;
+          transition:.2s ease;
+        }
+
+        .address-field textarea:focus {
+          border-color:#818cf8;
+          box-shadow:0 0 0 3px rgba(99,102,241,.10);
+        }
+
+        .address-char-count {
+          display:block;
+          margin-top:4px;
+          text-align:right;
+          color:#94a3b8;
+          font-size:9px;
+        }
+
+        .address-selector-shell::before {
+          content:"";
+          position:absolute;
+          inset:0;
+          pointer-events:none;
+          border-radius:inherit;
+          background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.16) 35%,rgba(255,255,255,.5) 47%,transparent 60%);
+          background-size:240% 100%;
+          animation:addressShellSweep 7s ease-in-out infinite;
+          z-index:0;
+        }
+
+        .address-save-btn::after,
+        .address-footer-done::after,
+        .address-add-btn::after {
+          content:"";
+          position:absolute;
+          top:-50%;
+          left:-80%;
+          width:45%;
+          height:200%;
+          transform:rotate(20deg);
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);
+          animation:addressButtonShine 3.8s ease-in-out infinite;
+          pointer-events:none;
+        }
+
+        @keyframes addressShellSweep {
+          0%,55% { background-position:160% 0; opacity:0; }
+          70% { opacity:.9; }
+          100% { background-position:-30% 0; opacity:0; }
+        }
+
+        @keyframes addressModalIn {
+          from { opacity:0; transform:translateY(18px) scale(.965); }
+          to { opacity:1; transform:translateY(0) scale(1); }
+        }
+
+        @keyframes addressContentIn {
+          from { opacity:0; transform:translateY(8px); }
+          to { opacity:1; transform:translateY(0); }
+        }
+
+        @keyframes addressCardIn {
+          from { opacity:0; transform:translateY(10px) scale(.985); }
+          to { opacity:1; transform:translateY(0) scale(1); }
+        }
+
+        @keyframes addressRadioPop {
+          from { transform:scale(.25); opacity:0; }
+          to { transform:scale(1); opacity:1; }
+        }
+
+        @keyframes addressIconPulse {
+          0%,100% { transform:scale(1); box-shadow:0 8px 22px rgba(79,70,229,.12), inset 0 1px 0 #fff; }
+          50% { transform:scale(1.035); box-shadow:0 11px 28px rgba(79,70,229,.20), inset 0 1px 0 #fff; }
+        }
+
+        @keyframes addressModalShine {
+          0%,55% { left:-35%; opacity:0; }
+          70% { opacity:.65; }
+          100% { left:135%; opacity:0; }
+        }
+
+        @keyframes addressCardShine {
+          0%,58% { left:-45%; opacity:0; }
+          72% { opacity:.65; }
+          100% { left:135%; opacity:0; }
+        }
+
+        @keyframes addressButtonShine {
+          0%,55% { left:-65%; opacity:0; }
+          72% { left:125%; opacity:1; }
+          100% { left:135%; opacity:0; }
+        }
+
+        @keyframes addressSkeletonShine {
+          0% { left:-80%; }
+          100% { left:130%; }
+        }
+
+        @keyframes addressDots {
+          0%,80%,100% { opacity:.25; transform:translateY(0); }
+          40% { opacity:1; transform:translateY(-2px); }
+        }
+
+        @keyframes addressSpin {
+          to { transform:rotate(360deg); }
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+          .address-selector-shell,
+          .address-list-enter,
+          .address-form-enter,
+          .address-choice-card,
+          .address-selector-icon,
+          .address-modal-shine,
+          .address-choice-card::after,
+          .address-add-btn::after,
+          .address-save-btn::after,
+          .address-footer-done::after,
+          .address-loading-avatar::after,
+          .address-loading-dot::after,
+          .address-loading-line::after {
+            animation:none !important;
           }
         }
 
@@ -5417,6 +6941,7 @@ total:
         .anime-cart-page .review-place-btn,
         .anime-cart-page .payment-action-inner button:last-child {
           background:linear-gradient(135deg,#7c3aed 0%,#2563eb 52%,#06b6d4 100%) !important;
+          width:3
           box-shadow:0 12px 34px rgba(79,70,229,.32), inset 0 1px 0 rgba(255,255,255,.35) !important;
           position:relative;
           overflow:hidden;
@@ -5914,15 +7439,15 @@ total:
           }
 
           .cart-top-back {
-            width:54px;
-            height:54px;
+            width:50px;
+            height:50px;
           }
         }
 
         @media (max-width:430px) {
           :root {
             --cart-top-navbar-height:64px;
-            --cart-top-title-size:20px;
+            --cart-top-title-size:12px;
             --cart-top-subtitle-size:11px;
             --cart-top-clear-size:12px;
           }
@@ -5981,22 +7506,22 @@ total:
           }
 
           .cart-top-back {
-            width:46px;
-            height:46px;
+            width:39px;
+            height:39px;
           }
 
           .cart-top-title h1 {
-            font-size:23px;
+            font-size:15px;
           }
 
           .cart-top-title p {
-            font-size:12px;
+            font-size:9px;
           }
 
           .cart-top-clear {
-            min-width:68px;
-            height:44px;
-            gap:6px;
+            min-width:69px;
+            height:39px;
+            gap:3px;
             font-size:13px;
           }
         }
@@ -6147,132 +7672,392 @@ total:
               EMPTY CART
           ================================================= */}
 
-          {cartItem.length === 0 &&
-            step === 1 && (
+{/* =========================================================
+    EMPTY CART — PROFESSIONAL APP UI
+========================================================= */}
 
-              <div
-                className="
-                  flex
-                  flex-col
-                  items-center
-                  justify-center
-                  min-h-[70vh]
-                  text-center
-                  step-panel
-                "
-              >
+{cartItem.length === 0 && step === 1 && (
+  <div className="relative flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-8 sm:px-6">
 
-                <img
-                  src={emptyCart}
-                  alt="Empty Cart"
-                  className="
-                    w-56
-                    mb-5
-                    opacity-90
-                  "
-                />
-
-
-                <h1
-                  className="
-                    cart-serif
-                    text-3xl
-                    sm:text-4xl
-                    font-bold
-                    text-indigo-700
-                    mb-2
-                  "
-                >
-                  Your cart feels lonely 🛒
-                </h1>
+    {/* =====================================================
+        BACKGROUND
+    ===================================================== */}
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div
+        className="
+          absolute
+          left-1/2
+          top-1/2
+          h-[280px]
+          w-[280px]
+          -translate-x-1/2
+          -translate-y-1/2
+          rounded-full
+          bg-blue-100/40
+          blur-[90px]
+          sm:h-[380px]
+          sm:w-[380px]
+        "
+      />
+    </div>
 
 
-                <p
-                  className="
-                    text-slate-500
-                    max-w-sm
-                    text-sm
-                    leading-relaxed
-                    mb-6
-                  "
-                >
-                  You haven't added anything yet.
-                  Explore and find something you love.
-                </p>
+    {/* =====================================================
+        CONTENT
+    ===================================================== */}
+    <div className="relative z-10 w-full max-w-md text-center">
+
+      {/* ===================================================
+          EMPTY CART VISUAL
+      =================================================== */}
+      <div className="mb-7 flex justify-center sm:mb-8">
+
+        <div
+          className="
+            relative
+            flex
+            h-28
+            w-28
+            items-center
+            justify-center
+            rounded-full
+            bg-slate-50
+            ring-1
+            ring-slate-200
+            shadow-[0_12px_40px_rgba(15,23,42,0.08)]
+            sm:h-32
+            sm:w-32
+          "
+        >
+
+          {/* soft glow */}
+          <div
+            className="
+              absolute
+              inset-2
+              rounded-full
+              bg-blue-50
+            "
+          />
+
+          {/* cart */}
+          <div
+            className="
+              relative
+              flex
+              h-16
+              w-16
+              items-center
+              justify-center
+              rounded-2xl
+              bg-white
+              text-blue-600
+              shadow-[0_8px_25px_rgba(15,23,42,0.10)]
+              ring-1
+              ring-slate-100
+              sm:h-[72px]
+              sm:w-[72px]
+            "
+          >
+            <GiShoppingBag
+              size={34}
+              strokeWidth={1.5}
+            />
+          </div>
+
+          {/* small status dot */}
+          <span
+            className="
+              absolute
+              right-1
+              top-2
+              flex
+              h-7
+              w-7
+              items-center
+              justify-center
+              rounded-full
+              border-2
+              border-white
+              bg-blue-600
+              text-white
+              shadow-md
+            "
+          >
+            <AiOutlinePlus size={13} />
+          </span>
+
+        </div>
+
+      </div>
 
 
-                <div
-                  className="
-                    flex
-                    flex-col
-                    sm:flex-row
-                    gap-3
-                  "
-                >
+      {/* ===================================================
+          HEADING
+      =================================================== */}
+      <div>
 
-                  <button
-                    onClick={() =>
-                      navigate("/products")
-                    }
-                    className="
-                      btn-primary
-                      px-7
-                      py-3
-                      text-sm
-                    "
-                  >
+        <h1
+          className="
+            text-[25px]
+            font-bold
+            tracking-[-0.035em]
+            text-slate-900
+            sm:text-[30px]
+          "
+        >
+          Your cart is empty
+        </h1>
 
-                    <GiShoppingBag
-                      size={16}
-                    />
+        <p
+          className="
+            mx-auto
+            mt-2.5
+            max-w-sm
+            text-[13px]
+            leading-5
+            text-slate-500
+            sm:mt-3
+            sm:text-sm
+            sm:leading-6
+          "
+        >
+          Browse our products and add something you love
+          to your cart.
+        </p>
 
-                    <span className="relative z-10">
-                      Start Shopping
-                    </span>
-
-                  </button>
-
-
-                  <button
-                    onClick={() =>
-                      navigate(
-                        "/order-history"
-                      )
-                    }
-                    className="
-                      btn-secondary
-                      px-7
-                      py-3
-                      text-sm
-                    "
-                  >
-
-                    <FaHistory
-                      size={14}
-                    />
-
-                    View Orders
-
-                  </button>
-
-                </div>
+      </div>
 
 
-                <p
-                  className="
-                    text-xs
-                    text-slate-400
-                    mt-4
-                  "
-                >
-                  🚚 Free delivery on all orders
-                </p>
+      {/* ===================================================
+          PRIMARY ACTION
+      =================================================== */}
+ <div className="mt-7 flex flex-row gap-3 sm:mt-8">
 
-              </div>
+  {/* PRIMARY ACTION */}
+  <button
+    type="button"
+    onClick={() => navigate("/products")}
+    className="
+      group
+      relative
+      inline-flex
+      h-12
+      min-w-0
+      flex-1
+      items-center
+      justify-center
+      gap-2
+      overflow-hidden
+      rounded-xl
+      bg-blue-600
+      px-4
+      text-sm
+      font-semibold
+      text-white
+      shadow-[0_6px_20px_rgba(37,99,235,0.25)]
+      transition-all
+      duration-200
+      hover:bg-blue-700
+      hover:shadow-[0_8px_25px_rgba(37,99,235,0.32)]
+      active:scale-[0.98]
+      sm:h-[50px]
+      sm:px-6
+    "
+  >
+    {/* Shine */}
+    <span
+      className="
+        pointer-events-none
+        absolute
+        inset-y-0
+        -left-1/2
+        w-1/3
+        -skew-x-12
+        bg-gradient-to-r
+        from-transparent
+        via-white/20
+        to-transparent
+        transition-all
+        duration-700
+        group-hover:left-[130%]
+      "
+    />
 
-            )}
+    <GiShoppingBag
+      size={17}
+      className="relative z-10 shrink-0"
+    />
+
+    <span className="relative z-10 truncate">
+      Continue Shopping
+    </span>
+
+    <IoArrowForward
+      size={17}
+      className="
+        relative
+        z-10
+        shrink-0
+        transition-transform
+        duration-200
+        group-hover:translate-x-0.5
+      "
+    />
+  </button>
 
 
+  {/* SECONDARY ACTION */}
+  <button
+    type="button"
+    onClick={() => navigate("/order-history")}
+    className="
+      inline-flex
+      h-12
+      flex-1
+      min-w-0
+      items-center
+      justify-center
+      gap-2
+      rounded-xl
+      border
+      border-slate-200
+      bg-white
+      px-4
+      text-xs
+      font-semibold
+      text-slate-600
+      shadow-sm
+      transition-all
+      duration-200
+      hover:border-slate-300
+      hover:bg-slate-50
+      hover:text-slate-900
+      active:scale-[0.98]
+      sm:h-[50px]
+      sm:px-5
+    "
+  >
+    <FaHistory
+      size={13}
+      className="shrink-0"
+    />
+
+    <span className="truncate">
+      View My Orders
+    </span>
+  </button>
+
+</div>
+
+      {/* ===================================================
+          TRUST INFORMATION
+      =================================================== */}
+      <div
+        className="
+          mx-auto
+          mt-7
+          flex
+          max-w-sm
+          items-center
+          justify-center
+          gap-4
+          border-t
+          border-slate-100
+          pt-5
+          sm:mt-8
+          sm:pt-6
+        "
+      >
+
+        {/* Secure */}
+        <div className="flex items-center gap-1.5">
+
+          <div
+            className="
+              flex
+              h-6
+              w-6
+              items-center
+              justify-center
+              rounded-full
+              bg-emerald-50
+              text-emerald-600
+            "
+          >
+            <FaShieldAlt size={10} />
+          </div>
+
+          <span
+            className="
+              text-[9px]
+              font-medium
+              text-slate-500
+              sm:text-[10px]
+            "
+          >
+            Secure checkout
+          </span>
+
+        </div>
+
+
+        {/* Divider */}
+        <span className="h-4 w-px bg-slate-200" />
+
+
+        {/* Delivery */}
+        <div className="flex items-center gap-1.5">
+
+          <div
+            className="
+              flex
+              h-6
+              w-6
+              items-center
+              justify-center
+              rounded-full
+              bg-blue-50
+              text-blue-600
+            "
+          >
+            <FaCheckCircle size={10} />
+          </div>
+
+          <span
+            className="
+              text-[9px]
+              font-medium
+              text-slate-500
+              sm:text-[10px]
+            "
+          >
+            Easy ordering
+          </span>
+
+        </div>
+
+      </div>
+
+
+      {/* ===================================================
+          SMALL HELPER TEXT
+      =================================================== */}
+      <p
+        className="
+          mt-5
+          text-[9px]
+          text-slate-400
+          sm:text-[10px]
+        "
+      >
+        Add products to get started with your order.
+      </p>
+
+    </div>
+
+  </div>
+)}
           {/* =================================================
               WIZARD
           ================================================= */}
@@ -6285,131 +8070,254 @@ total:
               {/* =============================================
                   STEPPER
               ============================================= */}
+{!cartUiReady ? (
+  <CheckoutStepperSkeleton />
+) : (
+  <div className="w-full px-3 py-3 sm:px-5 sm:py-4 lg:px-8">
+    <div className="mx-auto w-full max-w-4xl">
 
-              <div
-                className="mx-auto mb-3 flex w-full max-w-2xl items-center justify-center rounded-[2rem] border border-white/70 bg-white/55 px-4 py-4 shadow-[0_20px_60px_rgba(99,102,241,0.10)] backdrop-blur-xl sm:mb-9 sm:px-7"
-              >
+      <div className="relative flex items-start justify-between">
 
-                {STEPS.map(
-                  (s, i) => (
+        {STEPS.map((s, i) => {
+          const isCompleted = s.id < step;
+          const isActive = s.id === step;
+          const isUpcoming = s.id > step;
 
-                    <React.Fragment
-                      key={s.id}
-                    >
+          return (
+            <React.Fragment key={s.id}>
 
-                      <div
+              {/* STEP */}
+              <div className="relative z-10 flex min-w-0 flex-1 flex-col items-center">
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isCompleted) {
+                      setStep(s.id);
+                    }
+                  }}
+                  disabled={isUpcoming}
+                  aria-label={`${s.label} step`}
+                  className={`
+                    group relative flex h-11 w-11 sm:h-12 sm:w-12
+                    items-center justify-center rounded-full
+                    transition-all duration-300 ease-out
+                    focus:outline-none
+                    focus-visible:ring-4
+                    focus-visible:ring-blue-500/20
+
+                    ${
+                      isCompleted
+                        ? `
+                          bg-emerald-500
+                          text-white
+                          shadow-[0_6px_20px_rgba(16,185,129,0.28)]
+                          hover:scale-105
+                        `
+                        : isActive
+                        ? `
+                          scale-105
+                          bg-blue-600
+                          text-white
+                          shadow-[0_8px_28px_rgba(37,99,235,0.35)]
+                        `
+                        : `
+                          border
+                          border-slate-200
+                          bg-white
+                          text-slate-400
+                          shadow-sm
+                        `
+                    }
+
+                    ${
+                      isUpcoming
+                        ? "cursor-not-allowed opacity-80"
+                        : "cursor-pointer"
+                    }
+                  `}
+                >
+
+                  {/* Active glow */}
+                  {isActive && (
+                    <>
+                      <span
                         className="
-                          flex
-                          flex-col
-                          items-center
-                          gap-1.5
+                          absolute inset-[-5px]
+                          animate-ping
+                          rounded-full
+                          border border-blue-400/30
                         "
-                      >
+                      />
 
-                        <button
-                          onClick={() =>
-                            s.id < step &&
-                            setStep(s.id)
-                          }
-                          className={`
-                            w-10
-                            h-10
-                            rounded-full
-                            border-2
-                            flex
-                            items-center
-                            justify-center
-                            font-bold
-                            text-sm
-                            transition-all
-                            duration-300
+                      <span
+                        className="
+                          absolute inset-[-3px]
+                          rounded-full
+                          border-2 border-blue-500/20
+                        "
+                      />
+                    </>
+                  )}
 
-                            ${
-                              s.id < step
+                  {/* Active shine */}
+                  {isActive && (
+                    <span
+                      className="
+                        pointer-events-none
+                        absolute inset-0
+                        overflow-hidden
+                        rounded-full
+                      "
+                    >
+                      <span
+                        className="
+                          absolute
+                          -left-12
+                          top-0
+                          h-full
+                          w-8
+                          rotate-[20deg]
+                          bg-gradient-to-r
+                          from-transparent
+                          via-white/50
+                          to-transparent
+                          animate-[checkoutShine_2.5s_ease-in-out_infinite]
+                        "
+                      />
+                    </span>
+                  )}
 
-                                ? "step-done cursor-pointer"
+                  {/* Icon */}
+                  <span className="relative z-10 flex items-center justify-center">
+                    {isCompleted ? (
+                      <FaCheck
+                        size={16}
+                        strokeWidth={2.8}
+                      />
+                    ) : (
+                      s.icon
+                    )}
+                  </span>
+                </button>
 
-                                : s.id === step
+                {/* Step text */}
+                <div className="mt-2 text-center">
 
-                                ? "step-active"
+                  <span
+                    className={`
+                      block text-[10px] font-semibold
+                      uppercase tracking-[0.04em]
+                      transition-colors duration-300
+                      sm:text-[11px]
 
-                                : "step-idle cursor-default"
-                            }
-                          `}
-                        >
+                      ${
+                        isCompleted
+                          ? "text-emerald-600"
+                          : isActive
+                          ? "text-blue-600"
+                          : "text-slate-400"
+                      }
+                    `}
+                  >
+                    {isCompleted
+                      ? "Completed"
+                      : `Step ${s.id}`}
+                  </span>
 
-                          {s.id < step ? (
+                  <span
+                    className={`
+                      mt-0.5 block
+                      whitespace-nowrap
+                      text-xs font-medium
+                      transition-all duration-300
+                      sm:text-sm
 
-                            <FaCheckCircle
-                              size={16}
-                            />
+                      ${
+                        isActive
+                          ? "font-semibold text-slate-900"
+                          : isCompleted
+                          ? "text-slate-700"
+                          : "text-slate-400"
+                      }
+                    `}
+                  >
+                    {s.label}
+                  </span>
+                </div>
 
-                          ) : (
-
-                            s.icon
-
-                          )}
-
-                        </button>
-
-
-                        <span
-                          className={`
-                            text-xs
-                            font-semibold
-
-                            ${
-                              s.id === step
-
-                                ? "text-indigo-600"
-
-                                : s.id < step
-
-                                ? "text-indigo-400"
-
-                                : "text-slate-400"
-                            }
-                          `}
-                        >
-                          {s.label}
-                        </span>
-
-                      </div>
-
-
-                      {i <
-                        STEPS.length - 1 && (
-
-                        <div
-                          className={`
-                            flex-1
-                            h-0.5
-                            mx-3
-                            mb-4
-                            rounded-full
-                            transition-all
-                            duration-500
-
-                            ${
-                              step >
-                              i + 1
-
-                                ? "connector-done"
-
-                                : "connector-idle"
-                            }
-                          `}
-                        />
-
-                      )}
-
-                    </React.Fragment>
-
-                  )
+                {/* Active indicator */}
+                {isActive && (
+                  <span
+                    className="
+                      mt-1.5 h-0.5 w-8
+                      rounded-full
+                      bg-blue-600
+                      shadow-[0_0_8px_rgba(37,99,235,0.45)]
+                    "
+                  />
                 )}
-
               </div>
 
+              {/* CONNECTOR */}
+              {i < STEPS.length - 1 && (
+                <div
+                  className="
+                    relative
+                    mx-1
+                    mt-[22px]
+                    h-[3px]
+                    flex-1
+                    overflow-hidden
+                    rounded-full
+                    bg-slate-200
+                    sm:mx-2
+                    sm:mt-6
+                  "
+                >
+
+                  {/* Completed */}
+                  <span
+                    className={`
+                      absolute inset-y-0 left-0
+                      rounded-full
+                      bg-gradient-to-r
+                      from-emerald-500
+                      to-emerald-400
+                      transition-all duration-700 ease-out
+
+                      ${
+                        step > s.id
+                          ? "w-full"
+                          : "w-0"
+                      }
+                    `}
+                  />
+
+                  {/* Active shine */}
+                  {step === s.id && (
+                    <span
+                      className="
+                        absolute inset-y-0 left-0
+                        w-1/2
+                        rounded-full
+                        bg-gradient-to-r
+                        from-transparent
+                        via-blue-400
+                        to-transparent
+                        animate-[checkoutConnectorShine_2s_ease-in-out_infinite]
+                      "
+                    />
+                  )}
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+)}
               {/* =================================================
                   STEP 1 — CART / MODERN MOBILE-FIRST EXPERIENCE
               ================================================= */}
@@ -6685,7 +8593,7 @@ total:
 
                             <div className="modern-summary-rows">
                               <div><span>Items</span><strong>₹{Number(subtotalAfterDiscount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
-                              <div><span>Tax</span><strong>₹{Number(itemTax || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+                              {/* <div><span>Tax</span><strong>₹{Number(itemTax || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div> */}
                               <div><span>Delivery</span><strong className="free">FREE</strong></div>
                             </div>
 
@@ -6763,420 +8671,2909 @@ total:
                 <div className="step-panel anime-step-panel space-y-5 pb-36">
 
                   {/* REVIEW HEADER */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
-                          <FaCheckCircle className="text-blue-600" size={18} />
-                        </div>
-                        <div>
-                          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-                            Review your order
-                          </h2>
-                          <p className="text-sm text-slate-500 mt-0.5">
-                            Check your details before placing the order.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+               <div className="flex items-center justify-between gap-3 sm:gap-4">
+  {/* Left side */}
+  <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+    {/* Icon */}
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 sm:h-11 sm:w-11 sm:rounded-2xl">
+      <FaCheckCircle
+        className="text-blue-600"
+        size={16}
+      />
+    </div>
 
-                    <div className="hidden sm:flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-100 px-3 py-2 text-xs font-semibold text-emerald-700">
-                      <FaShieldAlt size={12} />
-                      Secure checkout
-                    </div>
-                  </div>
+    {/* Heading */}
+    <div className="min-w-0">
+      <h2 className="text-[17px] font-bold leading-tight tracking-[-0.02em] text-slate-900 sm:text-xl md:text-2xl lg:text-[26px]">
+        Review your order
+      </h2>
 
+      <p className="mt-0.5 text-[11px] leading-4 text-slate-500 sm:text-xs md:text-sm">
+        Check your details before placing the order.
+      </p>
+    </div>
+  </div>
+
+  {/* Secure checkout */}
+  <div className="hidden shrink-0 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-semibold text-emerald-700 sm:flex sm:px-3 sm:py-2 sm:text-xs">
+    <FaShieldAlt size={11} />
+    <span>Secure checkout</span>
+  </div>
+</div>
                   {/* DELIVERY ADDRESS */}
-                  <section className="review-card p-5 sm:p-6">
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <div className="review-icon bg-blue-50 text-blue-600">
-                            <FaMapMarkerAlt size={15} />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-bold text-slate-900">
-                              Delivery Address
-                            </h3>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              Where should we deliver your order?
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+        <section className="w-full rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-5 md:p-6">
+  {/* =========================================================
+      DELIVERY ADDRESS HEADER
+  ========================================================= */}
+  <div className="mb-4 flex items-center justify-between gap-3 sm:mb-5">
+    <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+      {/* Icon */}
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 sm:h-10 sm:w-10 sm:rounded-2xl">
+        <FaMapMarkerAlt size={14} className="sm:hidden" />
+        <FaMapMarkerAlt size={16} className="hidden sm:block" />
+      </div>
 
-                      <button
-                        type="button"
-                        onClick={redirectToSavedAddresses}
-                        className="review-outline-btn"
-                      >
-                        Change
-                      </button>
-                    </div>
+      {/* Title */}
+      <div className="min-w-0">
+        <h3 className="text-[15px] font-bold leading-5 tracking-[-0.01em] text-slate-900 sm:text-[17px] sm:leading-6 md:text-lg lg:text-xl">
+          Delivery Address
+        </h3>
 
-                    {addressLoading ? (
-                      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 text-sm text-blue-700">
-                        Loading your saved delivery address...
-                      </div>
-                    ) : selectedAddressId ? (
-                      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5">
-                        <div className="flex items-start gap-3">
-                          <div className="mt-0.5 w-9 h-9 rounded-xl bg-white border border-blue-100 flex items-center justify-center flex-shrink-0">
-                            <FaUser className="text-blue-600" size={13} />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-bold text-slate-900">
-                                {address.name || "Customer"}
-                              </p>
-                              <span className="rounded-full bg-white border border-blue-100 px-2 py-1 text-[10px] font-bold text-blue-700">
-                                {savedAddresses.find((item) => String(item._id) === String(selectedAddressId))?.label || "Address"}
-                              </span>
-                            </div>
+        <p className="mt-0.5 text-[10px] leading-[15px] text-slate-500 sm:text-[11px] sm:leading-4 md:text-xs lg:text-sm">
+          Where should we deliver your order?
+        </p>
+      </div>
+    </div>
 
-                            <p className="text-sm text-slate-600 leading-6 mt-2">
-                              {address.street || address.addressLine1}
-                              {address.addressLine2 ? `, ${address.addressLine2}` : ""}
-                              {address.area ? `, ${address.area}` : ""}
-                              {address.city ? `, ${address.city}` : ""}
-                              {address.district ? `, ${address.district}` : ""}
-                              {address.state ? `, ${address.state}` : ""}
-                              {address.postcode ? ` - ${address.postcode}` : ""}
-                            </p>
+    {/* Change button */}
+    <button
+      type="button"
+      onClick={openAddressSelector}
+      className="
+        shrink-0
+        rounded-xl
+        border border-slate-200
+        bg-white
+        px-2.5 py-1.5
+        text-[10px]
+        font-semibold
+        text-blue-600
+        shadow-sm
+        transition-all
+        duration-200
+        hover:border-blue-200
+        hover:bg-blue-50
+        active:scale-[0.97]
+        sm:px-3
+        sm:py-1.5
+        sm:text-[11px]
+        md:px-3.5
+        md:py-2
+        md:text-xs
+      "
+    >
+      Change
+    </button>
+  </div>
 
-                            <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-xs text-slate-500">
-                              <span className="inline-flex items-center gap-1.5">
-                                <BsTelephoneFill size={10} className="text-blue-500" />
-                                +91 {address.phone || ""}
-                              </span>
-                              <span className="inline-flex items-center gap-1.5 min-w-0">
-                                <FaEnvelope size={10} className="text-blue-500" />
-                                <span className="truncate">{address.email || user?.email || ""}</span>
-                              </span>
-                            </div>
-                          </div>
+  {/* =========================================================
+      ADDRESS CONTENT
+  ========================================================= */}
+  {addressLoading ? (
+    /* =======================================================
+       ADDRESS SKELETON
+    ======================================================== */
+    <div className="animate-pulse rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+      <div className="flex items-start gap-3">
+        {/* Avatar skeleton */}
+        <div className="h-9 w-9 shrink-0 rounded-xl bg-slate-200 sm:h-10 sm:w-10" />
 
-                          <FaCheckCircle className="text-emerald-500 flex-shrink-0" size={18} />
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={redirectToSavedAddresses}
-                        className="w-full rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 p-5 text-left hover:bg-blue-50 transition"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-11 h-11 rounded-full bg-white border border-blue-100 flex items-center justify-center">
-                            <AiOutlinePlus className="text-blue-600" size={22} />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-bold text-slate-900">Add delivery address</p>
-                            <p className="text-xs text-slate-500 mt-1">Add an address to continue</p>
-                          </div>
-                          <IoArrowForward className="text-slate-400" size={20} />
-                        </div>
-                      </button>
-                    )}
+        <div className="min-w-0 flex-1 space-y-2.5">
+          {/* Name skeleton */}
+          <div className="h-3.5 w-28 rounded-full bg-slate-200 sm:h-4 sm:w-36" />
 
-                    {serviceability.checked && serviceability.unavailableItems.length === 0 && (
-                      <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-3.5 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
-                          <FaCheckCircle className="text-emerald-500" size={16} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-emerald-700">
-                            Delivery available
-                          </p>
-                          <p className="text-xs text-emerald-600 mt-0.5">
-                            This order can be delivered to PIN {serviceability.postalCode}.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </section>
+          {/* Address skeleton */}
+          <div className="h-2.5 w-full max-w-md rounded-full bg-slate-100 sm:h-3" />
+
+          <div className="h-2.5 w-4/5 max-w-sm rounded-full bg-slate-100 sm:h-3" />
+
+          {/* Contact skeleton */}
+          <div className="flex flex-wrap gap-3 pt-1">
+            <div className="h-2.5 w-20 rounded-full bg-slate-100 sm:h-3 sm:w-24" />
+            <div className="h-2.5 w-28 rounded-full bg-slate-100 sm:h-3 sm:w-32" />
+          </div>
+        </div>
+
+        {/* Check skeleton */}
+        <div className="h-5 w-5 shrink-0 rounded-full bg-slate-200" />
+      </div>
+    </div>
+  ) : selectedAddressId ? (
+    /* =======================================================
+       SELECTED ADDRESS
+    ======================================================== */
+    <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/80 via-white to-white p-3.5 shadow-sm sm:p-4">
+      <div className="flex items-start gap-3">
+        {/* User icon */}
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-white shadow-sm sm:h-10 sm:w-10">
+          <FaUser className="text-blue-600" size={13} />
+        </div>
+
+        {/* Address information */}
+        <div className="min-w-0 flex-1">
+          {/* Name + Address label */}
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <p className="text-[12px] font-bold leading-5 text-slate-900 sm:text-[13px] md:text-sm lg:text-base">
+              {address.name || "Customer"}
+            </p>
+
+            <span className="rounded-full border border-blue-100 bg-white px-2 py-0.5 text-[8px] font-bold text-blue-700 sm:px-2.5 sm:py-1 sm:text-[9px] md:text-[10px]">
+              {savedAddresses.find(
+                (item) =>
+                  String(item._id) === String(selectedAddressId)
+              )?.label || "Address"}
+            </span>
+          </div>
+
+          {/* Address */}
+          <p className="mt-1.5 text-[10px] leading-[1.65] text-slate-600 sm:mt-2 sm:text-[11px] sm:leading-5 md:text-xs lg:text-sm lg:leading-6">
+            {address.street || address.addressLine1}
+
+            {address.addressLine2
+              ? `, ${address.addressLine2}`
+              : ""}
+
+            {address.area
+              ? `, ${address.area}`
+              : ""}
+
+            {address.city
+              ? `, ${address.city}`
+              : ""}
+
+            {address.district
+              ? `, ${address.district}`
+              : ""}
+
+            {address.state
+              ? `, ${address.state}`
+              : ""}
+
+            {address.postcode
+              ? ` - ${address.postcode}`
+              : ""}
+          </p>
+
+          {/* Contact information */}
+          <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1.5 text-[9px] leading-4 text-slate-500 sm:mt-3 sm:gap-x-4 sm:text-[10px] md:text-xs">
+            {/* Phone */}
+            <span className="inline-flex items-center gap-1.5">
+              <BsTelephoneFill
+                size={9}
+                className="shrink-0 text-blue-500 sm:h-[10px] sm:w-[10px]"
+              />
+
+              <span>
+                +91 {address.phone || ""}
+              </span>
+            </span>
+
+            {/* Email */}
+            {(address.email || user?.email) && (
+              <span className="inline-flex min-w-0 max-w-full items-center gap-1.5">
+                <FaEnvelope
+                  size={9}
+                  className="shrink-0 text-blue-500 sm:h-[10px] sm:w-[10px]"
+                />
+
+                <span className="truncate">
+                  {address.email || user?.email || ""}
+                </span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Selected indicator */}
+        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 sm:h-6 sm:w-6">
+          <FaCheckCircle
+            className="text-emerald-500"
+            size={15}
+          />
+        </div>
+      </div>
+    </div>
+  ) : (
+    /* =======================================================
+       NO ADDRESS
+    ======================================================== */
+    <button
+      type="button"
+      onClick={openAddressSelector}
+      className="
+        group
+        w-full
+        rounded-2xl
+        border
+        border-dashed
+        border-blue-200
+        bg-blue-50/40
+        p-4
+        text-left
+        transition-all
+        duration-200
+        hover:border-blue-300
+        hover:bg-blue-50
+        active:scale-[0.99]
+        sm:p-5
+      "
+    >
+      <div className="flex items-center gap-3">
+        {/* Plus icon */}
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-white shadow-sm sm:h-11 sm:w-11">
+          <AiOutlinePlus
+            className="text-blue-600"
+            size={20}
+          />
+        </div>
+
+        {/* Text */}
+        <div className="min-w-0 flex-1">
+          <p className="text-[12px] font-bold leading-5 text-slate-900 sm:text-[13px] md:text-sm lg:text-base">
+            Add delivery address
+          </p>
+
+          <p className="mt-0.5 text-[9px] leading-4 text-slate-500 sm:text-[10px] md:text-xs">
+            Add an address to continue
+          </p>
+        </div>
+
+        {/* Arrow */}
+        <IoArrowForward
+          className="shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5"
+          size={18}
+        />
+      </div>
+    </button>
+  )}
+
+  {/* =========================================================
+      DELIVERY SERVICEABILITY
+  ========================================================= */}
+  {serviceability.checked &&
+    serviceability.unavailableItems.length === 0 && (
+      <div className="mt-3 flex items-center gap-2.5 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-3 py-2.5 sm:gap-3 sm:p-3.5">
+        {/* Success icon */}
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm">
+          <FaCheckCircle
+            className="text-emerald-500"
+            size={15}
+          />
+        </div>
+
+        {/* Text */}
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold leading-4 text-emerald-700 sm:text-[11px] md:text-xs lg:text-sm">
+            Delivery available
+          </p>
+
+          <p className="mt-0.5 text-[8px] leading-4 text-emerald-600 sm:text-[9px] md:text-[10px] lg:text-xs">
+            This order can be delivered to PIN{" "}
+            <span className="font-bold">
+              {serviceability.postalCode}
+            </span>
+          </p>
+        </div>
+      </div>
+    )}
+</section>
 
                   {/* ORDER SUMMARY */}
-                  <section className="review-card p-5 sm:p-6">
-                    <div className="flex items-center justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="review-icon bg-indigo-50 text-indigo-600">
-                          <FaShoppingBag size={15} />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-slate-900">Order Summary</h3>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {cartItem.length} item{cartItem.length !== 1 ? "s" : ""} in your order
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+             <section className="group relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-5 md:p-6">
+  {/* =========================================================
+      CARD SHINE EFFECT
+  ========================================================= */}
+  <div
+    className="
+      pointer-events-none
+      absolute
+      inset-y-0
+      -left-1/2
+      z-20
+      w-1/3
+      -skew-x-12
+      bg-gradient-to-r
+      from-transparent
+      via-white/60
+      to-transparent
+      opacity-0
+      transition-opacity
+      duration-300
+      group-hover:animate-[shine_2.5s_ease-in-out_infinite]
+      group-hover:opacity-100
+    "
+  />
 
-                    <div className="space-y-3">
-                      {cartItem.map((item, index) => {
-                        const variant = getSelectedVariant(item);
-                        const image =
-                          item?.image ||
-                          item?.thumbnail ||
-                          item?.images?.[0] ||
-                          variant?.image ||
-                          variant?.images?.[0] ||
-                          "";
-                        const qty = Number(item?.quantity || 1);
-                        const lineTotal = getItemBaseAmount(item);
-                        const sku = item?.variantSku || variant?.sku || "";
+  {/* =========================================================
+      ORDER SUMMARY HEADER
+  ========================================================= */}
+  <div className="relative z-10 mb-4 flex items-center justify-between gap-3 sm:mb-5">
+    <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+      {/* Icon */}
+      <div
+        className="
+          relative
+          flex
+          h-9
+          w-9
+          shrink-0
+          items-center
+          justify-center
+          overflow-hidden
+          rounded-xl
+          border
+          border-indigo-100
+          bg-indigo-50
+          text-indigo-600
+          sm:h-10
+          sm:w-10
+          sm:rounded-2xl
+        "
+      >
+        {/* Icon shine */}
+        <span
+          className="
+            pointer-events-none
+            absolute
+            inset-y-0
+            -left-full
+            w-1/2
+            -skew-x-12
+            bg-gradient-to-r
+            from-transparent
+            via-white/70
+            to-transparent
+            group-hover:animate-[iconShine_1.8s_ease-in-out_infinite]
+          "
+        />
 
-                        return (
-                          <div
-                            key={`${item?.productId || item?._id || index}-${sku || "default"}`}
-                            className="review-product"
-                          >
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-100">
-                              {image ? (
-                                <img
-                                  src={image}
-                                  alt={item?.title || "Product"}
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                  <FaShoppingBag size={22} />
-                                </div>
-                              )}
-                            </div>
+        <FaShoppingBag
+          size={14}
+          className="relative z-10 sm:hidden"
+        />
 
-                            <div className="min-w-0 flex-1 py-0.5">
-                              <p className="font-bold text-slate-900 truncate">
-                                {item?.title || item?.name || "Product"}
-                              </p>
-                              {sku && (
-                                <p className="text-xs text-slate-500 mt-1 truncate">
-                                  {sku}
-                                </p>
-                              )}
-                              <div className="flex flex-wrap items-center gap-2 mt-2">
-                                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
-                                  Qty: {qty}
-                                </span>
-                                {variant?.attributes && Object.entries(variant.attributes).slice(0, 2).map(([key, value]) => (
-                                  <span key={key} className="text-[11px] text-slate-500">
-                                    {key}: {String(value)}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
+        <FaShoppingBag
+          size={16}
+          className="relative z-10 hidden sm:block"
+        />
+      </div>
 
-                            <div className="text-right flex-shrink-0">
-                              <p className="text-base sm:text-lg font-bold text-blue-600">
-                                ₹{Number(lineTotal || 0).toLocaleString("en-IN", {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </p>
-                              <p className="text-[11px] text-slate-400 mt-1">
-                                ₹{Number(item?.price || 0).toLocaleString("en-IN")} × {qty}
-                              </p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
+      {/* Title */}
+      <div className="min-w-0">
+        <h3 className="text-[15px] font-bold leading-5 tracking-[-0.01em] text-slate-900 sm:text-[17px] sm:leading-6 md:text-lg lg:text-xl">
+          Order Summary
+        </h3>
+
+        <p className="mt-0.5 text-[10px] leading-[15px] text-slate-500 sm:text-[11px] sm:leading-4 md:text-xs lg:text-sm">
+          {cartItem.length} item
+          {cartItem.length !== 1 ? "s" : ""} in your order
+        </p>
+      </div>
+    </div>
+  </div>
+
+  {/* =========================================================
+      PRODUCTS
+  ========================================================= */}
+  <div className="relative z-10 space-y-2.5 sm:space-y-3">
+    {cartItem.map((item, index) => {
+      const variant = getSelectedVariant(item);
+
+      const image =
+        item?.image ||
+        item?.thumbnail ||
+        item?.images?.[0] ||
+        variant?.image ||
+        variant?.images?.[0] ||
+        "";
+
+      const qty = Number(item?.quantity || 1);
+
+      const lineTotal = getItemBaseAmount(item);
+
+      const sku =
+        item?.variantSku ||
+        variant?.sku ||
+        "";
+
+      return (
+        <div
+          key={`${item?.productId || item?._id || index}-${sku || "default"}`}
+          className="
+            group/product
+            relative
+            flex
+            items-start
+            gap-3
+            overflow-hidden
+            rounded-2xl
+            border
+            border-slate-100
+            bg-slate-50/60
+            p-2.5
+            transition-all
+            duration-300
+            hover:-translate-y-[1px]
+            hover:border-indigo-100
+            hover:bg-white
+            hover:shadow-md
+            sm:gap-3.5
+            sm:p-3
+            md:p-3.5
+          "
+        >
+          {/* =================================================
+              PRODUCT ROW SHINE
+          ================================================== */}
+          <span
+            className="
+              pointer-events-none
+              absolute
+              inset-y-0
+              -left-1/2
+              z-20
+              w-1/3
+              -skew-x-12
+              bg-gradient-to-r
+              from-transparent
+              via-white/50
+              to-transparent
+              opacity-0
+              group-hover/product:animate-[shine_1.8s_ease-in-out]
+              group-hover/product:opacity-100
+            "
+          />
+
+          {/* =================================================
+              PRODUCT IMAGE
+          ================================================== */}
+          <div
+            className="
+              relative
+              h-[68px]
+              w-[68px]
+              shrink-0
+              overflow-hidden
+              rounded-xl
+              border
+              border-slate-200
+              bg-white
+              shadow-sm
+              sm:h-20
+              sm:w-20
+              sm:rounded-2xl
+              md:h-24
+              md:w-24
+            "
+          >
+            {image ? (
+              <img
+                src={image}
+                alt={item?.title || item?.name || "Product"}
+                className="
+                  h-full
+                  w-full
+                  object-cover
+                  transition-transform
+                  duration-500
+                  group-hover/product:scale-105
+                "
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-slate-400">
+                <FaShoppingBag
+                  size={18}
+                  className="sm:hidden"
+                />
+
+                <FaShoppingBag
+                  size={22}
+                  className="hidden sm:block"
+                />
+              </div>
+            )}
+
+            {/* Image gloss */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-0
+                -translate-x-full
+                bg-gradient-to-r
+                from-transparent
+                via-white/30
+                to-transparent
+                group-hover/product:animate-[imageShine_1.4s_ease-in-out]
+              "
+            />
+          </div>
+
+          {/* =================================================
+              PRODUCT INFORMATION
+          ================================================== */}
+          <div className="min-w-0 flex-1 py-0.5">
+            {/* Product name */}
+            <p className="truncate text-[12px] font-bold leading-5 text-slate-900 sm:text-[13px] md:text-sm lg:text-base">
+              {item?.title ||
+                item?.name ||
+                "Product"}
+            </p>
+
+            {/* SKU */}
+            {sku && (
+              <p className="mt-0.5 truncate text-[9px] leading-4 text-slate-500 sm:text-[10px] md:text-xs">
+                SKU: {sku}
+              </p>
+            )}
+
+            {/* Quantity + Variant */}
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {/* Quantity */}
+              <span
+                className="
+                  rounded-full
+                  border
+                  border-slate-200
+                  bg-white
+                  px-2
+                  py-0.5
+                  text-[8px]
+                  font-semibold
+                  leading-4
+                  text-slate-600
+                  transition-colors
+                  group-hover/product:border-indigo-100
+                  group-hover/product:text-indigo-600
+                  sm:px-2.5
+                  sm:py-1
+                  sm:text-[10px]
+                "
+              >
+                Qty: {qty}
+              </span>
+
+              {/* Variant attributes */}
+              {variant?.attributes &&
+                Object.entries(variant.attributes)
+                  .slice(0, 2)
+                  .map(([key, value]) => (
+                    <span
+                      key={key}
+                      className="
+                        max-w-[120px]
+                        truncate
+                        text-[8px]
+                        leading-4
+                        text-slate-500
+                        transition-colors
+                        group-hover/product:text-slate-600
+                        sm:max-w-[160px]
+                        sm:text-[10px]
+                        md:text-[11px]
+                      "
+                    >
+                      {key}: {String(value)}
+                    </span>
+                  ))}
+            </div>
+          </div>
+
+          {/* =================================================
+              PRICE
+          ================================================== */}
+          <div className="shrink-0 self-center text-right">
+            <p className="text-[13px] font-bold leading-5 text-blue-600 transition-transform duration-300 group-hover/product:scale-[1.03] sm:text-sm md:text-base lg:text-lg">
+              ₹
+              {Number(lineTotal || 0).toLocaleString(
+                "en-IN",
+                {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }
+              )}
+            </p>
+
+            <p className="mt-0.5 whitespace-nowrap text-[8px] leading-4 text-slate-400 sm:text-[9px] md:text-[10px] lg:text-[11px]">
+              ₹
+              {Number(item?.price || 0).toLocaleString(
+                "en-IN"
+              )}{" "}
+              × {qty}
+            </p>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+
+  {/* =========================================================
+      SHINE KEYFRAMES
+      Tailwind arbitrary animation
+  ========================================================= */}
+  <style>{`
+    @keyframes shine {
+      0% {
+        transform: translateX(-180%) skewX(-12deg);
+      }
+
+      100% {
+        transform: translateX(520%) skewX(-12deg);
+      }
+    }
+
+    @keyframes iconShine {
+      0% {
+        transform: translateX(-180%) skewX(-12deg);
+      }
+
+      100% {
+        transform: translateX(420%) skewX(-12deg);
+      }
+    }
+
+    @keyframes imageShine {
+      0% {
+        transform: translateX(-150%) skewX(-12deg);
+      }
+
+      100% {
+        transform: translateX(300%) skewX(-12deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  `}</style>
+</section>
 
                   {/* COUPON */}
-                  <section className="review-card p-5 sm:p-6">
-                    <div className="flex items-center gap-2.5 mb-4">
-                      <div className="review-icon bg-emerald-50 text-emerald-600">
-                        <FaHistory size={15} />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900">Apply Coupon</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Use a valid coupon to save on your order
-                        </p>
-                      </div>
-                    </div>
+<section className="group relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-5 md:p-6">
+  {/* =========================================================
+      MAIN CARD SHINE
+  ========================================================= */}
+  <div
+    className="
+      pointer-events-none
+      absolute
+      inset-y-0
+      -left-1/2
+      z-20
+      w-1/3
+      -skew-x-12
+      bg-gradient-to-r
+      from-transparent
+      via-white/50
+      to-transparent
+      opacity-0
+      group-hover:animate-[couponShine_2.2s_ease-in-out]
+      group-hover:opacity-100
+    "
+  />
 
-                    <div className="flex flex-col sm:flex-row gap-2.5">
-                      <input
-                        value={couponCode}
-                        onChange={(e) => {
-                          setCouponCode(e.target.value.toUpperCase());
-                          setCouponError("");
-                          setCouponSuccess("");
-                        }}
-                        placeholder="Enter coupon code"
-                        className={`review-input flex-1 ${couponError ? "border-rose-300" : ""}`}
-                      />
-                      <button
-                        type="button"
-                        onClick={applyCoupon}
-                        disabled={couponLoading}
-                        className="review-apply-btn"
-                      >
-                        {couponLoading ? "Applying..." : "Apply"}
-                      </button>
-                    </div>
+  {/* =========================================================
+      COUPON HEADER
+  ========================================================= */}
+  <div className="relative z-10 mb-4 flex items-center gap-2.5 sm:mb-5 sm:gap-3">
+    {/* Icon */}
+    <div
+      className="
+        group/icon
+        relative
+        flex
+        h-9
+        w-9
+        shrink-0
+        items-center
+        justify-center
+        overflow-hidden
+        rounded-xl
+        border
+        border-emerald-100
+        bg-emerald-50
+        text-emerald-600
+        shadow-sm
+        sm:h-10
+        sm:w-10
+        sm:rounded-2xl
+      "
+    >
+      {/* Icon shine */}
+      <span
+        className="
+          pointer-events-none
+          absolute
+          inset-y-0
+          -left-full
+          w-1/2
+          -skew-x-12
+          bg-gradient-to-r
+          from-transparent
+          via-white/80
+          to-transparent
+          group-hover/icon:animate-[couponIconShine_1.6s_ease-in-out]
+        "
+      />
 
-                    {couponError && (
-                      <p className="text-xs font-medium text-rose-500 mt-2">
-                        {couponError}
-                      </p>
-                    )}
+      <FaHistory
+        size={14}
+        className="relative z-10 sm:hidden"
+      />
 
-                    {couponSuccess && (
-                      <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <FaCheckCircle className="text-emerald-500" />
-                          <div>
-                            <p className="text-sm font-bold text-emerald-700">Coupon applied</p>
-                            <p className="text-xs text-emerald-600 mt-0.5">{couponSuccess}</p>
-                          </div>
-                        </div>
-                        <span className="text-sm font-bold text-emerald-700">
-                          -₹{Number(couponDiscount || 0).toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                  </section>
+      <FaHistory
+        size={16}
+        className="relative z-10 hidden sm:block"
+      />
+    </div>
 
+    {/* Title */}
+    <div className="min-w-0">
+      <h3 className="text-[15px] font-bold leading-5 tracking-[-0.01em] text-slate-900 sm:text-[17px] sm:leading-6 md:text-lg lg:text-xl">
+        Apply Coupon
+      </h3>
+
+      <p className="mt-0.5 text-[10px] leading-[15px] text-slate-500 sm:text-[11px] sm:leading-4 md:text-xs lg:text-sm">
+        Use a valid coupon to save on your order
+      </p>
+    </div>
+  </div>
+
+  {/* =========================================================
+      COUPON INPUT + BUTTON
+  ========================================================= */}
+  <div className="relative z-10 flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-2.5">
+    {/* Input */}
+    <div className="relative min-w-0 flex-1 overflow-hidden rounded-xl">
+      <input
+        value={couponCode}
+        onChange={(e) => {
+          setCouponCode(e.target.value.toUpperCase());
+          setCouponError("");
+          setCouponSuccess("");
+        }}
+        placeholder="Enter coupon code"
+        autoComplete="off"
+        spellCheck={false}
+        className={`
+          h-11
+          w-full
+          rounded-xl
+          border
+          bg-white
+          px-3
+          text-[12px]
+          font-medium
+          tracking-wide
+          text-slate-900
+          outline-none
+          placeholder:text-slate-400
+          transition-all
+          duration-200
+          focus:ring-2
+          sm:h-12
+          sm:px-3.5
+          sm:text-[13px]
+          md:text-sm
+          ${
+            couponError
+              ? "border-rose-300 bg-rose-50/30 focus:border-rose-400 focus:ring-rose-100"
+              : "border-slate-200 focus:border-emerald-400 focus:ring-emerald-100"
+          }
+        `}
+      />
+
+      {/* Input shine */}
+      {!couponError && !couponLoading && (
+        <span
+          className="
+            pointer-events-none
+            absolute
+            inset-y-0
+            -left-1/2
+            z-10
+            w-1/3
+            -skew-x-12
+            bg-gradient-to-r
+            from-transparent
+            via-white/40
+            to-transparent
+            opacity-0
+            group-hover:animate-[couponInputShine_2s_ease-in-out]
+            group-hover:opacity-100
+          "
+        />
+      )}
+    </div>
+
+    {/* Apply button */}
+    <button
+      type="button"
+      onClick={applyCoupon}
+      disabled={couponLoading}
+      className="
+        group/apply
+        relative
+        flex
+        h-11
+        shrink-0
+        items-center
+        justify-center
+        overflow-hidden
+        rounded-xl
+        bg-emerald-600
+        px-5
+        text-[11px]
+        font-bold
+        text-white
+        shadow-sm
+        transition-all
+        duration-200
+        hover:bg-emerald-700
+        hover:shadow-md
+        active:scale-[0.98]
+        disabled:cursor-not-allowed
+        disabled:opacity-60
+        sm:h-12
+        sm:min-w-[100px]
+        sm:px-6
+        sm:text-xs
+        md:text-sm
+      "
+    >
+      {/* Button shine */}
+      {!couponLoading && (
+        <span
+          className="
+            pointer-events-none
+            absolute
+            inset-y-0
+            -left-full
+            w-1/2
+            -skew-x-12
+            bg-gradient-to-r
+            from-transparent
+            via-white/30
+            to-transparent
+            group-hover/apply:animate-[couponButtonShine_1.3s_ease-in-out]
+          "
+        />
+      )}
+
+      {couponLoading ? (
+        <span className="relative z-10 flex items-center gap-2">
+          <span
+            className="
+              h-3.5
+              w-3.5
+              animate-spin
+              rounded-full
+              border-2
+              border-white/40
+              border-t-white
+            "
+          />
+
+          <span>Applying...</span>
+        </span>
+      ) : (
+        <span className="relative z-10">
+          Apply
+        </span>
+      )}
+    </button>
+  </div>
+
+  {/* =========================================================
+      COUPON ERROR
+  ========================================================= */}
+  {couponError && (
+    <div className="relative z-10 mt-2.5 flex items-start gap-2 rounded-xl border border-rose-100 bg-rose-50/70 px-3 py-2.5">
+      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-rose-100 text-[9px] font-bold text-rose-600">
+        !
+      </span>
+
+      <p className="text-[10px] font-medium leading-4 text-rose-600 sm:text-[11px] md:text-xs">
+        {couponError}
+      </p>
+    </div>
+  )}
+
+  {/* =========================================================
+      COUPON SUCCESS
+  ========================================================= */}
+  {couponSuccess && (
+    <div
+      className="
+        group/success
+        relative
+        mt-3
+        overflow-hidden
+        rounded-2xl
+        border
+        border-emerald-100
+        bg-emerald-50/70
+        p-3
+        sm:p-3.5
+      "
+    >
+      {/* Success shine */}
+      <span
+        className="
+          pointer-events-none
+          absolute
+          inset-y-0
+          -left-1/2
+          z-10
+          w-1/3
+          -skew-x-12
+          bg-gradient-to-r
+          from-transparent
+          via-white/60
+          to-transparent
+          group-hover/success:animate-[couponSuccessShine_1.8s_ease-in-out]
+        "
+      />
+
+      <div className="relative z-20 flex items-center justify-between gap-3">
+        {/* Success information */}
+        <div className="flex min-w-0 items-center gap-2.5">
+          {/* Check icon */}
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm sm:h-9 sm:w-9">
+            <FaCheckCircle
+              className="text-emerald-500"
+              size={15}
+            />
+          </div>
+
+          {/* Text */}
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold leading-4 text-emerald-700 sm:text-xs md:text-sm">
+              Coupon applied
+            </p>
+
+            <p className="mt-0.5 truncate text-[9px] leading-4 text-emerald-600 sm:text-[10px] md:text-xs">
+              {couponSuccess}
+            </p>
+          </div>
+        </div>
+
+        {/* Discount */}
+        <span className="shrink-0 text-[12px] font-bold text-emerald-700 sm:text-sm md:text-base">
+          -₹
+          {Number(couponDiscount || 0).toFixed(2)}
+        </span>
+      </div>
+    </div>
+  )}
+
+  {/* =========================================================
+      SHINE ANIMATIONS
+  ========================================================= */}
+  <style>{`
+    @keyframes couponShine {
+      0% {
+        transform: translateX(-180%) skewX(-12deg);
+      }
+
+      100% {
+        transform: translateX(520%) skewX(-12deg);
+      }
+    }
+
+    @keyframes couponIconShine {
+      0% {
+        transform: translateX(-180%) skewX(-12deg);
+      }
+
+      100% {
+        transform: translateX(420%) skewX(-12deg);
+      }
+    }
+
+    @keyframes couponInputShine {
+      0% {
+        transform: translateX(-180%) skewX(-12deg);
+      }
+
+      100% {
+        transform: translateX(520%) skewX(-12deg);
+      }
+    }
+
+    @keyframes couponButtonShine {
+      0% {
+        transform: translateX(-180%) skewX(-12deg);
+      }
+
+      100% {
+        transform: translateX(420%) skewX(-12deg);
+      }
+    }
+
+    @keyframes couponSuccessShine {
+      0% {
+        transform: translateX(-180%) skewX(-12deg);
+      }
+
+      100% {
+        transform: translateX(520%) skewX(-12deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  `}</style>
+</section>
                   {/* PAYMENT METHOD */}
-                  <section className="review-card p-5 sm:p-6">
-                    <div className="flex items-center gap-2.5 mb-4">
-                      <div className="review-icon bg-blue-50 text-blue-600">
-                        <MdPayments size={17} />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900">Payment Method</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">Choose how you want to pay</p>
-                      </div>
-                    </div>
+                <section className="w-full rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-5 md:p-6">
+  {/* =========================================================
+      PAYMENT HEADER
+  ========================================================= */}
+  <div className="mb-4 flex items-center gap-2.5 sm:mb-5 sm:gap-3">
+    {/* Icon */}
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 sm:h-10 sm:w-10 sm:rounded-2xl">
+      <MdPayments size={16} />
+    </div>
 
-                    <div className="space-y-3">
-                      <button
-                        type="button"
-                        onClick={() => setPaymentType("cod")}
-                        className={`review-payment-option ${paymentType === "cod" ? "review-payment-active" : ""}`}
-                      >
-                        <div className="payment-radio">
-                          {paymentType === "cod" && <div className="payment-radio-dot" />}
-                        </div>
-                        <div className="payment-method-icon cod-icon">
-                          <FaWallet size={17} />
-                        </div>
-                        <div className="text-left flex-1 min-w-0">
-                          <p className="font-bold text-slate-900">Cash on Delivery</p>
-                          <p className="text-xs text-slate-500 mt-1">Pay after your order arrives</p>
-                        </div>
-                        <span className="text-xs font-semibold text-emerald-600 hidden sm:block">Available</span>
-                      </button>
+    {/* Heading */}
+    <div className="min-w-0">
+      <h3 className="text-[15px] font-bold leading-5 tracking-[-0.01em] text-slate-900 sm:text-[17px] sm:leading-6 md:text-lg lg:text-xl">
+        Payment Method
+      </h3>
 
-                      <button
-                        type="button"
-                        onClick={() => setPaymentType("razorpay")}
-                        className={`review-payment-option ${paymentType === "razorpay" ? "review-payment-active" : ""}`}
-                      >
-                        <div className="payment-radio">
-                          {paymentType === "razorpay" && <div className="payment-radio-dot" />}
-                        </div>
-                        <div className="payment-method-icon online-icon">
-                          <FaCreditCard size={17} />
-                        </div>
-                        <div className="text-left flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-bold text-slate-900">Pay Online</p>
-                            <span className="rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                              Secure
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1">UPI, Cards, Wallets & Netbanking</p>
-                        </div>
-                        <span className="text-xs font-semibold text-blue-600 hidden sm:block">Razorpay</span>
-                      </button>
-                    </div>
-                  </section>
+      <p className="mt-0.5 text-[10px] leading-[15px] text-slate-500 sm:text-[11px] sm:leading-4 md:text-xs lg:text-sm">
+        Choose how you want to pay
+      </p>
+    </div>
+  </div>
 
+  {/* =========================================================
+      PAYMENT METHODS
+  ========================================================= */}
+  <div className="space-y-2.5 sm:space-y-3">
+
+    {/* =======================================================
+        CASH ON DELIVERY
+    ======================================================== */}
+    <button
+      type="button"
+      onClick={() => setPaymentType("cod")}
+      className={`
+        group
+        relative
+        flex
+        w-full
+        items-center
+        gap-2.5
+        overflow-hidden
+        rounded-2xl
+        border
+        p-3
+        text-left
+        transition-all
+        duration-200
+        sm:gap-3
+        sm:p-3.5
+        ${
+          paymentType === "cod"
+            ? "border-blue-300 bg-blue-50/60 shadow-sm"
+            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+        }
+      `}
+    >
+      {/* Radio */}
+      <div
+        className={`
+          flex
+          h-5
+          w-5
+          shrink-0
+          items-center
+          justify-center
+          rounded-full
+          border-2
+          transition-all
+          ${
+            paymentType === "cod"
+              ? "border-blue-600"
+              : "border-slate-300"
+          }
+        `}
+      >
+        {paymentType === "cod" && (
+          <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+        )}
+      </div>
+
+      {/* Wallet icon */}
+      <div
+        className={`
+          flex
+          h-9
+          w-9
+          shrink-0
+          items-center
+          justify-center
+          rounded-xl
+          border
+          sm:h-10
+          sm:w-10
+          ${
+            paymentType === "cod"
+              ? "border-blue-100 bg-white text-blue-600"
+              : "border-slate-200 bg-slate-50 text-slate-500"
+          }
+        `}
+      >
+        <FaWallet size={16} />
+      </div>
+
+      {/* Text */}
+      <div className="min-w-0 flex-1">
+        <p className="text-[12px] font-bold leading-5 text-slate-900 sm:text-[13px] md:text-sm">
+          Cash on Delivery
+        </p>
+
+        <p className="mt-0.5 text-[9px] leading-4 text-slate-500 sm:text-[10px] md:text-xs">
+          Pay after your order arrives
+        </p>
+      </div>
+
+      {/* Available */}
+      <span className="hidden shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-600 sm:block sm:text-[10px]">
+        Available
+      </span>
+    </button>
+
+    {/* =======================================================
+        ONLINE PAYMENT
+    ======================================================== */}
+   <button
+  type="button"
+  onClick={() => setPaymentType("razorpay")}
+  className={`
+    group relative w-full overflow-hidden rounded-2xl border p-3 text-left
+    transition-all duration-300
+    sm:p-3.5
+    ${
+      paymentType === "razorpay"
+        ? "border-blue-300 bg-blue-50/60 shadow-sm"
+        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+    }
+  `}
+>
+  {/* =========================================================
+      MAIN PAYMENT ROW
+  ========================================================== */}
+  <div className="flex items-center gap-2.5 sm:gap-3">
+
+    {/* Radio */}
+    <div
+      className={`
+        flex h-5 w-5 shrink-0 items-center justify-center rounded-full
+        border-2 transition-all duration-200
+        ${
+          paymentType === "razorpay"
+            ? "border-blue-600 bg-white"
+            : "border-slate-300 bg-white"
+        }
+      `}
+    >
+      {paymentType === "razorpay" && (
+        <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+      )}
+    </div>
+
+    {/* Payment icon */}
+    <div
+      className={`
+        flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
+        border transition-all duration-200
+        sm:h-10 sm:w-10
+        ${
+          paymentType === "razorpay"
+            ? "border-blue-100 bg-white text-blue-600 shadow-sm"
+            : "border-slate-200 bg-slate-50 text-slate-500"
+        }
+      `}
+    >
+      <FaCreditCard size={16} />
+    </div>
+
+    {/* Payment text */}
+    <div className="min-w-0 flex-1">
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+
+        <p className="text-[12px] font-bold leading-5 text-slate-900 sm:text-[13px] md:text-sm">
+          Pay Online
+        </p>
+
+        <span
+          className="
+            rounded-full border border-emerald-100 bg-emerald-50
+            px-1.5 py-0.5 text-[8px] font-bold text-emerald-700
+            sm:px-2 sm:text-[9px]
+          "
+        >
+          Secure
+        </span>
+      </div>
+
+      <p className="mt-0.5 text-[9px] leading-4 text-slate-500 sm:text-[10px] md:text-xs">
+        UPI, Cards, Wallets & Netbanking
+      </p>
+    </div>
+
+    {/* Razorpay */}
+    <span
+      className="
+        hidden shrink-0 text-[10px] font-semibold text-blue-600
+        sm:block sm:text-xs
+      "
+    >
+      Razorpay
+    </span>
+  </div>
+
+  {/* =========================================================
+      UPI PAYMENT SECTION
+  ========================================================== */}
+  {paymentType === "razorpay" && (
+    <div
+      className="
+        mt-3 border-t border-blue-100 pt-3
+        sm:mt-3.5 sm:pt-3.5
+      "
+    >
+
+      {/* UPI Header */}
+      <div className="mb-2.5 flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold text-slate-800 sm:text-[11px] md:text-xs">
+            UPI payment
+          </p>
+
+          <p className="mt-0.5 text-[8px] leading-4 text-slate-400 sm:text-[9px]">
+            Choose your preferred UPI app
+          </p>
+        </div>
+
+        <span
+          className="
+            shrink-0 rounded-full border border-blue-100 bg-white
+            px-2 py-1 text-[8px] font-semibold text-blue-600
+            shadow-sm sm:text-[9px]
+          "
+        >
+          Powered by Razorpay
+        </span>
+      </div>
+
+      {/* =====================================================
+          UPI APPS
+      ====================================================== */}
+      <div
+        className="
+          grid grid-cols-2 gap-2
+          sm:grid-cols-4
+        "
+      >
+
+        {/* =================================================
+            GOOGLE PAY
+        ================================================== */}
+        <div
+          className="
+            group/upi relative flex min-w-0 items-center gap-2
+            rounded-xl border border-slate-200 bg-white
+            p-2.5 shadow-sm
+            transition-all duration-200
+            hover:-translate-y-0.5
+            hover:border-blue-200
+            hover:bg-blue-50/40
+            hover:shadow-md
+            sm:flex-col sm:justify-center
+            sm:gap-1.5 sm:p-2.5
+          "
+        >
+          {/* Logo */}
+          <div
+            className="
+              flex h-10 w-10 shrink-0 items-center justify-center
+              overflow-hidden rounded-xl border border-slate-100
+              bg-white shadow-sm
+              sm:h-11 sm:w-11
+            "
+          >
+            <img
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6tucpYR1Cc-cRxWHxcXqr6QCGVE8__0Hbas0WV-k_dg&s"
+              alt="Google Pay"
+              className="h-7 w-7 object-contain sm:h-8 sm:w-8"
+              loading="lazy"
+              draggable="false"
+            />
+          </div>
+
+          {/* Name */}
+          <div className="min-w-0 flex-1 sm:w-full sm:text-center">
+            <p className="truncate text-[10px] font-semibold text-slate-700 sm:text-[9px] md:text-[10px]">
+              Google Pay
+            </p>
+
+            <p className="mt-0.5 text-[8px] text-slate-400 sm:hidden">
+              UPI
+            </p>
+          </div>
+        </div>
+
+        {/* =================================================
+            PHONEPE
+        ================================================== */}
+        <div
+          className="
+            group/upi relative flex min-w-0 items-center gap-2
+            rounded-xl border border-slate-200 bg-white
+            p-2.5 shadow-sm
+            transition-all duration-200
+            hover:-translate-y-0.5
+            hover:border-purple-200
+            hover:bg-purple-50/40
+            hover:shadow-md
+            sm:flex-col sm:justify-center
+            sm:gap-1.5 sm:p-2.5
+          "
+        >
+          {/* Logo */}
+          <div
+            className="
+              flex h-10 w-10 shrink-0 items-center justify-center
+              overflow-hidden rounded-xl border border-purple-100
+              bg-purple-50 shadow-sm
+              sm:h-11 sm:w-11
+            "
+          >
+            <img
+              src="https://cdn.simpleicons.org/phonepe"
+              alt="PhonePe"
+              className="h-7 w-7 object-contain sm:h-8 sm:w-8"
+              loading="lazy"
+              draggable="false"
+            />
+          </div>
+
+          {/* Name */}
+          <div className="min-w-0 flex-1 sm:w-full sm:text-center">
+            <p className="truncate text-[10px] font-semibold text-slate-700 sm:text-[9px] md:text-[10px]">
+              PhonePe
+            </p>
+
+            <p className="mt-0.5 text-[8px] text-slate-400 sm:hidden">
+              UPI
+            </p>
+          </div>
+        </div>
+
+        {/* =================================================
+            PAYTM
+        ================================================== */}
+        <div
+          className="
+            group/upi relative flex min-w-0 items-center gap-2
+            rounded-xl border border-slate-200 bg-white
+            p-2.5 shadow-sm
+            transition-all duration-200
+            hover:-translate-y-0.5
+            hover:border-sky-200
+            hover:bg-sky-50/40
+            hover:shadow-md
+            sm:flex-col sm:justify-center
+            sm:gap-1.5 sm:p-2.5
+          "
+        >
+          {/* Logo */}
+          <div
+            className="
+              flex h-10 w-10 shrink-0 items-center justify-center
+              overflow-hidden rounded-xl border border-sky-100
+              bg-white shadow-sm
+              sm:h-11 sm:w-11
+            "
+          >
+            <img
+              src="https://images.seeklogo.com/logo-png/50/2/paytm-logo-png_seeklogo-501241.png"
+              alt="Paytm"
+              className="h-7 w-7 object-contain sm:h-8 sm:w-8"
+              loading="lazy"
+              draggable="false"
+            />
+          </div>
+
+          {/* Name */}
+          <div className="min-w-0 flex-1 sm:w-full sm:text-center">
+            <p className="truncate text-[10px] font-semibold text-slate-700 sm:text-[9px] md:text-[10px]">
+              Paytm
+            </p>
+
+            <p className="mt-0.5 text-[8px] text-slate-400 sm:hidden">
+              UPI
+            </p>
+          </div>
+        </div>
+
+        {/* =================================================
+            AMAZON PAY
+        ================================================== */}
+        <div
+          className="
+            group/upi relative flex min-w-0 items-center gap-2
+            rounded-xl border border-slate-200 bg-white
+            p-2.5 shadow-sm
+            transition-all duration-200
+            hover:-translate-y-0.5
+            hover:border-orange-200
+            hover:bg-orange-50/40
+            hover:shadow-md
+            sm:flex-col sm:justify-center
+            sm:gap-1.5 sm:p-2.5
+          "
+        >
+          {/* Logo */}
+          <div
+            className="
+              flex h-10 w-10 shrink-0 items-center justify-center
+              overflow-hidden rounded-xl border border-orange-100
+              bg-white shadow-sm
+              sm:h-11 sm:w-11
+            "
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/d/de/Amazon_icon.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original"
+              alt="Amazon Pay"
+              className="h-7 w-7 object-contain sm:h-8 sm:w-8"
+              loading="lazy"
+              draggable="false"
+            />
+          </div>
+
+          {/* Name */}
+          <div className="min-w-0 flex-1 sm:w-full sm:text-center">
+            <p className="truncate text-[10px] font-semibold text-slate-700 sm:text-[9px] md:text-[10px]">
+              Amazon Pay
+            </p>
+
+            <p className="mt-0.5 text-[8px] text-slate-400 sm:hidden">
+              UPI
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================
+          SUPPORTED PAYMENT METHODS
+      ====================================================== */}
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+
+        <span
+          className="
+            rounded-full border border-slate-100 bg-slate-50
+            px-2 py-1 text-[8px] font-medium text-slate-500
+            sm:text-[9px]
+          "
+        >
+          UPI
+        </span>
+
+        <span
+          className="
+            rounded-full border border-slate-100 bg-slate-50
+            px-2 py-1 text-[8px] font-medium text-slate-500
+            sm:text-[9px]
+          "
+        >
+          Cards
+        </span>
+
+        <span
+          className="
+            rounded-full border border-slate-100 bg-slate-50
+            px-2 py-1 text-[8px] font-medium text-slate-500
+            sm:text-[9px]
+          "
+        >
+          Wallets
+        </span>
+
+        <span
+          className="
+            rounded-full border border-slate-100 bg-slate-50
+            px-2 py-1 text-[8px] font-medium text-slate-500
+            sm:text-[9px]
+          "
+        >
+          Netbanking
+        </span>
+      </div>
+
+      {/* =====================================================
+          SECURITY INFORMATION
+      ====================================================== */}
+      <div
+        className="
+          mt-3 flex items-start gap-2 rounded-xl
+          border border-emerald-100 bg-emerald-50/60
+          px-2.5 py-2.5
+          sm:items-center
+        "
+      >
+        {/* Check icon */}
+        <div
+          className="
+            flex h-6 w-6 shrink-0 items-center justify-center
+            rounded-full bg-white shadow-sm
+          "
+        >
+          <FaCheckCircle
+            className="text-emerald-500"
+            size={12}
+          />
+        </div>
+
+        {/* Text */}
+        <p
+          className="
+            text-[9px] leading-4 text-emerald-700
+            sm:text-[10px]
+          "
+        >
+          Your payment is processed securely through Razorpay.
+          Available UPI apps and payment methods may vary depending
+          on the customer's device and Razorpay Checkout.
+        </p>
+      </div>
+
+    </div>
+  )}
+</button>
+
+    {/* =======================================================
+        PAYMENT TRUST MESSAGE
+    ======================================================== */}
+    <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white shadow-sm">
+        <FaShieldAlt
+          className="text-emerald-500"
+          size={13}
+        />
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-[9px] font-semibold text-slate-700 sm:text-[10px] md:text-xs">
+          Secure payment
+        </p>
+
+        <p className="text-[8px] leading-4 text-slate-500 sm:text-[9px] md:text-[10px]">
+          Payments are securely processed by Razorpay.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
                   {/* PRICE DETAILS */}
-                  <section className="review-card p-5 sm:p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-bold text-slate-900">Price Details</h3>
-                      <span className="text-xs font-semibold text-slate-400">{cartItem.length} item{cartItem.length !== 1 ? "s" : ""}</span>
-                    </div>
+                {/* =========================================================
+    PRICE DETAILS — MODERN ECOMMERCE UI
+========================================================= */}
 
-                    <div className="space-y-3 text-sm">
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-slate-500">Items</span>
-                        <span className="font-semibold text-slate-800">₹{Number(totalPrice || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-slate-500">Product discount</span>
-                        <span className="font-semibold text-emerald-600">-₹{Number(itemDiscount || 0).toFixed(2)}</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-slate-500">Coupon discount</span>
-                        <span className="font-semibold text-emerald-600">-₹{Number(couponDiscount || 0).toFixed(2)}</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-slate-500">Delivery</span>
-                        <span className="font-bold text-emerald-600">FREE</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-slate-500">Tax</span>
-                        <span className="font-semibold text-slate-800">₹{Number(itemTax || 0).toFixed(2)}</span>
-                      </div>
-                    </div>
+<style>{`
+  @keyframes priceCardShine {
+    0% {
+      transform: translateX(-140%) skewX(-18deg);
+      opacity: 0;
+    }
+    15% {
+      opacity: 0;
+    }
+    35% {
+      opacity: 0.75;
+    }
+    55% {
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(180%) skewX(-18deg);
+      opacity: 0;
+    }
+  }
 
-                    <div className="my-4 border-t border-slate-100" />
+  @keyframes priceAmountShine {
+    0%,
+    70%,
+    100% {
+      background-position: 200% center;
+    }
+    85% {
+      background-position: -200% center;
+    }
+  }
 
-                    <div className="flex items-end justify-between gap-4">
-                      <div>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Amount</p>
-                        <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-                          ₹{Number(finalTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div className="rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700">
-                        Free delivery
-                      </div>
-                    </div>
-                  </section>
+  @keyframes priceBadgeShine {
+    0% {
+      transform: translateX(-140%) skewX(-18deg);
+    }
+    35%,
+    100% {
+      transform: translateX(180%) skewX(-18deg);
+    }
+  }
+
+  .price-card-shine {
+    animation: priceCardShine 4.8s ease-in-out infinite;
+  }
+
+  .price-amount-shine {
+    background: linear-gradient(
+      110deg,
+      #0f172a 0%,
+      #0f172a 38%,
+      #2563eb 46%,
+      #60a5fa 50%,
+      #2563eb 54%,
+      #0f172a 62%,
+      #0f172a 100%
+    );
+    background-size: 250% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: priceAmountShine 4.5s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .price-card-shine,
+    .price-amount-shine {
+      animation: none;
+    }
+  }
+`}</style>
+
+<section
+  className="
+    group relative w-full overflow-hidden
+    rounded-2xl border border-slate-200
+    bg-white p-3.5 shadow-sm
+    transition-all duration-300
+    hover:border-slate-300
+    hover:shadow-md
+    sm:rounded-3xl sm:p-5
+    md:p-6
+  "
+>
+  {/* =======================================================
+      CARD SHINE
+  ======================================================== */}
+  <div
+    className="
+      pointer-events-none absolute inset-y-0
+      -left-[45%] z-0 w-[28%]
+      rotate-0
+      bg-gradient-to-r
+      from-transparent
+      via-white/70
+      to-transparent
+      blur-[2px]
+      price-card-shine
+    "
+  />
+
+  {/* =======================================================
+      HEADER
+  ======================================================== */}
+  <div
+    className="
+      relative z-10 mb-4 flex items-center
+      justify-between gap-3
+      sm:mb-5
+    "
+  >
+    <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+
+      {/* Price icon */}
+      <div
+        className="
+          relative flex h-9 w-9 shrink-0
+          items-center justify-center
+          overflow-hidden rounded-xl
+          border border-blue-100
+          bg-blue-50 text-blue-600
+          sm:h-10 sm:w-10
+          sm:rounded-2xl
+        "
+      >
+        <span
+          className="
+            pointer-events-none absolute inset-y-0
+            -left-full w-1/2
+            rotate-12
+            bg-gradient-to-r
+            from-transparent
+            via-white/80
+            to-transparent
+            transition-transform duration-700
+            group-hover:left-[130%]
+          "
+        />
+
+        <span className="relative z-10 text-[15px] font-black sm:text-base">
+          ₹
+        </span>
+      </div>
+
+      {/* Heading */}
+      <div className="min-w-0">
+        <h3
+          className="
+            text-[15px] font-bold leading-5
+            tracking-[-0.01em] text-slate-900
+            sm:text-[17px] sm:leading-6
+            md:text-lg lg:text-xl
+          "
+        >
+          Price Details
+        </h3>
+
+        <p
+          className="
+            mt-0.5 text-[9px] leading-4
+            text-slate-500
+            sm:text-[10px]
+            md:text-xs
+          "
+        >
+          Complete breakdown of your order
+        </p>
+      </div>
+    </div>
+
+    {/* Item count */}
+    <span
+      className="
+        shrink-0 rounded-full
+        border border-slate-200
+        bg-slate-50
+        px-2.5 py-1
+        text-[8px] font-semibold
+        text-slate-500
+        sm:px-3 sm:py-1.5
+        sm:text-[9px]
+        md:text-[10px]
+      "
+    >
+      {cartItem.length} item{cartItem.length !== 1 ? "s" : ""}
+    </span>
+  </div>
+
+  {/* =======================================================
+      PRICE BREAKDOWN
+  ======================================================== */}
+  <div className="relative z-10 space-y-2.5 sm:space-y-3">
+
+    {/* Items */}
+    <div
+      className="
+        flex items-center justify-between
+        gap-4 rounded-xl px-2 py-1
+        transition-colors duration-200
+        hover:bg-slate-50
+        sm:px-2.5
+      "
+    >
+      <span
+        className="
+          text-[10px] font-medium
+          text-slate-500
+          sm:text-[11px]
+          md:text-xs
+        "
+      >
+        Items
+      </span>
+
+      <span
+        className="
+          whitespace-nowrap text-[11px]
+          font-semibold text-slate-800
+          sm:text-xs md:text-sm
+        "
+      >
+        ₹
+        {Number(totalPrice || 0).toLocaleString("en-IN", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}
+      </span>
+    </div>
+
+    {/* Product discount */}
+    <div
+      className="
+        flex items-center justify-between
+        gap-4 rounded-xl px-2 py-1
+        transition-colors duration-200
+        hover:bg-emerald-50/50
+        sm:px-2.5
+      "
+    >
+      <div className="flex min-w-0 items-center gap-2">
+        <span
+          className="
+            flex h-5 w-5 shrink-0
+            items-center justify-center
+            rounded-full bg-emerald-50
+            text-[10px] font-bold
+            text-emerald-600
+            sm:h-6 sm:w-6
+          "
+        >
+          %
+        </span>
+
+        <span
+          className="
+            truncate text-[10px]
+            font-medium text-slate-500
+            sm:text-[11px] md:text-xs
+          "
+        >
+          Product discount
+        </span>
+      </div>
+
+      <span
+        className="
+          shrink-0 whitespace-nowrap
+          text-[11px] font-bold
+          text-emerald-600
+          sm:text-xs md:text-sm
+        "
+      >
+        -₹{Number(itemDiscount || 0).toFixed(2)}
+      </span>
+    </div>
+
+    {/* Coupon discount */}
+    <div
+      className="
+        flex items-center justify-between
+        gap-4 rounded-xl px-2 py-1
+        transition-colors duration-200
+        hover:bg-emerald-50/50
+        sm:px-2.5
+      "
+    >
+      <div className="flex min-w-0 items-center gap-2">
+        <span
+          className="
+            flex h-5 w-5 shrink-0
+            items-center justify-center
+            rounded-full bg-emerald-50
+            text-[9px] font-black
+            text-emerald-600
+            sm:h-6 sm:w-6
+          "
+        >
+          %
+        </span>
+
+        <span
+          className="
+            truncate text-[10px]
+            font-medium text-slate-500
+            sm:text-[11px] md:text-xs
+          "
+        >
+          Coupon discount
+        </span>
+      </div>
+
+      <span
+        className="
+          shrink-0 whitespace-nowrap
+          text-[11px] font-bold
+          text-emerald-600
+          sm:text-xs md:text-sm
+        "
+      >
+        -₹{Number(couponDiscount || 0).toFixed(2)}
+      </span>
+    </div>
+
+    {/* Delivery */}
+    <div
+      className="
+        flex items-center justify-between
+        gap-4 rounded-xl px-2 py-1
+        transition-colors duration-200
+        hover:bg-emerald-50/50
+        sm:px-2.5
+      "
+    >
+      <div className="flex min-w-0 items-center gap-2">
+        <span
+          className="
+            flex h-5 w-5 shrink-0
+            items-center justify-center
+            rounded-full bg-emerald-50
+            text-emerald-600
+            sm:h-6 sm:w-6
+          "
+        >
+          <FaCheckCircle size={11} />
+        </span>
+
+        <span
+          className="
+            text-[10px] font-medium
+            text-slate-500
+            sm:text-[11px] md:text-xs
+          "
+        >
+          Delivery
+        </span>
+      </div>
+
+      <span
+        className="
+          rounded-full border
+          border-emerald-100
+          bg-emerald-50
+          px-2 py-0.5
+          text-[8px] font-bold
+          text-emerald-600
+          sm:px-2.5 sm:py-1
+          sm:text-[9px]
+          md:text-[10px]
+        "
+      >
+        FREE
+      </span>
+    </div>
+
+    {/* Tax */}
+    <div
+      className="
+        flex items-center justify-between
+        gap-4 rounded-xl px-2 py-1
+        transition-colors duration-200
+        hover:bg-slate-50
+        sm:px-2.5
+      "
+    >
+      <span
+        className="
+          text-[10px] font-medium
+          text-slate-500
+          sm:text-[11px]
+          md:text-xs
+        "
+      >
+        Tax
+      </span>
+
+      <span
+        className="
+          whitespace-nowrap text-[11px]
+          font-semibold text-slate-800
+          sm:text-xs md:text-sm
+        "
+      >
+        ₹{Number(itemTax || 0).toFixed(2)}
+      </span>
+    </div>
+  </div>
+
+  {/* =======================================================
+      DIVIDER
+  ======================================================== */}
+  <div className="relative z-10 my-4 sm:my-5">
+    <div className="border-t border-dashed border-slate-200" />
+  </div>
+
+  {/* =======================================================
+      TOTAL
+  ======================================================== */}
+  <div
+    className="
+      relative z-10 overflow-hidden
+      rounded-md border-blue-100
+      bg-gradient-to-br
+      from-blue-50/80
+      via-white
+      to-slate-50
+      p-3.5
+      sm:p-4
+    "
+  >
+    {/* Inner shine */}
+    <div
+      className="
+        pointer-events-none absolute inset-y-0
+        -left-[60%] w-[35%]
+        skew-x-[-18deg]
+        bg-gradient-to-r
+        from-transparent
+        via-white/70
+        to-transparent
+        transition-transform duration-1000
+        group-hover:left-[140%]
+      "
+    />
+
+    <div className="relative z-10 flex items-end justify-between gap-3">
+
+      {/* Total amount */}
+      <div className="min-w-0">
+        <p
+          className="
+            text-[8px] font-bold uppercase
+            tracking-[0.12em] text-slate-400
+            sm:text-[9px]
+            md:text-[10px]
+          "
+        >
+          Total Amount
+        </p>
+
+        <p
+          className="
+            price-amount-shine
+            mt-0.5 truncate
+            text-[24px] font-black
+            leading-tight tracking-[-0.03em]
+            sm:text-[28px]
+            md:text-[30px]
+            lg:text-[32px]
+          "
+        >
+          ₹
+          {Number(finalTotal || 0).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </p>
+      </div>
+
+      {/* Free delivery badge */}
+      <div
+        className="
+          relative shrink-0 overflow-hidden
+          rounded-full border border-emerald-100
+          bg-emerald-50
+          px-2.5 py-1.5
+          sm:px-3 sm:py-2
+        "
+      >
+        {/* Badge shine */}
+        <span
+          className="
+            pointer-events-none absolute inset-y-0
+            -left-1/2 w-1/2
+            skew-x-[-18deg]
+            bg-gradient-to-r
+            from-transparent
+            via-white/70
+            to-transparent
+            price-card-shine
+          "
+        />
+
+        <span
+          className="
+            relative z-10 flex items-center
+            gap-1.5 text-[8px]
+            font-bold text-emerald-700
+            sm:text-[9px]
+            md:text-[10px]
+          "
+        >
+          <FaCheckCircle
+            className="shrink-0 text-emerald-500"
+            size={11}
+          />
+
+          <span className="hidden xs:inline sm:inline">
+            Free delivery
+          </span>
+
+          <span className="xs:hidden sm:hidden">
+            FREE
+          </span>
+        </span>
+      </div>
+    </div>
+
+    {/* Small reassurance */}
+    <div
+      className="
+        relative z-10 mt-2.5
+        flex items-center gap-1.5
+        border-t border-blue-100/70
+        pt-2.5
+      "
+    >
+      <FaCheckCircle
+        className="shrink-0 text-emerald-500"
+        size={10}
+      />
+
+      <p
+        className="
+          text-[8px] leading-4
+          text-slate-500
+          sm:text-[9px]
+          md:text-[10px]
+        "
+      >
+        Final payable amount
+      </p>
+    </div>
+  </div>
+</section>
 
                   {/* SECURITY NOTE */}
-                  <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-slate-500 py-1">
-                    <FaShieldAlt className="text-emerald-500" />
-                    <span>Your order details are protected and securely processed.</span>
-                  </div>
+               {/* =========================================================
+    SECURE CHECKOUT TRUST BAR
+========================================================= */}
+<div
+  className="
+    group relative mx-auto flex w-full max-w-2xl
+    items-center justify-center overflow-hidden
+    rounded-xl border border-emerald-100
+    bg-emerald-50/60
+    px-3 py-2.5
+    shadow-sm
+    sm:rounded-2xl sm:px-4 sm:py-3
+  "
+>
+  {/* Animated shine */}
+  <span
+    className="
+      pointer-events-none absolute inset-y-0
+      -left-1/2 w-1/3
+      -skew-x-12
+      bg-gradient-to-r
+      from-transparent
+      via-white/70
+      to-transparent
+      opacity-0
+      transition-all duration-1000
+      group-hover:left-[120%]
+      group-hover:opacity-100
+    "
+  />
 
+  {/* Shield */}
+  <span
+    className="
+      relative z-10 flex h-6 w-6
+      shrink-0 items-center justify-center
+      rounded-full border border-emerald-100
+      bg-white shadow-sm
+      sm:h-7 sm:w-7
+    "
+  >
+    <FaShieldAlt
+      className="text-emerald-500"
+      size={11}
+    />
+  </span>
+
+  {/* Text */}
+  <div className="relative z-10 ml-2 min-w-0 text-center">
+    <p
+      className="
+        text-[9px] font-semibold
+        leading-4 text-emerald-700
+        sm:text-[10px]
+        md:text-[11px]
+      "
+    >
+      Secure Checkout
+    </p>
+
+    <p
+      className="
+        text-[8px] leading-3.5
+        text-slate-500
+        sm:text-[9px]
+        md:text-[10px]
+      "
+    >
+      Your order details are protected and securely processed.
+    </p>
+  </div>
+
+  {/* Verified indicator */}
+  <span
+    className="
+      relative z-10 ml-2 hidden
+      shrink-0 items-center gap-1
+      rounded-full border border-emerald-100
+      bg-white px-2 py-1
+      text-[8px] font-bold
+      text-emerald-600
+      sm:flex
+    "
+  >
+    <FaCheckCircle size={9} />
+    Protected
+  </span>
+</div>
                   {/* ACTIONS */}
-                  <div className="fixed-review-bar">
-                    <div className="fixed-review-inner">
-                      <button
-                        type="button"
-                        onClick={() => setStep(1)}
-                        className="review-back-btn"
-                      >
-                        <IoArrowBack size={17} />
-                        <span className="hidden sm:inline">Back</span>
-                      </button>
+                {/* =========================================================
+    MODERN REVIEW ACTION BAR
+========================================================= */}
 
-                      <div className="review-total-mini">
-                        <span>Total Amount</span>
-                        <strong>₹{Number(finalTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-                      </div>
+<style>{`
+  @keyframes reviewCtaShine {
+    0% {
+      transform: translateX(-140%) skewX(-18deg);
+      opacity: 0;
+    }
+    15% {
+      opacity: 0;
+    }
+    35% {
+      opacity: 0.75;
+    }
+    55% {
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(180%) skewX(-18deg);
+      opacity: 0;
+    }
+  }
 
-                      <button
-                        type="button"
-                        onClick={handlePlaceOrderFromReview}
-                        disabled={!selectedAddressId || !cartItem.length || serviceability.checking}
-                        className="review-place-btn"
-                      >
-                        <span>
-                          {paymentType === "cod" ? "Place Order" : "Continue"}
-                        </span>
-                        <IoArrowForward size={20} />
-                      </button>
-                    </div>
-                  </div>
+  @keyframes reviewTotalGlow {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  .review-cta-shine {
+    animation: reviewCtaShine 3.8s ease-in-out infinite;
+  }
+
+  .review-total-glow {
+    animation: reviewTotalGlow 2.5s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .review-cta-shine,
+    .review-total-glow {
+      animation: none;
+    }
+  }
+`}</style>
+
+<div
+  className="
+    fixed inset-x-0 bottom-0 z-[9999]
+    w-full rounded-2xl
+    border-t border-slate-200/80
+    bg-white/90
+    shadow-[0_-8px_35px_rgba(15,23,42,0.12)]
+    backdrop-blur-2xl
+    supports-[backdrop-filter]:bg-white/75
+  "
+  style={{
+    paddingBottom: "env(safe-area-inset-bottom)",
+  }}
+>
+  {/* =======================================================
+      TOP SHINE LINE
+  ======================================================== */}
+  <div
+    className="
+      pointer-events-none absolute inset-x-0 top-0
+      h-px overflow-hidden
+      bg-gradient-to-r
+      from-transparent
+      via-blue-200
+      to-transparent rounded-2xl
+    "
+  >
+    <span
+      className="
+        absolute inset-y-0 left-[-30%]
+        w-[30%]
+        bg-gradient-to-r
+        from-transparent
+        via-blue-500/70
+        to-transparent
+        review-cta-shine
+      "
+    />
+  </div>
+{/* =========================================================
+    MODERN REVIEW CHECKOUT ACTION DOCK
+========================================================= */}
+
+<style>{`
+  @keyframes reviewDockShine {
+    0% {
+      transform: translateX(-180%) skewX(-18deg);
+      opacity: 0;
+    }
+
+    15% {
+      opacity: 0;
+    }
+
+    35% {
+      opacity: 0.8;
+    }
+
+    55% {
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateX(220%) skewX(-18deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes reviewDockGlow {
+    0%,
+    100% {
+      opacity: 0.45;
+      transform: scale(0.95);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes reviewDockBorder {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes reviewDockArrow {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+
+    50% {
+      transform: translateX(3px);
+    }
+  }
+
+  .review-dock-shine {
+    animation: reviewDockShine 3.6s ease-in-out infinite;
+  }
+
+  .review-dock-glow {
+    animation: reviewDockGlow 2.4s ease-in-out infinite;
+  }
+
+  .review-dock-border {
+    animation: reviewDockBorder 2.8s ease-in-out infinite;
+  }
+
+  .review-dock-arrow {
+    animation: reviewDockArrow 1.8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .review-dock-shine,
+    .review-dock-glow,
+    .review-dock-border,
+    .review-dock-arrow {
+      animation: none;
+    }
+  }
+`}</style>
+
+<div
+  className="
+    mx-auto flex w-full max-w-7xl
+    items-center gap-2
+    px-2.5 py-2
+    sm:gap-3 sm:px-5 sm:py-3
+    lg:gap-4 lg:px-8
+  "
+>
+  {/* =======================================================
+      BACK BUTTON
+  ======================================================== */}
+  <button
+    type="button"
+    onClick={() => setStep(1)}
+    className="
+      group
+      relative
+      flex
+      h-11
+      w-11
+      shrink-0
+      items-center
+      justify-center
+      overflow-hidden
+      rounded-xl
+      border
+      border-slate-200
+      bg-white
+      text-slate-600
+      shadow-sm
+      transition-all
+      duration-200
+
+      hover:border-slate-300
+      hover:bg-slate-50
+      hover:text-slate-900
+      hover:shadow-md
+
+      active:scale-95
+
+      sm:h-12
+      sm:w-auto
+      sm:gap-2
+      sm:px-4
+
+      md:h-[52px]
+      md:px-5
+    "
+    aria-label="Go back to cart"
+  >
+    {/* Button shine */}
+    <span
+      className="
+        pointer-events-none
+        absolute
+        inset-y-0
+        -left-1/2
+        w-1/3
+        -skew-x-12
+        bg-gradient-to-r
+        from-transparent
+        via-white/80
+        to-transparent
+        opacity-0
+        transition-all
+        duration-700
+        group-hover:left-[130%]
+        group-hover:opacity-100
+      "
+    />
+
+    <IoArrowBack
+      size={17}
+      className="
+        relative
+        z-10
+        shrink-0
+        transition-transform
+        duration-200
+        group-hover:-translate-x-0.5
+      "
+    />
+
+    <span
+      className="
+        relative
+        z-10
+        hidden
+        text-[11px]
+        font-bold
+        sm:inline
+        md:text-xs
+      "
+    >
+      Back
+    </span>
+  </button>
+
+  {/* =======================================================
+      TOTAL CARD
+  ======================================================== */}
+  <div
+    className="
+      group/total
+      relative
+      min-w-0
+      flex-1
+      overflow-hidden
+      rounded-xl
+      border
+      border-slate-200
+      bg-white
+      px-3
+      py-2
+      shadow-sm
+      transition-all
+      duration-300
+
+      hover:border-slate-300
+      hover:shadow-md
+
+      sm:rounded-2xl
+      sm:px-4
+      sm:py-2.5
+
+      md:px-5
+      md:py-3
+    "
+  >
+    {/* =====================================================
+        TOTAL CARD SHINE
+    ====================================================== */}
+    <span
+      className="
+        pointer-events-none
+        absolute
+        inset-y-0
+        -left-1/2
+        w-1/3
+        -skew-x-12
+        bg-gradient-to-r
+        from-transparent
+        via-white/80
+        to-transparent
+        opacity-60
+        review-dock-shine
+      "
+    />
+
+    {/* Soft blue glow */}
+    <span
+      className="
+        pointer-events-none
+        absolute
+        -right-10
+        -top-10
+        h-20
+        w-20
+        rounded-full
+        bg-blue-100/40
+        blur-2xl
+      "
+    />
+
+    <div
+      className="
+        relative
+        z-10
+        flex
+        min-w-0
+        items-center
+        justify-between
+        gap-2
+      "
+    >
+      {/* Total information */}
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          <p
+            className="
+              truncate
+              text-[7px]
+              font-bold
+              uppercase
+              tracking-[0.13em]
+              text-slate-400
+
+              sm:text-[8px]
+              md:text-[9px]
+            "
+          >
+            Total Amount
+          </p>
+
+          {/* Animated status dot */}
+          <span
+            className="
+              hidden
+              h-1.5
+              w-1.5
+              rounded-full
+              bg-emerald-500
+              shadow-[0_0_9px_rgba(16,185,129,0.65)]
+              review-dock-glow
+              sm:block
+            "
+          />
+        </div>
+
+        <div className="mt-0.5 flex items-baseline gap-1.5">
+          <strong
+            className="
+              truncate
+              text-[15px]
+              font-black
+              leading-5
+              tracking-[-0.025em]
+              text-slate-900
+
+              sm:text-lg
+              md:text-xl
+              lg:text-[22px]
+            "
+          >
+            ₹
+            {Number(finalTotal || 0).toLocaleString("en-IN", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </strong>
+
+          <span
+            className="
+              hidden
+              text-[8px]
+              font-medium
+              text-slate-400
+              sm:inline
+              md:text-[9px]
+            "
+          >
+            incl. taxes
+          </span>
+        </div>
+      </div>
+
+      {/* ===================================================
+          SECURE BADGE
+      ==================================================== */}
+      <div
+        className="
+          hidden
+          shrink-0
+          items-center
+          gap-1.5
+          rounded-full
+          border
+          border-emerald-100
+          bg-emerald-50
+          px-2
+          py-1
+          text-[8px]
+          font-bold
+          text-emerald-700
+
+          sm:flex
+          md:px-2.5
+          md:py-1.5
+          md:text-[9px]
+        "
+      >
+        <FaShieldAlt
+          size={9}
+          className="
+            text-emerald-500
+            review-dock-glow
+          "
+        />
+
+        <span>Secure</span>
+      </div>
+    </div>
+  </div>
+
+  {/* =======================================================
+      MAIN CTA
+  ======================================================== */}
+  <button
+    type="button"
+    onClick={handlePlaceOrderFromReview}
+    disabled={
+      !selectedAddressId ||
+      !cartItem.length ||
+      serviceability.checking
+    }
+    className="
+      group/cta
+      relative
+      flex
+      h-11
+      min-w-[126px]
+      shrink-0
+      items-center
+      justify-center
+      gap-2
+      overflow-hidden
+      rounded-xl
+
+      bg-gradient-to-r
+      from-blue-600
+      via-blue-600
+      to-indigo-600
+
+      px-4
+
+      text-[10px]
+      font-bold
+      text-white
+
+      shadow-[0_7px_22px_rgba(37,99,235,0.30)]
+
+      transition-all
+      duration-300
+
+      hover:-translate-y-0.5
+      hover:from-blue-600
+      hover:via-indigo-600
+      hover:to-violet-600
+      hover:shadow-[0_10px_30px_rgba(37,99,235,0.38)]
+
+      active:translate-y-0
+      active:scale-[0.97]
+
+      disabled:cursor-not-allowed
+      disabled:translate-y-0
+      disabled:from-slate-400
+      disabled:via-slate-400
+      disabled:to-slate-500
+      disabled:opacity-60
+      disabled:shadow-none
+
+      sm:h-12
+      sm:min-w-[160px]
+      sm:px-5
+      sm:text-xs
+
+      md:h-[52px]
+      md:min-w-[180px]
+      md:px-6
+      md:text-sm
+
+      lg:min-w-[195px]
+    "
+  >
+    {/* =====================================================
+        CTA MOVING SHINE
+    ====================================================== */}
+    <span
+      className="
+        pointer-events-none
+        absolute
+        inset-y-0
+        -left-1/2
+        w-1/3
+        -skew-x-12
+        bg-gradient-to-r
+        from-transparent
+        via-white/35
+        to-transparent
+        review-dock-shine
+      "
+    />
+
+    {/* =====================================================
+        TOP HIGHLIGHT
+    ====================================================== */}
+    <span
+      className="
+        pointer-events-none
+        absolute
+        inset-x-3
+        top-0
+        h-px
+        bg-gradient-to-r
+        from-transparent
+        via-white/70
+        to-transparent
+      "
+    />
+
+    {/* =====================================================
+        OUTER GLOW
+    ====================================================== */}
+    <span
+      className="
+        pointer-events-none
+        absolute
+        -inset-1
+        rounded-2xl
+        border
+        border-white/10
+        review-dock-border
+      "
+    />
+
+    {/* =====================================================
+        BUTTON CONTENT
+    ====================================================== */}
+    {serviceability.checking ? (
+      <>
+        <span
+          className="
+            relative
+            z-10
+            whitespace-nowrap
+          "
+        >
+          Checking...
+        </span>
+
+        <span
+          className="
+            relative
+            z-10
+            h-3.5
+            w-3.5
+            animate-spin
+            rounded-full
+            border-2
+            border-white/35
+            border-t-white
+          "
+        />
+      </>
+    ) : (
+      <>
+        <span
+          className="
+            relative
+            z-10
+            whitespace-nowrap
+          "
+        >
+          {paymentType === "cod"
+            ? "Place Order"
+            : "Continue"}
+        </span>
+
+        <IoArrowForward
+          size={18}
+          className="
+            relative
+            z-10
+            shrink-0
+            review-dock-arrow
+          "
+        />
+      </>
+    )}
+  </button>
+</div>
+</div>
                 </div>
               )}
 
@@ -8435,647 +12832,4514 @@ total:
         </div>
 
 
+
+ 
+        {/* =======================================================
+            REACT NATIVE STYLE ADDRESS SELECTOR
+            List -> select / add / edit, with animated sheet + shine.
+        ======================================================= */}
+      {/* =========================================================
+    MODERN DELIVERY ADDRESS MODAL
+========================================================= */}
+
+<style>{`
+  @keyframes addressModalShine {
+    0% {
+      transform: translateX(-180%) skewX(-18deg);
+      opacity: 0;
+    }
+
+    15% {
+      opacity: 0;
+    }
+
+    35% {
+      opacity: 0.75;
+    }
+
+    55% {
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateX(220%) skewX(-18deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes addressModalGlow {
+    0%,
+    100% {
+      opacity: 0.45;
+      transform: scale(0.96);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes addressSkeletonShine {
+    0% {
+      transform: translateX(-120%);
+    }
+
+    100% {
+      transform: translateX(220%);
+    }
+  }
+
+  @keyframes addressPinPulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.12);
+    }
+
+    50% {
+      box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.04);
+    }
+  }
+
+  @keyframes addressSuccessPulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.04);
+    }
+  }
+
+  .address-modal-shine-animation {
+    animation: addressModalShine 4.5s ease-in-out infinite;
+  }
+
+  .address-modal-glow {
+    animation: addressModalGlow 2.8s ease-in-out infinite;
+  }
+
+  .address-skeleton-shine {
+    animation: addressSkeletonShine 1.6s ease-in-out infinite;
+  }
+
+  .address-pin-pulse {
+    animation: addressPinPulse 2s ease-in-out infinite;
+  }
+
+  .address-success-pulse {
+    animation: addressSuccessPulse 2s ease-in-out infinite;
+  }
+
+  /* =========================================================
+     MODERN ADDRESS FORM CONTROLS
+     These classes were missing from the previous version.
+  ========================================================= */
+  .address-modern-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 7px;
+    padding-left: 2px;
+    color: #334155;
+    font-size: 11px;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .address-modern-label em {
+    display: inline-flex;
+    align-items: center;
+    min-height: 17px;
+    padding: 2px 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    background: #f8fafc;
+    color: #94a3b8;
+    font-size: 8px;
+    line-height: 1;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+
+  .address-modern-input {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    box-sizing: border-box;
+    border: 1px solid #dbe3ee;
+    border-radius: 14px;
+    outline: none;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    padding: 11px 13px;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), inset 0 1px 0 rgba(255,255,255,.9);
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease, transform .2s ease;
+  }
+
+  .address-modern-input::placeholder {
+    color: #a8b3c2;
+    opacity: 1;
+    font-weight: 400;
+  }
+
+  .address-modern-input:hover {
+    border-color: #bfccdc;
+    background: #ffffff;
+  }
+
+  .address-modern-input:focus {
+    border-color: #3b82f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.10), 0 8px 24px rgba(37,99,235,.08), inset 0 1px 0 rgba(255,255,255,.95);
+    transform: translateY(-1px);
+  }
+
+  .address-modern-input:disabled {
+    cursor: not-allowed;
+    background: #f8fafc;
+    color: #94a3b8;
+    opacity: .75;
+  }
+
+  .address-modern-input:-webkit-autofill {
+    -webkit-text-fill-color: #0f172a;
+    box-shadow: 0 0 0 1000px #ffffff inset, 0 0 0 3px rgba(59,130,246,.08);
+    transition: background-color 9999s ease-out 0s;
+  }
+
+  textarea.address-modern-input {
+    min-height: 88px;
+    line-height: 1.5;
+  }
+
+  .address-modern-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 32px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: rgba(255,255,255,.92);
+    padding: 6px 10px;
+    color: #475569;
+    font-size: 9px;
+    line-height: 1;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(15,23,42,.03);
+    transition: all .2s ease;
+  }
+
+  .address-modern-action:hover {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #2563eb;
+    transform: translateY(-1px);
+  }
+
+  .address-modern-action:active {
+    transform: scale(.97);
+  }
+
+  .address-modern-action-danger:hover {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
+  }
+
+  @media (min-width: 640px) {
+    .address-modern-label {
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .address-modern-label em {
+      font-size: 8px;
+    }
+
+    .address-modern-input {
+      min-height: 48px;
+      border-radius: 15px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+
+    textarea.address-modern-input {
+      min-height: 94px;
+    }
+
+    .address-modern-action {
+      min-height: 34px;
+      padding: 7px 11px;
+      font-size: 10px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .address-modal-shine-animation,
+    .address-modal-glow,
+    .address-skeleton-shine,
+    .address-pin-pulse,
+    .address-success-pulse {
+      animation: none;
+    }
+  }
+`}</style>
+
+<Modal
+  isOpen={addressSelectorOpen}
+  onClose={() => {
+    if (!addressSaving) {
+      setAddressSelectorOpen(false);
+      setShowAddressForm(false);
+      setEditingAddressId(null);
+    }
+  }}
+  placement="center"
+  backdrop="blur"
+  hideCloseButton
+  className="
+    z-[9999]
+    w-[calc(100%-16px)]
+    max-w-[760px]
+    sm:w-[calc(100%-32px)]
+  "
+  scrollBehavior="inside"
+>
+  <ModalContent
+    className="
+      relative
+      max-h-[calc(100dvh-16px)]
+      overflow-hidden
+      rounded-[24px]
+      border border-white/80
+      bg-white
+      shadow-[0_24px_80px_rgba(15,23,42,0.20)]
+      sm:max-h-[calc(100dvh-32px)]
+      sm:rounded-[28px]
+    "
+  >
+    {() => (
+      <>
+        {/* ===================================================
+            BACKGROUND DECORATION
+        ==================================================== */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -right-20
+            -top-20
+            h-48
+            w-48
+            rounded-full
+            bg-blue-100/40
+            blur-3xl
+          "
+        />
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -bottom-24
+            -left-20
+            h-52
+            w-52
+            rounded-full
+            bg-indigo-100/30
+            blur-3xl
+          "
+        />
+
+        {/* ===================================================
+            ANIMATED SHINE
+        ==================================================== */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            inset-y-0
+            -left-[45%]
+            z-20
+            w-[25%]
+            skew-x-[-18deg]
+            bg-gradient-to-r
+            from-transparent
+            via-white/60
+            to-transparent
+            address-modal-shine-animation
+          "
+        />
+
+        {/* ===================================================
+            HEADER
+        ==================================================== */}
+
+        <ModalHeader
+          className="
+            relative
+            z-30
+            border-b
+            border-slate-100
+            bg-white/90
+            px-4
+            py-3.5
+            backdrop-blur-xl
+            sm:px-5
+            sm:py-4
+            md:px-6
+          "
+        >
+          <div className="flex w-full items-center justify-between gap-3">
+
+            {/* Header left */}
+            <div className="flex min-w-0 items-center gap-3">
+
+              {/* Animated icon */}
+              <div
+                className="
+                  relative
+                  flex
+                  h-10
+                  w-10
+                  shrink-0
+                  items-center
+                  justify-center
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-blue-100
+                  bg-gradient-to-br
+                  from-blue-50
+                  to-indigo-50
+                  text-blue-600
+                  shadow-sm
+                  sm:h-11
+                  sm:w-11
+                "
+              >
+                <span
+                  className="
+                    pointer-events-none
+                    absolute
+                    inset-y-0
+                    -left-full
+                    w-1/2
+                    skew-x-[-18deg]
+                    bg-gradient-to-r
+                    from-transparent
+                    via-white
+                    to-transparent
+                    transition-all
+                    duration-700
+                    hover:left-[130%]
+                  "
+                />
+
+                {showAddressForm ? (
+                  <FaHome
+                    size={16}
+                    className="relative z-10 sm:hidden"
+                  />
+                ) : (
+                  <FaMapMarkerAlt
+                    size={16}
+                    className="relative z-10 sm:hidden"
+                  />
+                )}
+
+                {showAddressForm ? (
+                  <FaHome
+                    size={18}
+                    className="relative z-10 hidden sm:block"
+                  />
+                ) : (
+                  <FaMapMarkerAlt
+                    size={18}
+                    className="relative z-10 hidden sm:block"
+                  />
+                )}
+              </div>
+
+              {/* Header text */}
+              <div className="min-w-0">
+                <h3
+                  className="
+                    truncate
+                    text-[15px]
+                    font-bold
+                    leading-5
+                    tracking-[-0.015em]
+                    text-slate-900
+                    sm:text-[17px]
+                    md:text-lg
+                  "
+                >
+                  {showAddressForm
+                    ? editingAddressId
+                      ? "Edit delivery address"
+                      : "Add delivery address"
+                    : "Choose delivery address"}
+                </h3>
+
+                <p
+                  className="
+                    mt-0.5
+                    truncate
+                    text-[9px]
+                    leading-4
+                    text-slate-500
+                    sm:text-[10px]
+                    md:text-xs
+                  "
+                >
+                  {showAddressForm
+                    ? "Save this address and use it for your order."
+                    : savedAddresses.length
+                      ? `${savedAddresses.length} saved address${
+                          savedAddresses.length > 1 ? "es" : ""
+                        }`
+                      : "Select an address or add a new one"}
+                </p>
+              </div>
+            </div>
+
+            {/* Add button */}
+            {!showAddressForm && (
+              <button
+                type="button"
+                onClick={startNewAddress}
+                className="
+                  group
+                  relative
+                  flex
+                  h-9
+                  shrink-0
+                  items-center
+                  justify-center
+                  gap-1.5
+                  overflow-hidden
+                  rounded-xl
+                  border
+                  border-blue-100
+                  bg-blue-50
+                  px-2.5
+                  text-[9px]
+                  font-bold
+                  text-blue-700
+                  shadow-sm
+                  transition-all
+                  duration-200
+                  hover:border-blue-200
+                  hover:bg-blue-100
+                  active:scale-[0.97]
+                  sm:h-10
+                  sm:px-3
+                  sm:text-[10px]
+                  md:text-xs
+                "
+              >
+                <span
+                  className="
+                    pointer-events-none
+                    absolute
+                    inset-y-0
+                    -left-1/2
+                    w-1/2
+                    skew-x-[-18deg]
+                    bg-gradient-to-r
+                    from-transparent
+                    via-white/70
+                    to-transparent
+                    transition-all
+                    duration-700
+                    group-hover:left-[130%]
+                  "
+                />
+
+                <FiPlus
+                  size={15}
+                  strokeWidth={2.5}
+                  className="relative z-10"
+                />
+
+                <span className="relative z-10">
+                  Add address
+                </span>
+              </button>
+            )}
+          </div>
+        </ModalHeader>
+
+        {/* ===================================================
+            BODY
+        ==================================================== */}
+
+        <ModalBody
+          className="
+            relative
+            z-10
+            max-h-[calc(100dvh-190px)]
+            overflow-y-auto
+            bg-slate-50/50
+            px-3
+            py-3
+            scrollbar-thin
+            sm:px-4
+            sm:py-4
+            md:px-5
+            md:py-5
+          "
+        >
+          {showAddressForm ? (
+            /* =================================================
+               ADDRESS FORM
+            ================================================== */
+            <div className="space-y-4">
+
+              {/* Form intro */}
+              <div
+                className="
+                  relative
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-blue-100
+                  bg-gradient-to-br
+                  from-blue-50/80
+                  via-white
+                  to-indigo-50/50
+                  p-3
+                  sm:p-4
+                "
+              >
+                <span
+                  className="
+                    pointer-events-none
+                    absolute
+                    -right-10
+                    -top-10
+                    h-24
+                    w-24
+                    rounded-full
+                    bg-blue-100/50
+                    blur-2xl
+                  "
+                />
+
+                <div className="relative z-10 flex items-center gap-2.5">
+                  <div
+                    className="
+                      flex
+                      h-8
+                      w-8
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-xl
+                      bg-white
+                      text-blue-600
+                      shadow-sm
+                    "
+                  >
+                    <FaMapMarkerAlt size={13} />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p
+                      className="
+                        text-[10px]
+                        font-bold
+                        text-slate-800
+                        sm:text-xs
+                      "
+                    >
+                      {editingAddressId
+                        ? "Update your delivery details"
+                        : "Where should we deliver?"}
+                    </p>
+
+                    <p
+                      className="
+                        mt-0.5
+                        text-[8px]
+                        leading-4
+                        text-slate-500
+                        sm:text-[9px]
+                        md:text-[10px]
+                      "
+                    >
+                      Enter accurate details so your order reaches you safely.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* =================================================
+                  ADDRESS TYPE
+              ================================================== */}
+
+              <div>
+                <p
+                  className="
+                    mb-2
+                    text-[9px]
+                    font-bold
+                    uppercase
+                    tracking-[0.1em]
+                    text-slate-400
+                    sm:text-[10px]
+                  "
+                >
+                  Address type
+                </p>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {["Home", "Work", "Other"].map((label) => {
+                    const active = addressLabel === label;
+
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setAddressLabel(label)}
+                        className={`
+                          group relative flex items-center justify-center
+                          gap-1.5 overflow-hidden rounded-xl border
+                          px-2 py-2.5 text-[9px] font-bold
+                          transition-all duration-200
+                          active:scale-[0.98]
+                          sm:gap-2 sm:py-3 sm:text-[10px]
+                          ${
+                            active
+                              ? "border-blue-300 bg-blue-50 text-blue-700 shadow-sm"
+                              : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
+                          }
+                        `}
+                      >
+                        {active && (
+                          <span
+                            className="
+                              pointer-events-none
+                              absolute
+                              inset-y-0
+                              -left-1/2
+                              w-1/2
+                              skew-x-[-18deg]
+                              bg-gradient-to-r
+                              from-transparent
+                              via-white/70
+                              to-transparent
+                              address-modal-shine-animation
+                            "
+                          />
+                        )}
+
+                        <span className="relative z-10">
+                          {label === "Home" ? (
+                            <FaHome size={11} />
+                          ) : label === "Work" ? (
+                            <FaThLarge size={11} />
+                          ) : (
+                            <FaMapMarkerAlt size={11} />
+                          )}
+                        </span>
+
+                        <span className="relative z-10">
+                          {label}
+                        </span>
+
+                        {active && (
+                          <FaCheckCircle
+                            size={10}
+                            className="
+                              relative
+                              z-10
+                              text-blue-500
+                            "
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* =================================================
+                  FORM GRID
+              ================================================== */}
+
+              <div
+                className="
+                  grid
+                  grid-cols-1
+                  gap-3
+                  sm:grid-cols-2
+                  sm:gap-3.5
+                "
+              >
+
+                {/* Full name */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    Full name
+                  </span>
+
+                  <input
+                    value={address.name || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter full name"
+                    autoComplete="name"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Phone */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    Phone number
+                  </span>
+
+                  <input
+                    value={address.phone || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        phone: e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 10),
+                      }))
+                    }
+                    placeholder="10-digit mobile number"
+                    inputMode="numeric"
+                    autoComplete="tel"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Alternate phone */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    Alternate phone
+                    <em>Optional</em>
+                  </span>
+
+                  <input
+                    value={address.alternatePhone || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        alternatePhone: e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 10),
+                      }))
+                    }
+                    placeholder="Alternate number"
+                    inputMode="numeric"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* House */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    House / flat no.
+                    <em>Optional</em>
+                  </span>
+
+                  <input
+                    value={address.houseNumber || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        houseNumber: e.target.value,
+                      }))
+                    }
+                    placeholder="House / flat number"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Building */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    Building / apartment
+                    <em>Optional</em>
+                  </span>
+
+                  <input
+                    value={address.buildingName || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        buildingName: e.target.value,
+                      }))
+                    }
+                    placeholder="Building / apartment name"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Floor */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    Floor
+                    <em>Optional</em>
+                  </span>
+
+                  <input
+                    value={address.floor || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        floor: e.target.value,
+                      }))
+                    }
+                    placeholder="Floor"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Street */}
+                <label className="group block sm:col-span-2">
+                  <span className="address-modern-label">
+                    Street / road
+                    <em>Optional</em>
+                  </span>
+
+                  <input
+                    value={address.street || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        street: e.target.value,
+                        addressLine1:
+                          e.target.value || prev.addressLine1,
+                      }))
+                    }
+                    placeholder="Street / road name"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Address line 1 */}
+                <label className="group block sm:col-span-2">
+                  <span className="address-modern-label">
+                    Address line 1
+                  </span>
+
+                  <input
+                    value={address.addressLine1 || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        addressLine1: e.target.value,
+                      }))
+                    }
+                    placeholder="Main address / house details"
+                    autoComplete="street-address"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Address line 2 */}
+                <label className="group block sm:col-span-2">
+                  <span className="address-modern-label">
+                    Address line 2
+                    <em>Optional</em>
+                  </span>
+
+                  <input
+                    value={address.addressLine2 || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        addressLine2: e.target.value,
+                      }))
+                    }
+                    placeholder="Apartment, floor, additional details"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Area */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    Area / locality
+                  </span>
+
+                  <input
+                    value={address.area || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        area: e.target.value,
+                      }))
+                    }
+                    placeholder="Area / locality"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Landmark */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    Landmark
+                    <em>Optional</em>
+                  </span>
+
+                  <input
+                    value={address.landmark || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        landmark: e.target.value,
+                      }))
+                    }
+                    placeholder="Nearby landmark"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Village */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    Village
+                    <em>Optional</em>
+                  </span>
+
+                  <input
+                    value={address.village || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        village: e.target.value,
+                      }))
+                    }
+                    placeholder="Village"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Post office */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    Post office
+                    <em>Auto</em>
+                  </span>
+
+                  <input
+                    value={address.postOffice || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        postOffice: e.target.value,
+                      }))
+                    }
+                    placeholder="Post office"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* Block */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    Block
+                    <em>Optional</em>
+                  </span>
+
+                  <input
+                    value={address.block || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        block: e.target.value,
+                      }))
+                    }
+                    placeholder="Block"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* City */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    City / town
+                  </span>
+
+                  <input
+                    value={address.city || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        city: e.target.value,
+                      }))
+                    }
+                    placeholder="City / town"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* District */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    District
+                  </span>
+
+                  <input
+                    value={address.district || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        district: e.target.value,
+                      }))
+                    }
+                    placeholder="District"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* State */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    State
+                  </span>
+
+                  <input
+                    value={address.state || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        state: e.target.value,
+                      }))
+                    }
+                    placeholder="State"
+                    className="address-modern-input"
+                  />
+                </label>
+
+                {/* PIN */}
+                <label className="group block">
+                  <span className="address-modern-label">
+                    PIN code
+                  </span>
+
+                  <div className="relative">
+                    <input
+                      value={address.postcode || ""}
+                      onChange={handlePostalCodeChange}
+                      placeholder="6-digit PIN"
+                      inputMode="numeric"
+                      maxLength={6}
+                      autoComplete="postal-code"
+                      className="
+                        address-modern-input
+                        pr-11
+                      "
+                    />
+
+                    {postalLookupLoading && (
+                      <span
+                        className="
+                          absolute
+                          right-3
+                          top-1/2
+                          flex
+                          h-5
+                          w-5
+                          -translate-y-1/2
+                          items-center
+                          justify-center
+                          rounded-full
+                          bg-blue-50
+                          address-pin-pulse
+                        "
+                        aria-label="Looking up PIN"
+                      >
+                        <span
+                          className="
+                            h-3
+                            w-3
+                            animate-spin
+                            rounded-full
+                            border-2
+                            border-blue-200
+                            border-t-blue-600
+                          "
+                        />
+                      </span>
+                    )}
+
+                    {!postalLookupLoading &&
+                      address.postcode?.length === 6 &&
+                      (address.city ||
+                        address.district ||
+                        address.state) && (
+                        <span
+                          className="
+                            absolute
+                            right-3
+                            top-1/2
+                            flex
+                            h-5
+                            w-5
+                            -translate-y-1/2
+                            items-center
+                            justify-center
+                            rounded-full
+                            bg-emerald-50
+                            address-success-pulse
+                          "
+                        >
+                          <FaCheckCircle
+                            size={12}
+                            className="text-emerald-500"
+                          />
+                        </span>
+                      )}
+                  </div>
+                </label>
+
+                {/* Delivery instructions */}
+                <label className="group block sm:col-span-2">
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="address-modern-label mb-0">
+                      Delivery instructions
+                      <em>Optional</em>
+                    </span>
+
+                    <span
+                      className="
+                        text-[8px]
+                        font-medium
+                        text-slate-400
+                        sm:text-[9px]
+                      "
+                    >
+                      {String(
+                        address.deliveryInstructions || ""
+                      ).length}
+                      /500
+                    </span>
+                  </div>
+
+                  <textarea
+                    value={address.deliveryInstructions || ""}
+                    onChange={(e) =>
+                      setAddress((prev) => ({
+                        ...prev,
+                        deliveryInstructions:
+                          e.target.value.slice(0, 500),
+                      }))
+                    }
+                    placeholder="Example: Call before delivery, leave at security, etc."
+                    maxLength={500}
+                    rows={3}
+                    className="
+                      address-modern-input
+                      min-h-[82px]
+                      resize-none
+                      py-3
+                    "
+                  />
+                </label>
+              </div>
+
+              {/* PIN information */}
+              {address.postcode?.length === 6 && (
+                <div
+                  className="
+                    flex
+                    items-start
+                    gap-2.5
+                    rounded-2xl
+                    border
+                    border-blue-100
+                    bg-blue-50/60
+                    px-3
+                    py-2.5
+                    sm:items-center
+                    sm:px-3.5
+                    sm:py-3
+                  "
+                >
+                  <div
+                    className="
+                      flex
+                      h-7
+                      w-7
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-white
+                      text-blue-600
+                      shadow-sm
+                    "
+                  >
+                    <MdMyLocation size={14} />
+                  </div>
+
+                  <p
+                    className="
+                      text-[9px]
+                      leading-4
+                      text-blue-700
+                      sm:text-[10px]
+                      md:text-[11px]
+                    "
+                  >
+                    {postalLookupLoading
+                      ? "Finding your PIN location..."
+                      : address.city ||
+                          address.district ||
+                          address.state
+                        ? "PIN details found. You can adjust the address if needed."
+                        : "PIN entered. We'll check delivery availability before checkout."}
+                  </p>
+                </div>
+              )}
+
+              {/* =================================================
+                  FORM ACTIONS
+              ================================================== */}
+
+              <div
+                className="
+                  sticky
+                  bottom-0
+                  z-20
+                  -mx-3
+                  flex
+                  gap-2
+                  border-t
+                  border-slate-100
+                  bg-white/95
+                  px-3
+                  pb-[calc(4px+env(safe-area-inset-bottom))]
+                  pt-3
+                  backdrop-blur-xl
+                  sm:-mx-4
+                  sm:px-4
+                  md:-mx-5
+                  md:px-5
+                "
+              >
+                <button
+                  type="button"
+                  disabled={addressSaving}
+                  onClick={() => {
+                    setShowAddressForm(false);
+                    setEditingAddressId(null);
+                  }}
+                  className="
+                    group
+                    flex
+                    h-11
+                    flex-1
+                    items-center
+                    justify-center
+                    rounded-xl
+                    border
+                    border-slate-200
+                    bg-white
+                    px-3
+                    text-[10px]
+                    font-bold
+                    text-slate-600
+                    shadow-sm
+                    transition-all
+                    hover:bg-slate-50
+                    active:scale-[0.98]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
+                    sm:h-12
+                    sm:text-xs
+                  "
+                >
+                  Back to addresses
+                </button>
+
+                <button
+                  type="button"
+                  disabled={addressSaving}
+                  onClick={async () => {
+                    const saved = await saveCurrentAddress();
+
+                    if (saved) {
+                      setShowAddressForm(false);
+                    }
+                  }}
+                  className="
+                    group
+                    relative
+                    flex
+                    h-11
+                    flex-1
+                    items-center
+                    justify-center
+                    gap-2
+                    overflow-hidden
+                    rounded-xl
+                    bg-gradient-to-r
+                    from-blue-600
+                    to-indigo-600
+                    px-3
+                    text-[10px]
+                    font-bold
+                    text-white
+                    shadow-[0_7px_20px_rgba(37,99,235,0.25)]
+                    transition-all
+                    duration-200
+                    hover:-translate-y-0.5
+                    hover:shadow-[0_10px_25px_rgba(37,99,235,0.32)]
+                    active:scale-[0.98]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-60
+                    sm:h-12
+                    sm:text-xs
+                  "
+                >
+                  {/* Shine */}
+                  <span
+                    className="
+                      pointer-events-none
+                      absolute
+                      inset-y-0
+                      -left-1/2
+                      w-1/3
+                      skew-x-[-18deg]
+                      bg-gradient-to-r
+                      from-transparent
+                      via-white/35
+                      to-transparent
+                      address-modal-shine-animation
+                    "
+                  />
+
+                  {addressSaving ? (
+                    <>
+                      <span
+                        className="
+                          relative
+                          z-10
+                          h-3.5
+                          w-3.5
+                          animate-spin
+                          rounded-full
+                          border-2
+                          border-white/40
+                          border-t-white
+                        "
+                      />
+
+                      <span className="relative z-10">
+                        Saving...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <FaCheckCircle
+                        size={14}
+                        className="relative z-10"
+                      />
+
+                      <span className="relative z-10">
+                        {editingAddressId
+                          ? "Update & Select"
+                          : "Save & Select"}
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* =================================================
+               SAVED ADDRESS LIST
+            ================================================== */
+            <div className="space-y-3">
+
+              {addressLoading ? (
+                /* =============================================
+                   MODERN SKELETON
+                ============================================== */
+                <div className="space-y-2.5">
+                  {[1, 2, 3].map((item) => (
+                    <div
+                      key={item}
+                      className="
+                        relative
+                        overflow-hidden
+                        rounded-2xl
+                        border
+                        border-slate-100
+                        bg-white
+                        p-3.5
+                        shadow-sm
+                        sm:p-4
+                      "
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="
+                            h-9
+                            w-9
+                            shrink-0
+                            rounded-xl
+                            bg-slate-200
+                            sm:h-10
+                            sm:w-10
+                          "
+                        />
+
+                        <div className="min-w-0 flex-1 space-y-2.5">
+                          <div className="h-3 w-24 rounded-full bg-slate-200" />
+
+                          <div className="h-2.5 w-full rounded-full bg-slate-100" />
+
+                          <div className="h-2.5 w-4/5 rounded-full bg-slate-100" />
+
+                          <div className="h-2.5 w-2/5 rounded-full bg-slate-100" />
+                        </div>
+
+                        <div
+                          className="
+                            h-5
+                            w-5
+                            shrink-0
+                            rounded-full
+                            bg-slate-200
+                          "
+                        />
+                      </div>
+
+                      {/* Skeleton shine */}
+                      <span
+                        className="
+                          pointer-events-none
+                          absolute
+                          inset-y-0
+                          -left-1/2
+                          w-1/3
+                          skew-x-[-18deg]
+                          bg-gradient-to-r
+                          from-transparent
+                          via-white/70
+                          to-transparent
+                          address-skeleton-shine
+                        "
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : savedAddresses.length ? (
+                /* =============================================
+                   ADDRESS CARDS
+                ============================================== */
+                <div className="space-y-2.5">
+                  {savedAddresses.map((item) => {
+                    const saved = normalizeSavedAddress(item);
+
+                    const selected =
+                      String(saved._id) ===
+                      String(selectedAddressId);
+
+                    return (
+                      <div
+                        key={saved._id}
+                        className={`
+                          group/address
+                          relative
+                          overflow-hidden
+                          rounded-2xl
+                          border
+                          bg-white
+                          shadow-sm
+                          transition-all
+                          duration-300
+                          ${
+                            selected
+                              ? "border-blue-300 bg-blue-50/40 shadow-[0_5px_20px_rgba(37,99,235,0.10)]"
+                              : "border-slate-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+                          }
+                        `}
+                      >
+                        {/* Selected glow */}
+                        {selected && (
+                          <div
+                            className="
+                              pointer-events-none
+                              absolute
+                              inset-0
+                              bg-gradient-to-r
+                              from-blue-50/70
+                              via-transparent
+                              to-indigo-50/40
+                            "
+                          />
+                        )}
+
+                        {/* Card shine */}
+                        <span
+                          className="
+                            pointer-events-none
+                            absolute
+                            inset-y-0
+                            -left-1/2
+                            z-10
+                            w-1/3
+                            skew-x-[-18deg]
+                            bg-gradient-to-r
+                            from-transparent
+                            via-white/60
+                            to-transparent
+                            opacity-0
+                            transition-opacity
+                            duration-300
+                            group-hover/address:opacity-100
+                            address-modal-shine-animation
+                          "
+                        />
+
+                        {/* Main address */}
+                        <button
+                          type="button"
+                          className="
+                            relative
+                            z-20
+                            flex
+                            w-full
+                            items-start
+                            gap-3
+                            p-3.5
+                            text-left
+                            sm:p-4
+                          "
+                          onClick={() =>
+                            handleSelectAddressFromModal(saved)
+                          }
+                        >
+                          {/* Radio */}
+                          <span
+                            className={`
+                              mt-0.5
+                              flex
+                              h-5
+                              w-5
+                              shrink-0
+                              items-center
+                              justify-center
+                              rounded-full
+                              border-2
+                              transition-all
+                              ${
+                                selected
+                                  ? "border-blue-600 bg-blue-600"
+                                  : "border-slate-300 bg-white"
+                              }
+                            `}
+                          >
+                            {selected && (
+                              <span
+                                className="
+                                  h-2
+                                  w-2
+                                  rounded-full
+                                  bg-white
+                                "
+                              />
+                            )}
+                          </span>
+
+                          {/* Address content */}
+                          <span className="min-w-0 flex-1">
+
+                            {/* Top row */}
+                            <span
+                              className="
+                                flex
+                                flex-wrap
+                                items-center
+                                gap-1.5
+                              "
+                            >
+                              <strong
+                                className="
+                                  text-[11px]
+                                  font-bold
+                                  text-slate-900
+                                  sm:text-xs
+                                  md:text-sm
+                                "
+                              >
+                                {saved.label || "Address"}
+                              </strong>
+
+                              {saved.isDefault && (
+                                <span
+                                  className="
+                                    rounded-full
+                                    border
+                                    border-emerald-100
+                                    bg-emerald-50
+                                    px-1.5
+                                    py-0.5
+                                    text-[7px]
+                                    font-bold
+                                    text-emerald-700
+                                    sm:px-2
+                                    sm:text-[8px]
+                                  "
+                                >
+                                  Default
+                                </span>
+                              )}
+
+                              {selected && (
+                                <span
+                                  className="
+                                    rounded-full
+                                    border
+                                    border-blue-100
+                                    bg-blue-50
+                                    px-1.5
+                                    py-0.5
+                                    text-[7px]
+                                    font-bold
+                                    text-blue-700
+                                    sm:px-2
+                                    sm:text-[8px]
+                                  "
+                                >
+                                  Selected
+                                </span>
+                              )}
+                            </span>
+
+                            {/* Name + phone */}
+                            <span
+                              className="
+                                mt-1.5
+                                flex
+                                flex-wrap
+                                items-center
+                                gap-x-2
+                                gap-y-1
+                                text-[9px]
+                                font-medium
+                                text-slate-500
+                                sm:text-[10px]
+                              "
+                            >
+                              <span className="inline-flex items-center gap-1">
+                                <FaUser
+                                  size={9}
+                                  className="text-blue-500"
+                                />
+
+                                {saved.fullName || "Customer"}
+                              </span>
+
+                              <span className="text-slate-300">
+                                •
+                              </span>
+
+                              <span>
+                                +91 {saved.phone || ""}
+                              </span>
+                            </span>
+
+                            {/* Address */}
+                            <span
+                              className="
+                                mt-2
+                                block
+                                text-[9px]
+                                leading-[1.65]
+                                text-slate-600
+                                sm:text-[10px]
+                                sm:leading-5
+                                md:text-[11px]
+                              "
+                            >
+                              {[
+                                saved.houseNumber,
+                                saved.buildingName,
+                                saved.floor
+                                  ? `Floor ${saved.floor}`
+                                  : "",
+                                saved.street,
+                                saved.addressLine1,
+                                saved.addressLine2,
+                                saved.area,
+                                saved.village,
+                                saved.postOffice,
+                                saved.block,
+                                saved.city,
+                                saved.district,
+                                saved.state,
+                              ]
+                                .filter(Boolean)
+                                .filter(
+                                  (value, index, arr) =>
+                                    arr.indexOf(value) === index
+                                )
+                                .join(", ")}
+
+                              {saved.postalCode
+                                ? ` - ${saved.postalCode}`
+                                : ""}
+                            </span>
+                          </span>
+
+                          {/* Check */}
+                          <span
+                            className={`
+                              mt-0.5
+                              flex
+                              h-6
+                              w-6
+                              shrink-0
+                              items-center
+                              justify-center
+                              rounded-full
+                              transition-all
+                              ${
+                                selected
+                                  ? "bg-blue-50 text-blue-600"
+                                  : "bg-slate-50 text-slate-300"
+                              }
+                            `}
+                          >
+                            {selected ? (
+                              <FaCheckCircle
+                                size={17}
+                              />
+                            ) : (
+                              <span className="h-2 w-2 rounded-full bg-slate-300" />
+                            )}
+                          </span>
+                        </button>
+
+                        {/* =================================================
+                            ACTIONS
+                        ================================================== */}
+                        <div
+                          className="
+                            relative
+                            z-20
+                            flex
+                            items-center
+                            justify-end
+                            gap-1.5
+                            border-t
+                            border-slate-100
+                            bg-slate-50/60
+                            px-3
+                            py-2
+                            sm:px-4
+                          "
+                        >
+                          {/* Edit */}
+                          <button
+                            type="button"
+                            className="
+                              address-modern-action
+                            "
+                            onClick={() =>
+                              startEditAddress(saved)
+                            }
+                            aria-label={`Edit ${
+                              saved.label || "address"
+                            }`}
+                            title="Edit address"
+                          >
+                            <FiEdit2
+                              size={13}
+                              strokeWidth={2.2}
+                            />
+
+                            <span>Edit</span>
+                          </button>
+
+                          {/* Default */}
+                          {/* {!saved.isDefault && (
+                            <button
+                              type="button"
+                              className="
+                                address-modern-action
+                              "
+                              onClick={() =>
+                                setDefaultSavedAddress(
+                                  saved._id
+                                )
+                              }
+                              aria-label={`Set ${
+                                saved.label || "address"
+                              } as default`}
+                              title="Set as default"
+                            >
+                              <FiStar
+                                size={13}
+                                strokeWidth={2.2}
+                              />
+
+                              <span>Default</span>
+                            </button>
+                          )} */}
+
+                          {/* Delete */}
+                          <button
+                            type="button"
+                            className="
+                              address-modern-action
+                              address-modern-action-danger
+                            "
+                            onClick={async () => {
+                              if (
+                                window.confirm(
+                                  "Delete this saved address?"
+                                )
+                              ) {
+                                await deleteSavedAddress(
+                                  saved._id
+                                );
+                              }
+                            }}
+                            aria-label={`Delete ${
+                              saved.label || "address"
+                            }`}
+                            title="Delete address"
+                          >
+                            <FiTrash2
+                              size={13}
+                              strokeWidth={2.2}
+                            />
+
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* =============================================
+                   EMPTY STATE
+                ============================================== */
+                <button
+                  type="button"
+                  onClick={startNewAddress}
+                  className="
+                    group
+                    relative
+                    flex
+                    w-full
+                    items-center
+                    gap-3
+                    overflow-hidden
+                    rounded-2xl
+                    border
+                    border-dashed
+                    border-blue-200
+                    bg-gradient-to-br
+                    from-blue-50/70
+                    via-white
+                    to-indigo-50/50
+                    p-4
+                    text-left
+                    transition-all
+                    duration-300
+                    hover:-translate-y-0.5
+                    hover:border-blue-300
+                    hover:shadow-md
+                    active:scale-[0.99]
+                    sm:p-5
+                  "
+                >
+                  {/* Shine */}
+                  <span
+                    className="
+                      pointer-events-none
+                      absolute
+                      inset-y-0
+                      -left-1/2
+                      w-1/3
+                      skew-x-[-18deg]
+                      bg-gradient-to-r
+                      from-transparent
+                      via-white/70
+                      to-transparent
+                      address-modal-shine-animation
+                    "
+                  />
+
+                  <span
+                    className="
+                      relative
+                      z-10
+                      flex
+                      h-11
+                      w-11
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-2xl
+                      border
+                      border-blue-100
+                      bg-white
+                      text-blue-600
+                      shadow-sm
+                      sm:h-12
+                      sm:w-12
+                    "
+                  >
+                    <AiOutlinePlus size={22} />
+                  </span>
+
+                  <span className="relative z-10 min-w-0 flex-1">
+                    <strong
+                      className="
+                        block
+                        text-[11px]
+                        font-bold
+                        text-slate-900
+                        sm:text-xs
+                        md:text-sm
+                      "
+                    >
+                      Add your first delivery address
+                    </strong>
+
+                    <small
+                      className="
+                        mt-0.5
+                        block
+                        text-[9px]
+                        leading-4
+                        text-slate-500
+                        sm:text-[10px]
+                        md:text-xs
+                      "
+                    >
+                      Save your address once and use it for future orders.
+                    </small>
+                  </span>
+
+                  <IoArrowForward
+                    size={19}
+                    className="
+                      relative
+                      z-10
+                      shrink-0
+                      text-slate-400
+                      transition-transform
+                      duration-200
+                      group-hover:translate-x-1
+                    "
+                  />
+                </button>
+              )}
+            </div>
+          )}
+        </ModalBody>
+
+        {/* ===================================================
+            FOOTER
+        ==================================================== */}
+
+        {!showAddressForm && savedAddresses.length > 0 && (
+          <ModalFooter
+            className="
+              relative
+              z-30
+              flex
+              items-center
+              gap-2
+              border-t
+              border-slate-100
+              bg-white/95
+              px-3
+              py-3
+              backdrop-blur-xl
+              sm:px-4
+              sm:py-3.5
+              md:px-5
+            "
+          >
+            {/* Add address */}
+            <button
+              type="button"
+              onClick={startNewAddress}
+              className="
+                group
+                flex
+                h-10
+                flex-1
+                items-center
+                justify-center
+                gap-1.5
+                rounded-xl
+                border
+                border-slate-200
+                bg-white
+                px-2
+                text-[9px]
+                font-bold
+                text-slate-600
+                shadow-sm
+                transition-all
+                duration-200
+                hover:border-blue-200
+                hover:bg-blue-50
+                hover:text-blue-700
+                active:scale-[0.98]
+                sm:h-11
+                sm:text-[10px]
+                md:text-xs
+              "
+            >
+              <AiOutlinePlus
+                size={14}
+                className="
+                  transition-transform
+                  duration-200
+                  group-hover:rotate-90
+                "
+              />
+
+              <span>Add another address</span>
+            </button>
+
+            {/* Use address */}
+            <button
+              type="button"
+              disabled={!selectedAddressId}
+              onClick={() =>
+                setAddressSelectorOpen(false)
+              }
+              className="
+                group
+                relative
+                flex
+                h-10
+                flex-1
+                items-center
+                justify-center
+                gap-1.5
+                overflow-hidden
+                rounded-xl
+                bg-gradient-to-r
+                from-blue-600
+                to-indigo-600
+                px-2
+                text-[9px]
+                font-bold
+                text-white
+                shadow-[0_6px_18px_rgba(37,99,235,0.24)]
+                transition-all
+                duration-200
+                hover:-translate-y-0.5
+                hover:shadow-[0_9px_24px_rgba(37,99,235,0.30)]
+                active:scale-[0.98]
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+                disabled:shadow-none
+                sm:h-11
+                sm:text-[10px]
+                md:text-xs
+              "
+            >
+              {/* Shine */}
+              <span
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-y-0
+                  -left-1/2
+                  w-1/3
+                  skew-x-[-18deg]
+                  bg-gradient-to-r
+                  from-transparent
+                  via-white/35
+                  to-transparent
+                  address-modal-shine-animation
+                "
+              />
+
+              <FiCheck
+                size={15}
+                strokeWidth={2.7}
+                className="relative z-10"
+              />
+
+              <span className="relative z-10">
+                Use this address
+              </span>
+            </button>
+          </ModalFooter>
+        )}
+      </>
+    )}
+  </ModalContent>
+</Modal>
         {/* =======================================================
             DELETE MODAL
         ======================================================= */}
 
-        <Modal
-          isOpen={
-            isDeleteOpen
-          }
-          onClose={
-            onDeleteClose
-          }
-          placement="center"
-          backdrop="blur"
-          hideCloseButton
-        >
+       {/* =========================================================
+    MODERN REMOVE ITEM MODAL
+========================================================= */}
 
-          <ModalContent
+<style>{`
+  @keyframes deleteModalShine {
+    0% {
+      transform: translateX(-180%) skewX(-18deg);
+      opacity: 0;
+    }
+
+    20% {
+      opacity: 0;
+    }
+
+    40% {
+      opacity: 0.65;
+    }
+
+    60% {
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateX(220%) skewX(-18deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes deleteIconPulse {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.10);
+    }
+
+    50% {
+      transform: scale(1.04);
+      box-shadow: 0 0 0 7px rgba(239, 68, 68, 0.04);
+    }
+  }
+
+  @keyframes deleteWarningGlow {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  .delete-modal-shine {
+    animation: deleteModalShine 3.8s ease-in-out infinite;
+  }
+
+  .delete-icon-pulse {
+    animation: deleteIconPulse 2.4s ease-in-out infinite;
+  }
+
+  .delete-warning-glow {
+    animation: deleteWarningGlow 2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .delete-modal-shine,
+    .delete-icon-pulse,
+    .delete-warning-glow {
+      animation: none;
+    }
+  }
+`}</style>
+
+<Modal
+  isOpen={isDeleteOpen}
+  onClose={onDeleteClose}
+  placement="center"
+  backdrop="blur"
+  hideCloseButton
+>
+  <ModalContent
+    className="
+      relative
+      mx-3
+      w-full
+      max-w-[390px]
+      overflow-hidden
+      rounded-[24px]
+      border
+      border-slate-200
+      bg-white
+      shadow-[0_25px_70px_rgba(15,23,42,0.20)]
+      sm:mx-auto
+      sm:rounded-[28px]
+    "
+  >
+    {() => (
+      <>
+        {/* ===================================================
+            BACKGROUND GLOW
+        ==================================================== */}
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -right-16
+            -top-16
+            h-36
+            w-36
+            rounded-full
+            bg-red-100/50
+            blur-3xl
+          "
+        />
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -bottom-20
+            -left-16
+            h-36
+            w-36
+            rounded-full
+            bg-slate-100
+            blur-3xl
+          "
+        />
+
+        {/* ===================================================
+            ANIMATED SHINE
+        ==================================================== */}
+        <span
+          className="
+            pointer-events-none
+            absolute
+            inset-y-0
+            -left-[45%]
+            z-20
+            w-[25%]
+            skew-x-[-18deg]
+            bg-gradient-to-r
+            from-transparent
+            via-white/70
+            to-transparent
+            delete-modal-shine
+          "
+        />
+
+        {/* ===================================================
+            HEADER
+        ==================================================== */}
+        <ModalHeader
+          className="
+            relative
+            z-10
+            flex
+            items-center
+            gap-3
+            border-b
+            border-slate-100
+            bg-white/90
+            px-4
+            py-4
+            backdrop-blur-xl
+            sm:px-5
+            sm:py-5
+          "
+        >
+          {/* Delete icon */}
+          <div
             className="
+              relative
+              flex
+              h-10
+              w-10
+              shrink-0
+              items-center
+              justify-center
               rounded-2xl
               border
-              border-slate-200
-              shadow-xl
-              bg-white
-              max-w-sm
-              mx-auto
+              border-red-100
+              bg-red-50
+              text-red-500
+              shadow-sm
+              delete-icon-pulse
+              sm:h-11
+              sm:w-11
             "
           >
+            {/* Inner shine */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-0
+                rounded-2xl
+                bg-gradient-to-br
+                from-white/60
+                via-transparent
+                to-transparent
+              "
+            />
 
-            {() => (
+            <FiTrash2
+              size={18}
+              strokeWidth={2.2}
+              className="relative z-10"
+            />
+          </div>
 
-              <>
+          {/* Header text */}
+          <div className="min-w-0">
+            <h3
+              className="
+                text-[15px]
+                font-bold
+                leading-5
+                tracking-[-0.015em]
+                text-slate-900
+                sm:text-[17px]
+              "
+            >
+              Remove item?
+            </h3>
 
-                <ModalHeader
+            <p
+              className="
+                mt-0.5
+                text-[9px]
+                leading-4
+                text-slate-500
+                sm:text-[10px]
+                md:text-xs
+              "
+            >
+              This item will be removed from your cart.
+            </p>
+          </div>
+        </ModalHeader>
+
+        {/* ===================================================
+            BODY
+        ==================================================== */}
+        <ModalBody
+          className="
+            relative
+            z-10
+            bg-slate-50/40
+            px-4
+            py-4
+            sm:px-5
+            sm:py-5
+          "
+        >
+          {/* Warning card */}
+          <div
+            className="
+              relative
+              overflow-hidden
+              rounded-2xl
+              border
+              border-red-100
+              bg-gradient-to-br
+              from-red-50/80
+              via-white
+              to-orange-50/40
+              p-3.5
+              sm:p-4
+            "
+          >
+            {/* Warning glow */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                -right-8
+                -top-8
+                h-20
+                w-20
+                rounded-full
+                bg-red-100/60
+                blur-2xl
+                delete-warning-glow
+              "
+            />
+
+            <div className="relative z-10 flex items-start gap-3">
+
+              {/* Warning icon */}
+              <div
+                className="
+                  flex
+                  h-8
+                  w-8
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-white
+                  text-red-500
+                  shadow-sm
+                  sm:h-9
+                  sm:w-9
+                "
+              >
+                <span
                   className="
-                    text-slate-800
+                    text-[13px]
+                    font-black
+                    sm:text-sm
+                  "
+                >
+                  !
+                </span>
+              </div>
+
+              {/* Message */}
+              <div className="min-w-0">
+                <p
+                  className="
+                    text-[10px]
                     font-bold
-                    text-base
-                    border-b
-                    border-slate-100
+                    leading-4
+                    text-slate-800
+                    sm:text-[11px]
+                    md:text-xs
                   "
                 >
-                  Remove Item
-                </ModalHeader>
+                  Are you sure you want to remove this item?
+                </p>
 
-
-                <ModalBody
+                <p
                   className="
+                    mt-1
+                    text-[9px]
+                    leading-[1.55]
                     text-slate-500
-                    text-sm
-                    py-4
+                    sm:text-[10px]
                   "
                 >
-                  Are you sure you want to remove this item from your cart?
-                </ModalBody>
+                  The item will be removed from your cart. You can
+                  add it again later if you change your mind.
+                </p>
+              </div>
+            </div>
+          </div>
 
-
-                <ModalFooter
-                  className="
-                    gap-2
-                    border-t
-                    border-slate-100
-                  "
-                >
-
-                  <Button
-                    variant="light"
-                    onPress={
-                      onDeleteClose
+          {/* Selected item preview */}
+          {selectedItem && (
+            <div
+              className="
+                mt-3
+                flex
+                items-center
+                gap-2.5
+                rounded-2xl
+                border
+                border-slate-200
+                bg-white
+                p-2.5
+                shadow-sm
+                sm:p-3
+              "
+            >
+              {/* Product image */}
+              <div
+                className="
+                  flex
+                  h-11
+                  w-11
+                  shrink-0
+                  items-center
+                  justify-center
+                  overflow-hidden
+                  rounded-xl
+                  border
+                  border-slate-100
+                  bg-slate-50
+                  sm:h-12
+                  sm:w-12
+                "
+              >
+                {(
+                  selectedItem?.image ||
+                  selectedItem?.thumbnail ||
+                  selectedItem?.images?.[0]
+                ) ? (
+                  <img
+                    src={
+                      selectedItem?.image ||
+                      selectedItem?.thumbnail ||
+                      selectedItem?.images?.[0]
+                    }
+                    alt={
+                      selectedItem?.title ||
+                      selectedItem?.name ||
+                      "Product"
                     }
                     className="
-                      text-slate-500
+                      h-full
+                      w-full
+                      object-cover
                     "
-                  >
-                    Cancel
-                  </Button>
+                  />
+                ) : (
+                  <FaShoppingBag
+                    size={16}
+                    className="text-slate-300"
+                  />
+                )}
+              </div>
 
+              {/* Product information */}
+              <div className="min-w-0 flex-1">
+                <p
+                  className="
+                    truncate
+                    text-[10px]
+                    font-bold
+                    text-slate-800
+                    sm:text-[11px]
+                    md:text-xs
+                  "
+                >
+                  {selectedItem?.title ||
+                    selectedItem?.name ||
+                    "Selected item"}
+                </p>
 
-                  <Button
-                    onPress={async () => {
+                <div
+                  className="
+                    mt-0.5
+                    flex
+                    items-center
+                    gap-1.5
+                    text-[8px]
+                    text-slate-400
+                    sm:text-[9px]
+                  "
+                >
+                  <span>
+                    Qty: {selectedItem?.quantity || 1}
+                  </span>
 
-                      if (!selectedItem) {
-                        return;
-                      }
+                  {selectedItem?.variantSku && (
+                    <>
+                      <span>•</span>
 
+                      <span className="truncate">
+                        {selectedItem.variantSku}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
 
-                      try {
+              {/* Delete indicator */}
+              <div
+                className="
+                  flex
+                  h-7
+                  w-7
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-red-50
+                  text-red-500
+                "
+              >
+                <FiTrash2
+                  size={12}
+                  strokeWidth={2.2}
+                />
+              </div>
+            </div>
+          )}
+        </ModalBody>
 
-                        await removeFromCart(
-                          selectedItem.productId,
-                          selectedItem.variantSku
-                        );
+        {/* ===================================================
+            FOOTER
+        ==================================================== */}
+        <ModalFooter
+          className="
+            relative
+            z-10
+            flex
+            gap-2
+            border-t
+            border-slate-100
+            bg-white/95
+            px-4
+            py-3
+            backdrop-blur-xl
+            sm:px-5
+            sm:py-4
+          "
+        >
+          {/* Cancel */}
+          <Button
+            variant="light"
+            onPress={onDeleteClose}
+            className="
+              group
+              h-10
+              flex-1
+              rounded-xl
+              border
+              border-slate-200
+              bg-white
+              px-3
+              text-[10px]
+              font-bold
+              text-slate-600
+              shadow-sm
+              transition-all
+              duration-200
+              hover:border-slate-300
+              hover:bg-slate-50
+              hover:text-slate-800
+              active:scale-[0.97]
+              sm:h-11
+              sm:text-xs
+            "
+          >
+            Cancel
+          </Button>
 
+          {/* Remove */}
+          <Button
+            onPress={async () => {
+              if (!selectedItem) {
+                return;
+              }
 
-                        /*
-                         * Cart changed, invalidate
-                         * serviceability.
-                         */
+              try {
+                await removeFromCart(
+                  selectedItem.productId,
+                  selectedItem.variantSku
+                );
 
-                        setServiceability(
-                          (prev) => ({
+                /* Cart changed, invalidate serviceability */
+                setServiceability((prev) => ({
+                  ...prev,
 
-                            ...prev,
+                  checked: false,
 
-                            checked:
-                              false,
+                  serviceableItems: [],
 
-                            serviceableItems:
-                              [],
+                  unavailableItems:
+                    prev.unavailableItems.filter((u) => {
+                      const uProductId =
+                        u?.productId?._id ||
+                        u?.productId ||
+                        u?._id ||
+                        u?.product?._id;
 
-                            unavailableItems:
-                              prev.unavailableItems.filter(
-                                (u) => {
+                      const uSku =
+                        u?.variantSku ||
+                        u?.variant?.sku ||
+                        "";
 
-                                  const uProductId =
-                                    u?.productId?._id ||
-                                    u?.productId ||
-                                    u?._id ||
-                                    u?.product?._id;
+                      return !(
+                        String(uProductId) ===
+                          String(selectedItem.productId) &&
+                        String(uSku || "") ===
+                          String(
+                            selectedItem.variantSku || ""
+                          )
+                      );
+                    }),
 
+                  message: "",
+                }));
 
-                                  const uSku =
-                                    u?.variantSku ||
-                                    u?.variant?.sku ||
-                                    "";
+                toast.success("Item removed");
 
+                onDeleteClose();
+              } catch (error) {
+                console.error(
+                  "DELETE CART ITEM ERROR:",
+                  error
+                );
 
-                                  return !(
-                                    String(
-                                      uProductId
-                                    ) ===
-                                    String(
-                                      selectedItem.productId
-                                    ) &&
+                toast.error(
+                  error?.message ||
+                    "Failed to remove item"
+                );
+              }
+            }}
+            className="
+              group
+              relative
+              h-10
+              flex-1
+              overflow-hidden
+              rounded-xl
+              bg-gradient-to-r
+              from-red-500
+              to-rose-600
+              px-3
+              text-[10px]
+              font-bold
+              text-white
+              shadow-[0_6px_18px_rgba(239,68,68,0.24)]
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:from-red-600
+              hover:to-rose-700
+              hover:shadow-[0_9px_24px_rgba(239,68,68,0.30)]
+              active:scale-[0.97]
+              sm:h-11
+              sm:text-xs
+            "
+          >
+            {/* =================================================
+                BUTTON SHINE
+            ================================================== */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                -left-1/2
+                w-1/3
+                skew-x-[-18deg]
+                bg-gradient-to-r
+                from-transparent
+                via-white/35
+                to-transparent
+                delete-modal-shine
+              "
+            />
 
-                                    String(
-                                      uSku || ""
-                                    ) ===
-                                    String(
-                                      selectedItem.variantSku ||
-                                      ""
-                                    )
-                                  );
+            {/* Top highlight */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-x-2
+                top-0
+                h-px
+                bg-gradient-to-r
+                from-transparent
+                via-white/60
+                to-transparent
+              "
+            />
 
-                                }
-                              ),
+            <span
+              className="
+                relative
+                z-10
+                flex
+                items-center
+                justify-center
+                gap-1.5
+              "
+            >
+              <FiTrash2
+                size={13}
+                strokeWidth={2.3}
+              />
 
-                            message:
-                              "",
-
-                          })
-                        );
-
-
-                        toast.success(
-                          "Item removed"
-                        );
-
-
-                        onDeleteClose();
-
-
-                      } catch (error) {
-
-                        console.error(
-                          "DELETE CART ITEM ERROR:",
-                          error
-                        );
-
-
-                        toast.error(
-                          error?.message ||
-                          "Failed to remove item"
-                        );
-
-                      }
-
-                    }}
-                    className="
-                      bg-red-500
-                      text-white
-                      font-semibold
-                      rounded-xl
-                      hover:bg-red-600
-                    "
-                  >
-                    Remove
-                  </Button>
-
-                </ModalFooter>
-
-              </>
-
-            )}
-
-          </ModalContent>
-
-        </Modal>
+              <span>
+                Remove item
+              </span>
+            </span>
+          </Button>
+        </ModalFooter>
+      </>
+    )}
+  </ModalContent>
+</Modal>
 
 
         {/* =======================================================
             RAZORPAY INSTRUCTION MODAL
         ======================================================= */}
 
-        <Modal
-          isOpen={
-            isInstrOpen
-          }
-          onClose={
-            onInstrClose
-          }
-          placement="center"
-          backdrop="blur"
-          hideCloseButton
-          className="z-[9999]"
+     {/* =========================================================
+    MODERN RAZORPAY PAYMENT INSTRUCTIONS MODAL
+========================================================= */}
+
+<style>{`
+  @keyframes paymentModalShine {
+    0% {
+      transform: translateX(-180%) skewX(-18deg);
+      opacity: 0;
+    }
+
+    15% {
+      opacity: 0;
+    }
+
+    35% {
+      opacity: 0.75;
+    }
+
+    55% {
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateX(220%) skewX(-18deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes paymentIconGlow {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.08);
+    }
+
+    50% {
+      transform: scale(1.035);
+      box-shadow: 0 0 0 7px rgba(79, 70, 229, 0.04);
+    }
+  }
+
+  @keyframes paymentSecureGlow {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+
+    50% {
+      opacity: 1;
+    }
+  }
+
+  .payment-modal-shine {
+    animation: paymentModalShine 4s ease-in-out infinite;
+  }
+
+  .payment-icon-glow {
+    animation: paymentIconGlow 2.6s ease-in-out infinite;
+  }
+
+  .payment-secure-glow {
+    animation: paymentSecureGlow 2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .payment-modal-shine,
+    .payment-icon-glow,
+    .payment-secure-glow {
+      animation: none;
+    }
+  }
+`}</style>
+
+<Modal
+  isOpen={isInstrOpen}
+  onClose={onInstrClose}
+  placement="center"
+  backdrop="blur"
+  hideCloseButton
+  className="z-[9999]"
+>
+  <ModalContent
+    className="
+      relative
+      mx-3
+      w-full
+      max-w-[420px]
+      overflow-hidden
+      rounded-[24px]
+      border
+      border-indigo-100
+      bg-white
+      shadow-[0_25px_80px_rgba(15,23,42,0.20)]
+      sm:mx-auto
+      sm:rounded-[28px]
+    "
+  >
+    {() => (
+      <>
+        {/* ===================================================
+            BACKGROUND GLOWS
+        ==================================================== */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -right-16
+            -top-16
+            h-36
+            w-36
+            rounded-full
+            bg-indigo-100/50
+            blur-3xl
+          "
+        />
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -bottom-20
+            -left-16
+            h-40
+            w-40
+            rounded-full
+            bg-blue-100/40
+            blur-3xl
+          "
+        />
+
+        {/* ===================================================
+            TOP GRADIENT LINE
+        ==================================================== */}
+
+        <div
+          className="
+            relative
+            z-30
+            h-1
+            overflow-hidden
+            bg-gradient-to-r
+            from-indigo-500
+            via-blue-500
+            to-cyan-400
+          "
+        >
+          <span
+            className="
+              absolute
+              inset-y-0
+              -left-1/2
+              w-1/3
+              skew-x-[-18deg]
+              bg-gradient-to-r
+              from-transparent
+              via-white
+              to-transparent
+              payment-modal-shine
+            "
+          />
+        </div>
+
+        {/* ===================================================
+            GLOBAL MODAL SHINE
+        ==================================================== */}
+
+        <span
+          className="
+            pointer-events-none
+            absolute
+            inset-y-0
+            -left-[45%]
+            z-20
+            w-[24%]
+            skew-x-[-18deg]
+            bg-gradient-to-r
+            from-transparent
+            via-white/60
+            to-transparent
+            payment-modal-shine
+          "
+        />
+
+        {/* ===================================================
+            HEADER
+        ==================================================== */}
+
+        <ModalHeader
+          className="
+            relative
+            z-10
+            border-b
+            border-slate-100
+            bg-white/90
+            px-4
+            py-4
+            backdrop-blur-xl
+            sm:px-5
+            sm:py-5
+          "
+        >
+          <div className="flex w-full items-center gap-3">
+
+            {/* Payment icon */}
+            <div
+              className="
+                relative
+                flex
+                h-11
+                w-11
+                shrink-0
+                items-center
+                justify-center
+                overflow-hidden
+                rounded-2xl
+                border
+                border-indigo-100
+                bg-gradient-to-br
+                from-indigo-50
+                to-blue-50
+                text-indigo-600
+                shadow-sm
+                payment-icon-glow
+                sm:h-12
+                sm:w-12
+              "
+            >
+              <span
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-y-0
+                  -left-full
+                  w-1/2
+                  skew-x-[-18deg]
+                  bg-gradient-to-r
+                  from-transparent
+                  via-white/80
+                  to-transparent
+                  transition-all
+                  duration-700
+                "
+              />
+
+              <MdPayments
+                size={20}
+                className="relative z-10"
+              />
+            </div>
+
+            {/* Heading */}
+            <div className="min-w-0 flex-1">
+              <h3
+                className="
+                  text-[15px]
+                  font-bold
+                  leading-5
+                  tracking-[-0.015em]
+                  text-slate-900
+                  sm:text-[17px]
+                  md:text-lg
+                "
+              >
+                Payment Instructions
+              </h3>
+
+              <p
+                className="
+                  mt-0.5
+                  text-[9px]
+                  leading-4
+                  text-slate-500
+                  sm:text-[10px]
+                  md:text-xs
+                "
+              >
+                Complete your payment securely to place the order.
+              </p>
+            </div>
+          </div>
+        </ModalHeader>
+
+        {/* ===================================================
+            BODY
+        ==================================================== */}
+
+        <ModalBody
+          className="
+            relative
+            z-10
+            space-y-3.5
+            bg-slate-50/40
+            px-4
+            py-4
+            sm:space-y-4
+            sm:px-5
+            sm:py-5
+          "
         >
 
-          <ModalContent
+          {/* =================================================
+              RAZORPAY BRAND CARD
+          ================================================== */}
+
+          <div
             className="
+              group
+              relative
+              overflow-hidden
+              rounded-2xl
+              border
+              border-slate-200
+              bg-white
+              p-3.5
+              shadow-sm
+              transition-all
+              duration-300
+              hover:border-indigo-200
+              hover:shadow-md
+              sm:p-4
+            "
+          >
+            {/* Card shine */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                -left-1/2
+                w-1/3
+                skew-x-[-18deg]
+                bg-gradient-to-r
+                from-transparent
+                via-white/70
+                to-transparent
+                opacity-0
+                group-hover:opacity-100
+                payment-modal-shine
+              "
+            />
+
+            <div className="relative z-10 flex items-center gap-3">
+
+              {/* Razorpay logo */}
+              <div
+                className="
+                  flex
+                  h-11
+                  w-11
+                  shrink-0
+                  items-center
+                  justify-center
+                  overflow-hidden
+                  rounded-xl
+                  border
+                  border-slate-100
+                  bg-white
+                  shadow-sm
+                  sm:h-12
+                  sm:w-12
+                "
+              >
+                <img
+                  src={razorpayLogo}
+                  alt="Razorpay"
+                  className="
+                    h-8
+                    w-8
+                    object-contain
+                    sm:h-9
+                    sm:w-9
+                  "
+                />
+              </div>
+
+              {/* Razorpay information */}
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <p
+                    className="
+                      text-[11px]
+                      font-bold
+                      text-slate-900
+                      sm:text-xs
+                      md:text-sm
+                    "
+                  >
+                    Razorpay Payment
+                  </p>
+
+                  <span
+                    className="
+                      rounded-full
+                      border
+                      border-emerald-100
+                      bg-emerald-50
+                      px-1.5
+                      py-0.5
+                      text-[7px]
+                      font-bold
+                      text-emerald-700
+                      sm:text-[8px]
+                    "
+                  >
+                    SECURE
+                  </span>
+                </div>
+
+                <p
+                  className="
+                    mt-1
+                    text-[8px]
+                    leading-4
+                    text-slate-500
+                    sm:text-[9px]
+                    md:text-[10px]
+                  "
+                >
+                  UPI · Cards · Netbanking · Wallets
+                </p>
+              </div>
+
+              {/* Secure icon */}
+              <div
+                className="
+                  hidden
+                  h-7
+                  w-7
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-emerald-50
+                  sm:flex
+                "
+              >
+                <FaShieldAlt
+                  size={12}
+                  className="
+                    text-emerald-500
+                    payment-secure-glow
+                  "
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* =================================================
+              PAYMENT STEPS
+          ================================================== */}
+
+          <div
+            className="
+              relative
+              overflow-hidden
               rounded-2xl
               border
               border-indigo-100
-              shadow-xl
-              bg-white
-              max-w-sm
-              mx-auto
+              bg-gradient-to-br
+              from-indigo-50/80
+              via-white
+              to-blue-50/50
+              p-3.5
+              sm:p-4
             "
           >
+            {/* Background glow */}
+            <div
+              className="
+                pointer-events-none
+                absolute
+                -right-10
+                -top-10
+                h-24
+                w-24
+                rounded-full
+                bg-indigo-100/60
+                blur-2xl
+              "
+            />
 
-            {() => (
+            <div className="relative z-10">
 
-              <>
-
+              {/* Section title */}
+              <div className="mb-3 flex items-center gap-2">
                 <div
                   className="
-                    h-1
-                    bg-gradient-to-r
-                    from-indigo-500
-                    to-blue-500
-                    rounded-t-2xl
-                  "
-                />
-
-
-                <ModalHeader
-                  className="
                     flex
+                    h-7
+                    w-7
                     items-center
-                    gap-2
-                    text-slate-800
-                    font-bold
-                    text-sm
-                    border-b
-                    border-slate-100
+                    justify-center
+                    rounded-lg
+                    bg-white
+                    text-indigo-600
+                    shadow-sm
                   "
                 >
+                  <MdPayments size={14} />
+                </div>
 
-                  <MdPayments
+                <div>
+                  <p
                     className="
-                      text-indigo-600
+                      text-[10px]
+                      font-bold
+                      text-slate-800
+                      sm:text-[11px]
                     "
-                    size={18}
-                  />
+                  >
+                    How to pay
+                  </p>
 
-                  Payment Instructions
+                  <p
+                    className="
+                      text-[8px]
+                      text-slate-400
+                      sm:text-[9px]
+                    "
+                  >
+                    Follow these simple steps
+                  </p>
+                </div>
+              </div>
 
-                </ModalHeader>
-
-
-                <ModalBody
-                  className="
-                    py-4
-                    space-y-3
-                  "
-                >
-
+              {/* Steps */}
+              <div className="space-y-2.5">
+                {[
+                  "Select UPI, Card, Netbanking or Wallet",
+                  "Complete payment in the Razorpay checkout",
+                  "Keep the payment window open until confirmation",
+                  `Confirmation sent to ${user?.email || "your email"}`,
+                ].map((text, index) => (
                   <div
+                    key={text}
                     className="
                       flex
-                      items-center
-                      gap-3
+                      items-start
+                      gap-2.5
+                      rounded-xl
+                      border
+                      border-white/80
+                      bg-white/75
+                      px-2.5
+                      py-2
+                      shadow-sm
                     "
                   >
-
-                    <img
-                      src={
-                        razorpayLogo
-                      }
-                      alt="Razorpay"
+                    {/* Number */}
+                    <span
                       className="
-                        w-10
-                        h-10
-                        rounded-xl
-                        border
+                        flex
+                        h-5
+                        w-5
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-indigo-50
+                        text-[8px]
+                        font-bold
+                        text-indigo-600
+                        sm:h-6
+                        sm:w-6
+                        sm:text-[9px]
+                      "
+                    >
+                      {index + 1}
+                    </span>
+
+                    {/* Text */}
+                    <span
+                      className="
+                        pt-0.5
+                        text-[9px]
+                        font-medium
+                        leading-4
+                        text-slate-600
+                        sm:text-[10px]
+                      "
+                    >
+                      {text}
+                    </span>
+
+                    {/* Check */}
+                    <FaCheckCircle
+                      size={11}
+                      className="
+                        ml-auto
+                        mt-1
+                        shrink-0
+                        text-indigo-400
                       "
                     />
-
-
-                    <div>
-
-                      <p
-                        className="
-                          font-bold
-                          text-slate-800
-                          text-sm
-                        "
-                      >
-                        Razorpay Payment
-                      </p>
-
-
-                      <p
-                        className="
-                          text-xs
-                          text-slate-400
-                        "
-                      >
-                        UPI · Cards · Netbanking · Wallets
-                      </p>
-
-                    </div>
-
                   </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
+          {/* =================================================
+              SECURITY STRIP
+          ================================================== */}
 
-                  <div
-                    className="
-                      bg-indigo-50
-                      border
-                      border-indigo-100
-                      rounded-xl
-                      p-3
-                      space-y-2
-                    "
-                  >
+          <div
+            className="
+              group
+              relative
+              overflow-hidden
+              rounded-2xl
+              border
+              border-emerald-100
+              bg-emerald-50/70
+              px-3
+              py-2.5
+              sm:px-3.5
+              sm:py-3
+            "
+          >
+            {/* Shine */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                -left-1/2
+                w-1/3
+                skew-x-[-18deg]
+                bg-gradient-to-r
+                from-transparent
+                via-white/70
+                to-transparent
+                payment-modal-shine
+              "
+            />
 
-                    {[
-                      "Select UPI / Card / Netbanking",
-
-                      "Complete payment in Razorpay popup",
-
-                      "Do not close the payment window",
-
-                      `Confirmation sent to ${user?.email || ""}`,
-
-                    ].map(
-                      (text) => (
-
-                        <div
-                          key={text}
-                          className="
-                            flex
-                            gap-2
-                            text-xs
-                            text-indigo-700
-                          "
-                        >
-
-                          <FaCheckCircle
-                            className="
-                              text-indigo-500
-                              mt-0.5
-                              flex-shrink-0
-                            "
-                          />
-
-                          {text}
-
-                        </div>
-
-                      )
-                    )}
-
-                  </div>
-
-
-                  <div
-                    className="
-                      text-xs
-                      bg-green-50
-                      border
-                      border-green-200
-                      text-green-700
-                      px-3
-                      py-2
-                      rounded-xl
-                    "
-                  >
-                    🔒 Secure payment · Powered by Razorpay
-                  </div>
-
-                </ModalBody>
-
-
-                <ModalFooter
+            <div
+              className="
+                relative
+                z-10
+                flex
+                items-center
+                gap-2.5
+              "
+            >
+              <div
+                className="
+                  flex
+                  h-7
+                  w-7
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-white
+                  shadow-sm
+                  sm:h-8
+                  sm:w-8
+                "
+              >
+                <FaShieldAlt
+                  size={12}
                   className="
-                    gap-2
-                    border-t
-                    border-slate-100
+                    text-emerald-500
+                    payment-secure-glow
+                  "
+                />
+              </div>
+
+              <div className="min-w-0">
+                <p
+                  className="
+                    text-[9px]
+                    font-bold
+                    text-emerald-700
+                    sm:text-[10px]
+                    md:text-[11px]
                   "
                 >
+                  Secure payment
+                </p>
 
-                  <Button
-                    variant="light"
-                    onPress={
-                      onInstrClose
-                    }
-                    className="
-                      text-slate-500
-                      text-sm
-                    "
-                  >
-                    Cancel
-                  </Button>
+                <p
+                  className="
+                    mt-0.5
+                    text-[8px]
+                    leading-4
+                    text-emerald-600
+                    sm:text-[9px]
+                  "
+                >
+                  Your payment is securely processed by Razorpay.
+                </p>
+              </div>
+            </div>
+          </div>
+        </ModalBody>
 
+        {/* ===================================================
+            FOOTER
+        ==================================================== */}
 
-                  <Button
-                    onPress={() => {
+        <ModalFooter
+          className="
+            relative
+            z-10
+            flex
+            gap-2
+            border-t
+            border-slate-100
+            bg-white/95
+            px-4
+            py-3
+            backdrop-blur-xl
+            sm:px-5
+            sm:py-4
+          "
+        >
+          {/* Cancel */}
+          <Button
+            variant="light"
+            onPress={onInstrClose}
+            className="
+              h-10
+              flex-1
+              rounded-xl
+              border
+              border-slate-200
+              bg-white
+              px-3
+              text-[10px]
+              font-bold
+              text-slate-600
+              shadow-sm
+              transition-all
+              duration-200
+              hover:border-slate-300
+              hover:bg-slate-50
+              active:scale-[0.97]
+              sm:h-11
+              sm:text-xs
+            "
+          >
+            Cancel
+          </Button>
 
-                      onInstrClose();
+          {/* Continue */}
+          <Button
+            onPress={() => {
+              onInstrClose();
+              handleRazorpayPayment();
+            }}
+            className="
+              group
+              relative
+              h-10
+              flex-1
+              overflow-hidden
+              rounded-xl
+              border-0
+              bg-gradient-to-r
+              from-indigo-600
+              via-blue-600
+              to-indigo-600
+              px-4
+              text-[10px]
+              font-bold
+              text-white
+              shadow-[0_7px_20px_rgba(79,70,229,0.28)]
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:shadow-[0_10px_28px_rgba(79,70,229,0.35)]
+              active:scale-[0.97]
+              sm:h-11
+              sm:text-xs
+            "
+          >
+            {/* Animated shine */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                -left-1/2
+                w-1/3
+                skew-x-[-18deg]
+                bg-gradient-to-r
+                from-transparent
+                via-white/35
+                to-transparent
+                payment-modal-shine
+              "
+            />
 
-                      handleRazorpayPayment();
+            {/* Top highlight */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-x-2
+                top-0
+                h-px
+                bg-gradient-to-r
+                from-transparent
+                via-white/60
+                to-transparent
+              "
+            />
 
-                    }}
-                    className="
-                      text-white
-                      font-bold
-                      rounded-xl
-                      text-sm
-                      px-6
-                    "
-                    style={{
-                      background:
-                        "linear-gradient(135deg,#4f46e5,#2563eb)",
-                    }}
-                  >
-                    Continue →
-                  </Button>
+            <span
+              className="
+                relative
+                z-10
+                flex
+                items-center
+                justify-center
+                gap-1.5
+              "
+            >
+              <span>Continue to Payment</span>
 
-                </ModalFooter>
-
-              </>
-
-            )}
-
-          </ModalContent>
-
-        </Modal>
+              <IoArrowForward
+                size={15}
+                className="
+                  transition-transform
+                  duration-200
+                  group-hover:translate-x-0.5
+                "
+              />
+            </span>
+          </Button>
+        </ModalFooter>
+      </>
+    )}
+  </ModalContent>
+</Modal>
 
 
         {/* =======================================================
             COD CONFIRM MODAL
         ======================================================= */}
 
-        <Modal
-          isOpen={
-            isCodConfirmOpen
-          }
-          onClose={
-            onCodConfirmClose
-          }
-          placement="center"
-          backdrop="blur"
-          hideCloseButton
-          className="z-[9999]"
+       {/* =========================================================
+    MODERN COD CONFIRMATION MODAL
+========================================================= */}
+
+<style>{`
+  @keyframes codModalShine {
+    0% {
+      transform: translateX(-180%) skewX(-18deg);
+      opacity: 0;
+    }
+
+    15% {
+      opacity: 0;
+    }
+
+    35% {
+      opacity: 0.7;
+    }
+
+    55% {
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateX(220%) skewX(-18deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes codIconPulse {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.10);
+    }
+
+    50% {
+      transform: scale(1.04);
+      box-shadow: 0 0 0 7px rgba(245, 158, 11, 0.04);
+    }
+  }
+
+  @keyframes codGlow {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  .cod-modal-shine {
+    animation: codModalShine 4s ease-in-out infinite;
+  }
+
+  .cod-icon-pulse {
+    animation: codIconPulse 2.6s ease-in-out infinite;
+  }
+
+  .cod-glow {
+    animation: codGlow 2.2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cod-modal-shine,
+    .cod-icon-pulse,
+    .cod-glow {
+      animation: none;
+    }
+  }
+`}</style>
+
+<Modal
+  isOpen={isCodConfirmOpen}
+  onClose={onCodConfirmClose}
+  placement="center"
+  backdrop="blur"
+  hideCloseButton
+  className="z-[9999]"
+>
+  <ModalContent
+    className="
+      relative
+      mx-3
+      w-full
+      max-w-[420px]
+      overflow-hidden
+      rounded-[24px]
+      border
+      border-amber-100
+      bg-white
+      shadow-[0_25px_80px_rgba(15,23,42,0.20)]
+      sm:mx-auto
+      sm:rounded-[28px]
+    "
+  >
+    {() => (
+      <>
+        {/* ===================================================
+            BACKGROUND GLOWS
+        ==================================================== */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -right-16
+            -top-16
+            h-36
+            w-36
+            rounded-full
+            bg-amber-100/50
+            blur-3xl
+          "
+        />
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -bottom-20
+            -left-16
+            h-40
+            w-40
+            rounded-full
+            bg-orange-100/40
+            blur-3xl
+          "
+        />
+
+        {/* ===================================================
+            TOP GRADIENT BAR
+        ==================================================== */}
+
+        <div
+          className="
+            relative
+            z-30
+            h-1
+            overflow-hidden
+            rounded-t-[24px]
+            bg-gradient-to-r
+            from-amber-400
+            via-orange-400
+            to-amber-500
+          "
+        >
+          <span
+            className="
+              absolute
+              inset-y-0
+              -left-1/2
+              w-1/3
+              skew-x-[-18deg]
+              bg-gradient-to-r
+              from-transparent
+              via-white
+              to-transparent
+              cod-modal-shine
+            "
+          />
+        </div>
+
+        {/* ===================================================
+            GLOBAL SHINE
+        ==================================================== */}
+
+        <span
+          className="
+            pointer-events-none
+            absolute
+            inset-y-0
+            -left-[45%]
+            z-20
+            w-[24%]
+            skew-x-[-18deg]
+            bg-gradient-to-r
+            from-transparent
+            via-white/60
+            to-transparent
+            cod-modal-shine
+          "
+        />
+
+        {/* ===================================================
+            HEADER
+        ==================================================== */}
+
+        <ModalHeader
+          className="
+            relative
+            z-10
+            border-b
+            border-slate-100
+            bg-white/90
+            px-4
+            py-4
+            backdrop-blur-xl
+            sm:px-5
+            sm:py-5
+          "
+        >
+          <div className="flex w-full items-center gap-3">
+
+            {/* COD icon */}
+            <div
+              className="
+                relative
+                flex
+                h-11
+                w-11
+                shrink-0
+                items-center
+                justify-center
+                overflow-hidden
+                rounded-2xl
+                border
+                border-amber-100
+                bg-gradient-to-br
+                from-amber-50
+                to-orange-50
+                text-amber-600
+                shadow-sm
+                cod-icon-pulse
+                sm:h-12
+                sm:w-12
+              "
+            >
+              <span
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-y-0
+                  -left-full
+                  w-1/2
+                  skew-x-[-18deg]
+                  bg-gradient-to-r
+                  from-transparent
+                  via-white/80
+                  to-transparent
+                "
+              />
+
+              <FaWallet
+                size={19}
+                className="relative z-10"
+              />
+            </div>
+
+            {/* Heading */}
+            <div className="min-w-0 flex-1">
+              <h3
+                className="
+                  text-[15px]
+                  font-bold
+                  leading-5
+                  tracking-[-0.015em]
+                  text-slate-900
+                  sm:text-[17px]
+                  md:text-lg
+                "
+              >
+                Confirm COD Order
+              </h3>
+
+              <p
+                className="
+                  mt-0.5
+                  text-[9px]
+                  leading-4
+                  text-slate-500
+                  sm:text-[10px]
+                  md:text-xs
+                "
+              >
+                Review your order before placing it.
+              </p>
+            </div>
+          </div>
+        </ModalHeader>
+
+        {/* ===================================================
+            BODY
+        ==================================================== */}
+
+        <ModalBody
+          className="
+            relative
+            z-10
+            space-y-3.5
+            bg-slate-50/40
+            px-4
+            py-4
+            sm:space-y-4
+            sm:px-5
+            sm:py-5
+          "
         >
 
-          <ModalContent
+          {/* =================================================
+              PAYMENT METHOD CARD
+          ================================================== */}
+
+          <div
             className="
+              group
+              relative
+              overflow-hidden
               rounded-2xl
               border
               border-amber-100
-              shadow-xl
-              bg-white
-              max-w-sm
-              mx-auto
+              bg-gradient-to-br
+              from-amber-50/80
+              via-white
+              to-orange-50/40
+              p-3.5
+              shadow-sm
+              sm:p-4
             "
           >
+            {/* Shine */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                -left-1/2
+                w-1/3
+                skew-x-[-18deg]
+                bg-gradient-to-r
+                from-transparent
+                via-white/70
+                to-transparent
+                cod-modal-shine
+              "
+            />
 
-            {() => (
+            <div className="relative z-10 flex items-center gap-3">
 
-              <>
+              <div
+                className="
+                  flex
+                  h-9
+                  w-9
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-white
+                  text-amber-500
+                  shadow-sm
+                  sm:h-10
+                  sm:w-10
+                "
+              >
+                <FaWallet size={15} />
+              </div>
 
-                <div
-                  className="
-                    h-1
-                    bg-gradient-to-r
-                    from-amber-400
-                    to-orange-400
-                    rounded-t-2xl
-                  "
-                />
-
-
-                <ModalHeader
-                  className="
-                    flex
-                    items-center
-                    gap-2
-                    text-slate-800
-                    font-bold
-                    text-sm
-                    border-b
-                    border-slate-100
-                  "
-                >
-
-                  <FaWallet
-                    className="
-                      text-amber-500
-                    "
-                  />
-
-                  Confirm COD Order
-
-                </ModalHeader>
-
-
-                <ModalBody
-                  className="
-                    py-4
-                    space-y-2
-                  "
-                >
-
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-1.5">
                   <p
                     className="
-                      text-sm
-                      text-slate-600
-                    "
-                  >
-
-                    You selected{" "}
-
-                    <span
-                      className="
-                        font-bold
-                        text-slate-800
-                      "
-                    >
-                      Cash on Delivery
-                    </span>
-
-                    .
-
-                  </p>
-
-
-                  <p
-                    className="
-                      text-xs
-                      text-slate-500
-                    "
-                  >
-
-                    Confirmation will be sent to{" "}
-
-                    <span
-                      className="
-                        text-indigo-600
-                        font-semibold
-                      "
-                    >
-                      {address.email}
-                    </span>
-
-                  </p>
-
-
-                  <div
-                    className="
-                      bg-amber-50
-                      border
-                      border-amber-200
-                      rounded-xl
-                      px-3
-                      py-2
-                      text-xs
-                      text-amber-700
-                    "
-                  >
-                    💡 Keep cash ready at time of delivery
-                  </div>
-
-                </ModalBody>
-
-
-                <ModalFooter
-                  className="
-                    gap-2
-                    border-t
-                    border-slate-100
-                  "
-                >
-
-                  <Button
-                    variant="light"
-                    onPress={
-                      onCodConfirmClose
-                    }
-                    className="
-                      text-slate-500
-                      text-sm
-                    "
-                  >
-                    Cancel
-                  </Button>
-
-
-                  <Button
-                    onPress={async () => {
-
-                      onCodConfirmClose();
-
-                      await completeOrder(
-                        "COD"
-                      );
-
-                    }}
-                    className="
-                      text-white
+                      text-[11px]
                       font-bold
-                      rounded-xl
-                      text-sm
-                      px-6
-                      bg-amber-500
-                      hover:bg-amber-600
+                      text-slate-900
+                      sm:text-xs
+                      md:text-sm
                     "
                   >
-                    Confirm Order
-                  </Button>
+                    Cash on Delivery
+                  </p>
 
-                </ModalFooter>
+                  <span
+                    className="
+                      rounded-full
+                      border
+                      border-amber-100
+                      bg-amber-50
+                      px-1.5
+                      py-0.5
+                      text-[7px]
+                      font-bold
+                      text-amber-700
+                      sm:text-[8px]
+                    "
+                  >
+                    COD
+                  </span>
+                </div>
 
-              </>
+                <p
+                  className="
+                    mt-1
+                    text-[8px]
+                    leading-4
+                    text-slate-500
+                    sm:text-[9px]
+                    md:text-[10px]
+                  "
+                >
+                  Pay when your order is delivered.
+                </p>
+              </div>
 
-            )}
+              <FaCheckCircle
+                size={17}
+                className="
+                  shrink-0
+                  text-emerald-500
+                  cod-glow
+                "
+              />
+            </div>
+          </div>
 
-          </ModalContent>
+          {/* =================================================
+              ORDER TOTAL
+          ================================================== */}
 
-        </Modal>
+          <div
+            className="
+              flex
+              items-center
+              justify-between
+              gap-3
+              rounded-2xl
+              border
+              border-slate-200
+              bg-white
+              px-3.5
+              py-3
+              shadow-sm
+              sm:px-4
+            "
+          >
+            <div className="min-w-0">
+              <p
+                className="
+                  text-[8px]
+                  font-bold
+                  uppercase
+                  tracking-[0.1em]
+                  text-slate-400
+                  sm:text-[9px]
+                "
+              >
+                Amount to pay
+              </p>
 
+              <p
+                className="
+                  mt-0.5
+                  text-[16px]
+                  font-black
+                  leading-5
+                  tracking-[-0.02em]
+                  text-slate-900
+                  sm:text-lg
+                "
+              >
+                ₹
+                {Number(finalTotal || 0).toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+            </div>
+
+            <div
+              className="
+                flex
+                shrink-0
+                items-center
+                gap-1.5
+                rounded-full
+                border
+                border-emerald-100
+                bg-emerald-50
+                px-2
+                py-1
+                text-[8px]
+                font-bold
+                text-emerald-700
+                sm:px-2.5
+                sm:py-1.5
+                sm:text-[9px]
+              "
+            >
+              <FaShieldAlt
+                size={9}
+                className="text-emerald-500"
+              />
+
+              Secure
+            </div>
+          </div>
+
+          {/* =================================================
+              EMAIL CONFIRMATION
+          ================================================== */}
+
+          <div
+            className="
+              rounded-2xl
+              border
+              border-slate-200
+              bg-white
+              px-3.5
+              py-3
+              shadow-sm
+              sm:px-4
+            "
+          >
+            <div className="flex items-start gap-2.5">
+
+              <div
+                className="
+                  flex
+                  h-8
+                  w-8
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-indigo-50
+                  text-indigo-500
+                  sm:h-9
+                  sm:w-9
+                "
+              >
+                <FaEnvelope size={13} />
+              </div>
+
+              <div className="min-w-0">
+                <p
+                  className="
+                    text-[9px]
+                    font-bold
+                    text-slate-700
+                    sm:text-[10px]
+                    md:text-xs
+                  "
+                >
+                  Order confirmation
+                </p>
+
+                <p
+                  className="
+                    mt-0.5
+                    break-all
+                    text-[8px]
+                    leading-4
+                    text-slate-500
+                    sm:text-[9px]
+                    md:text-[10px]
+                  "
+                >
+                  Confirmation will be sent to{" "}
+                  <span className="font-semibold text-indigo-600">
+                    {address.email || user?.email || "your email"}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* =================================================
+              CASH REMINDER
+          ================================================== */}
+
+          <div
+            className="
+              relative
+              overflow-hidden
+              rounded-2xl
+              border
+              border-amber-200
+              bg-amber-50/70
+              px-3
+              py-2.5
+              sm:px-3.5
+              sm:py-3
+            "
+          >
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                -left-1/2
+                w-1/3
+                skew-x-[-18deg]
+                bg-gradient-to-r
+                from-transparent
+                via-white/70
+                to-transparent
+                cod-modal-shine
+              "
+            />
+
+            <div
+              className="
+                relative
+                z-10
+                flex
+                items-center
+                gap-2.5
+              "
+            >
+              <div
+                className="
+                  flex
+                  h-7
+                  w-7
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-white
+                  text-amber-500
+                  shadow-sm
+                  sm:h-8
+                  sm:w-8
+                "
+              >
+                <FaWallet size={12} />
+              </div>
+
+              <div>
+                <p
+                  className="
+                    text-[9px]
+                    font-bold
+                    text-amber-700
+                    sm:text-[10px]
+                    md:text-[11px]
+                  "
+                >
+                  Keep cash ready
+                </p>
+
+                <p
+                  className="
+                    mt-0.5
+                    text-[8px]
+                    leading-4
+                    text-amber-600
+                    sm:text-[9px]
+                  "
+                >
+                  Please keep the exact or required amount ready at delivery.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </ModalBody>
+
+        {/* ===================================================
+            FOOTER
+        ==================================================== */}
+
+        <ModalFooter
+          className="
+            relative
+            z-10
+            flex
+            gap-2
+            border-t
+            border-slate-100
+            bg-white/95
+            px-4
+            py-3
+            backdrop-blur-xl
+            sm:px-5
+            sm:py-4
+          "
+        >
+
+          {/* Cancel */}
+          <Button
+            variant="light"
+            onPress={onCodConfirmClose}
+            className="
+              h-10
+              flex-1
+              rounded-xl
+              border
+              border-slate-200
+              bg-white
+              px-3
+              text-[10px]
+              font-bold
+              text-slate-600
+              shadow-sm
+              transition-all
+              duration-200
+              hover:border-slate-300
+              hover:bg-slate-50
+              active:scale-[0.97]
+              sm:h-11
+              sm:text-xs
+            "
+          >
+            Cancel
+          </Button>
+
+          {/* Confirm */}
+          <Button
+            onPress={async () => {
+              onCodConfirmClose();
+
+              await completeOrder("COD");
+            }}
+            className="
+              group
+              relative
+              h-10
+              flex-1
+              overflow-hidden
+              rounded-xl
+              border-0
+              bg-gradient-to-r
+              from-amber-500
+              via-orange-500
+              to-amber-500
+              px-4
+              text-[10px]
+              font-bold
+              text-white
+              shadow-[0_7px_20px_rgba(245,158,11,0.28)]
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:shadow-[0_10px_28px_rgba(245,158,11,0.35)]
+              active:scale-[0.97]
+              sm:h-11
+              sm:text-xs
+            "
+          >
+            {/* CTA shine */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                -left-1/2
+                w-1/3
+                skew-x-[-18deg]
+                bg-gradient-to-r
+                from-transparent
+                via-white/40
+                to-transparent
+                cod-modal-shine
+              "
+            />
+
+            {/* Top highlight */}
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-x-2
+                top-0
+                h-px
+                bg-gradient-to-r
+                from-transparent
+                via-white/70
+                to-transparent
+              "
+            />
+
+            <span
+              className="
+                relative
+                z-10
+                flex
+                items-center
+                justify-center
+                gap-1.5
+              "
+            >
+              <FaCheckCircle size={13} />
+
+              <span>
+                Confirm Order
+              </span>
+
+              <IoArrowForward
+                size={14}
+                className="
+                  transition-transform
+                  duration-200
+                  group-hover:translate-x-0.5
+                "
+              />
+            </span>
+          </Button>
+
+        </ModalFooter>
+      </>
+    )}
+  </ModalContent>
+</Modal>
       </div>
 
     </>

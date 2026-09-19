@@ -570,7 +570,7 @@ export default function Products() {
               onClick={() =>
                 window.location.reload()
               }
-              className="mt-6 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-indigo-700 active:scale-95"
+              className="products-filter-button mt-6 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:shadow-xl active:scale-95"
             >
               Try Again
             </button>
@@ -588,13 +588,203 @@ export default function Products() {
   // =========================================================
 
   return (
-    <main className="min-h-screen max-w-7xl mx-auto mt-3">
+    <>
+      <style>{`
+          @keyframes productsShine {
+            0% { transform: translateX(-160%) skewX(-18deg); opacity: 0; }
+            15% { opacity: 0; }
+            35% { opacity: .7; }
+            55% { opacity: 0; }
+            100% { transform: translateX(260%) skewX(-18deg); opacity: 0; }
+          }
+
+          @keyframes productsGlow {
+            0%, 100% { opacity: .45; transform: scale(.96); }
+            50% { opacity: .9; transform: scale(1); }
+          }
+
+          @keyframes productsFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+          }
+
+          @keyframes productsPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(79,70,229,.12); }
+            50% { box-shadow: 0 0 0 7px rgba(79,70,229,.035); }
+          }
+
+          .products-page-shell {
+            font-family: "Roboto", "Google Sans", "Inter", -apple-system,
+              BlinkMacSystemFont, "Segoe UI", sans-serif;
+          }
+
+          .products-shine {
+            animation: productsShine 4.8s ease-in-out infinite;
+          }
+
+          .products-glow {
+            animation: productsGlow 3.2s ease-in-out infinite;
+          }
+
+          .products-float {
+            animation: productsFloat 3s ease-in-out infinite;
+          }
+
+          .products-pulse {
+            animation: productsPulse 2.4s ease-in-out infinite;
+          }
+
+          .products-filter-button {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+          }
+
+          .products-filter-button::after {
+            content: "";
+            position: absolute;
+            inset: -30% auto -30% -55%;
+            width: 38%;
+            transform: skewX(-18deg);
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(255,255,255,.75),
+              transparent
+            );
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease;
+          }
+
+          .products-filter-button:hover::after,
+          .products-filter-button:focus-visible::after {
+            opacity: 1;
+            animation: productsShine 1.1s ease-out 1;
+          }
+
+          .products-filter-button > * {
+            position: relative;
+            z-index: 2;
+          }
+
+          .products-pagination-button {
+            transition:
+              transform .2s ease,
+              border-color .2s ease,
+              box-shadow .2s ease,
+              background .2s ease;
+          }
+
+          .products-pagination-button:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(15,23,42,.08);
+          }
+
+          .products-pagination-button:not(:disabled):active {
+            transform: scale(.94);
+          }
+
+          .products-empty-card {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+          }
+
+          .products-empty-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+              radial-gradient(circle at 15% 10%, rgba(99,102,241,.08), transparent 30%),
+              radial-gradient(circle at 90% 90%, rgba(59,130,246,.07), transparent 28%);
+            pointer-events: none;
+          }
+
+          .products-toolbar {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(226,232,240,.9);
+            background: rgba(255,255,255,.86);
+            box-shadow:
+              0 8px 30px rgba(15,23,42,.055),
+              inset 0 1px 0 rgba(255,255,255,.95);
+            backdrop-filter: blur(16px);
+          }
+
+          .products-toolbar::before {
+            content: "";
+            position: absolute;
+            left: -15%;
+            top: 0;
+            width: 30%;
+            height: 100%;
+            transform: skewX(-18deg);
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(255,255,255,.8),
+              transparent
+            );
+            opacity: 0;
+            pointer-events: none;
+          }
+
+          .products-toolbar:hover::before {
+            opacity: 1;
+            animation: productsShine 1.8s ease-out 1;
+          }
+
+          .products-category-heading {
+            position: relative;
+          }
+
+          .products-category-heading::after {
+            content: "";
+            display: block;
+            width: 34px;
+            height: 3px;
+            margin-top: 8px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #4f46e5, #818cf8, transparent);
+          }
+
+          @media (max-width: 640px) {
+            .products-page-shell {
+              padding-bottom: 5.5rem;
+            }
+
+            .products-toolbar {
+              border-radius: 18px;
+              padding: 5px;
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .products-shine,
+            .products-glow,
+            .products-float,
+            .products-pulse {
+              animation: none !important;
+            }
+
+            .products-filter-button::after,
+            .products-toolbar::before {
+              animation: none !important;
+            }
+
+            .products-pagination-button {
+              transition: none !important;
+            }
+          }
+        `}</style>
+      <main className="products-page-shell min-h-screen max-w-7xl mx-auto mt-3">
 
       {/* =====================================================
           PAGE
       ===================================================== */}
 
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/70 to-white">
 
         {/* Background Decoration */}
 
@@ -758,14 +948,13 @@ export default function Products() {
           <section className="mb-5">
             <div
               className="
-                flex
-                items-center
-                gap-2
-                overflow-x-auto
-                px-0.5
-                pb-1
+                products-toolbar
+                flex items-center gap-2
+                overflow-x-auto rounded-2xl p-1.5
+                px-1.5 pb-1.5
                 [scrollbar-width:none]
                 [&::-webkit-scrollbar]:hidden
+                sm:rounded-[20px] sm:p-2
               "
             >
 
@@ -959,7 +1148,7 @@ export default function Products() {
 
               {/* Heading */}
 
-              <div className="mb-5 flex items-end justify-between">
+              <div className="mb-5 flex items-end justify-between rounded-2xl border border-slate-100 bg-white/70 px-3 py-3 shadow-sm backdrop-blur sm:px-4">
 
                 <div>
 
@@ -970,7 +1159,7 @@ export default function Products() {
                       : "Category Products"}
                   </p>
 
-                  <h2 className="mt-1 text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
+                  <h2 className="products-category-heading mt-1 text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
                     {categoryName}
                   </h2>
 
@@ -1029,7 +1218,7 @@ export default function Products() {
                         page - 1
                       )
                     }
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 disabled:opacity-40"
+                    className="products-pagination-button flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <FaAngleLeft
                       size={12}
@@ -1074,7 +1263,7 @@ export default function Products() {
                                 pageNumber
                               )
                             }
-                            className={`flex h-10 min-w-10 items-center justify-center rounded-xl px-2 text-xs font-black ${
+                            className={`products-pagination-button flex h-10 min-w-10 items-center justify-center rounded-xl px-2 text-xs font-black ${
                               page ===
                               pageNumber
                                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-200"
@@ -1102,7 +1291,7 @@ export default function Products() {
                         page + 1
                       )
                     }
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 disabled:opacity-40"
+                    className="products-pagination-button flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <FaAngleRight
                       size={12}
@@ -1158,7 +1347,7 @@ export default function Products() {
           )
         }
         aria-label="Open filters"
-        className="fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-white bg-indigo-600 text-white shadow-xl shadow-indigo-300 transition active:scale-90 sm:hidden"
+        className="products-pulse products-filter-button fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-white bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-xl shadow-indigo-300 transition hover:-translate-y-1 active:scale-90 sm:hidden"
       >
 
         <FaFilter
@@ -1190,7 +1379,8 @@ export default function Products() {
         initialSection={activeFilterSection}
       />
 
-    </main>
+      </main>
+    </>
   );
 }
 
@@ -1795,6 +1985,7 @@ function FilterChipButton({
       type="button"
       onClick={onClick}
       className={`
+        products-filter-button
         inline-flex
         h-10
         min-w-[82px]
@@ -1875,7 +2066,7 @@ function EmptyProducts({
   return (
     <section className="flex min-h-[500px] items-center justify-center">
 
-      <div className="w-full max-w-lg rounded-[30px] border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
+      <div className="products-empty-card w-full max-w-lg rounded-[30px] border border-slate-200 bg-white px-6 py-10 text-center shadow-[0_20px_60px_rgba(15,23,42,.08)]">
 
         <Lottie
           animationData={notfound}

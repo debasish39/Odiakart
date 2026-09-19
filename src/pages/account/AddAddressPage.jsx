@@ -28,16 +28,27 @@ export default function AddAddressPage() {
     fullName: "",
     phone: "",
     alternatePhone: "",
+
+    // Full Address model fields
+    houseNumber: "",
+    buildingName: "",
+    floor: "",
+    street: "",
+
     addressLine1: "",
     addressLine2: "",
     landmark: "",
     area: "",
     village: "",
+    postOffice: "",
+    block: "",
     city: "",
     district: "",
     state: "",
     postalCode: "",
     country: "India",
+
+    deliveryInstructions: "",
     location: {
       latitude: null,
       longitude: null,
@@ -125,17 +136,42 @@ export default function AddAddressPage() {
           fullName: f.fullName.trim(),
           phone: f.phone.trim(),
           alternatePhone: f.alternatePhone.trim(),
+
+          houseNumber: f.houseNumber.trim(),
+          buildingName: f.buildingName.trim(),
+          floor: f.floor.trim(),
+          street: f.street.trim(),
+
           addressLine1: f.addressLine1.trim(),
           addressLine2: f.addressLine2.trim(),
           landmark: f.landmark.trim(),
           area: f.area.trim(),
           village: f.village.trim(),
+          postOffice: f.postOffice.trim(),
+          block: f.block.trim(),
           city: f.city.trim(),
           district: f.district.trim(),
           state: f.state.trim(),
           postalCode: f.postalCode.trim(),
           country: f.country || "India",
-          location: f.location,
+
+          deliveryInstructions: f.deliveryInstructions.trim(),
+
+          location: {
+            latitude:
+              f.location?.latitude !== "" &&
+              f.location?.latitude !== null &&
+              f.location?.latitude !== undefined
+                ? Number(f.location.latitude)
+                : null,
+            longitude:
+              f.location?.longitude !== "" &&
+              f.location?.longitude !== null &&
+              f.location?.longitude !== undefined
+                ? Number(f.location.longitude)
+                : null,
+          },
+
           isDefault: Boolean(f.isDefault),
         }),
       });
@@ -149,7 +185,33 @@ export default function AddAddressPage() {
         response?.message || "Address saved successfully"
       );
 
-      navigate("/account/addresses");
+      let checkoutReturn = false;
+
+      try {
+        const rawReturn = sessionStorage.getItem(
+          "odicart_checkout_return"
+        );
+
+        const parsedReturn = rawReturn
+          ? JSON.parse(rawReturn)
+          : null;
+
+        checkoutReturn =
+          parsedReturn?.path === "/cart" &&
+          Number(parsedReturn?.step) === 2;
+
+        if (checkoutReturn) {
+          sessionStorage.removeItem("odicart_checkout_return");
+        }
+      } catch (_) {
+        checkoutReturn = false;
+      }
+
+      navigate(
+        checkoutReturn
+          ? "/cart"
+          : "/account/addresses"
+      );
     } catch (error) {
       console.error("Save address error:", error);
 
@@ -658,6 +720,46 @@ export function AddressForm({
               description="Add your complete delivery address."
             />
 
+            <div className="form-grid">
+              <Field
+                label="House / Flat / Door No."
+                value={f.houseNumber}
+                onChange={(value) =>
+                  set("houseNumber", value)
+                }
+                placeholder="e.g. 12/A"
+                autoComplete="address-line1"
+              />
+
+              <Field
+                label="Building / Apartment"
+                value={f.buildingName}
+                onChange={(value) =>
+                  set("buildingName", value)
+                }
+                placeholder="Building or apartment name"
+              />
+
+              <Field
+                label="Floor"
+                value={f.floor}
+                onChange={(value) =>
+                  set("floor", value)
+                }
+                placeholder="e.g. 2nd Floor"
+              />
+
+              <Field
+                label="Street / Road"
+                value={f.street}
+                onChange={(value) =>
+                  set("street", value)
+                }
+                placeholder="Street or road name"
+                autoComplete="street-address"
+              />
+            </div>
+
             <Field
               label="Address line 1"
               required
@@ -665,7 +767,7 @@ export function AddressForm({
               onChange={(value) =>
                 set("addressLine1", value)
               }
-              placeholder="House / flat number, building, street"
+              placeholder="Complete address line 1"
               autoComplete="street-address"
             />
 
@@ -751,7 +853,26 @@ export function AddressForm({
                 placeholder="Enter village"
               />
 
-            </div>
+            
+              <Field
+                label="Post office"
+                value={f.postOffice}
+                onChange={(value) =>
+                  set("postOffice", value)
+                }
+                placeholder="Post office"
+              />
+
+              <Field
+                label="Block"
+                value={f.block}
+                onChange={(value) =>
+                  set("block", value)
+                }
+                placeholder="Block / development block"
+              />
+
+</div>
 
           </section>
 
@@ -830,6 +951,43 @@ export function AddressForm({
             </div>
 
           </section>
+          {/* ====================================================
+             DELIVERY INSTRUCTIONS
+          ==================================================== */}
+
+          <section className="form-section">
+            <SectionHeader
+              number="05"
+              title="Delivery instructions"
+              description="Optional notes to help the delivery partner."
+            />
+
+            <div className="field">
+              <label className="input-label">
+                Delivery instructions
+              </label>
+
+              <textarea
+                className="input address-textarea"
+                value={f.deliveryInstructions || ""}
+                maxLength={500}
+                rows={4}
+                onChange={(e) =>
+                  set("deliveryInstructions", e.target.value)
+                }
+                placeholder="e.g. Call before delivery, leave at the security desk..."
+              />
+
+              <div className="textarea-meta">
+                <span>Optional</span>
+                <span>
+                  {String(f.deliveryInstructions || "").length}/500
+                </span>
+              </div>
+            </div>
+          </section>
+
+
 
           {/* ====================================================
              COUNTRY
@@ -838,7 +996,7 @@ export function AddressForm({
           <section className="form-section country-section">
 
             <SectionHeader
-              number="05"
+              number="06"
               title="Country"
               description="Where should this address be delivered?"
             />
@@ -1474,6 +1632,30 @@ export function AddressForm({
         }
 
         /* ======================================================
+           TEXTAREA
+        ====================================================== */
+
+        .address-textarea {
+          width: 100%;
+          min-height: 104px;
+          height: auto;
+          resize: vertical;
+          padding: 12px;
+          line-height: 1.5;
+        }
+
+        .textarea-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-top: 6px;
+          color: #9b9ba4;
+          font-size: 11px;
+          font-weight: 650;
+        }
+
+        /* ======================================================
            READONLY LOCATION
         ====================================================== */
 
@@ -1828,6 +2010,11 @@ export function AddressForm({
 
           .address-type {
             min-height: 57px;
+          }
+
+          .address-textarea {
+            min-height: 96px;
+            font-size: 15px;
           }
 
           .default-section {

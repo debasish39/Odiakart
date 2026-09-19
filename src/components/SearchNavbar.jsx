@@ -9,7 +9,7 @@ import {
 import {
   useNavigate,
 } from "react-router-dom";
-
+const OdikartLogo = "/logo.png";
 import { useCart } from "../context/CartContext";
 
 export default function SearchNavbar() {
@@ -157,6 +157,105 @@ export default function SearchNavbar() {
         }
       `}
     >
+      
+      <style>{`
+        @keyframes searchNavShine {
+          0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+          15% { opacity: .9; }
+          55% { opacity: .9; }
+          100% { transform: translateX(420%) skewX(-18deg); opacity: 0; }
+        }
+
+        @keyframes searchNavPulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99,102,241,.18); }
+          50% { transform: scale(1.06); box-shadow: 0 0 0 7px rgba(99,102,241,0); }
+        }
+
+        @keyframes searchNavProgress {
+          0% { opacity: .65; }
+          50% { opacity: 1; }
+          100% { opacity: .65; }
+        }
+
+        .search-nav-shell {
+          isolation: isolate;
+        }
+
+        .search-nav-shell::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          border-radius: inherit;
+          background:
+            radial-gradient(circle at 15% 0%, rgba(255,255,255,.95), transparent 28%),
+            linear-gradient(135deg, rgba(255,255,255,.52), transparent 45%, rgba(99,102,241,.035));
+        }
+
+        .search-nav-shine {
+          position: absolute;
+          top: -20%;
+          bottom: -20%;
+          left: -35%;
+          width: 18%;
+          pointer-events: none;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,.85),
+            transparent
+          );
+          filter: blur(1px);
+          transform: skewX(-18deg);
+          animation: searchNavShine 5.5s ease-in-out infinite;
+        }
+
+        .search-nav-icon-button {
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+        }
+
+        .search-nav-icon-button::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: linear-gradient(
+            120deg,
+            transparent 25%,
+            rgba(255,255,255,.72) 50%,
+            transparent 75%
+          );
+          transform: translateX(-130%) skewX(-18deg);
+          transition: transform .65s ease;
+        }
+
+        .search-nav-icon-button:hover::after {
+          transform: translateX(130%) skewX(-18deg);
+        }
+
+        .search-nav-cart-badge {
+          animation: searchNavPulse 2.6s ease-in-out infinite;
+        }
+
+        .search-nav-progress {
+          animation: searchNavProgress 2s ease-in-out infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .search-nav-shine,
+          .search-nav-cart-badge,
+          .search-nav-progress {
+            animation: none !important;
+          }
+
+          .search-nav-icon-button::after {
+            transition: none !important;
+          }
+        }
+      `}</style>
+
       {/* ========================================================
           OUTER SPACING
       ======================================================== */}
@@ -173,27 +272,28 @@ export default function SearchNavbar() {
             mx-auto
             flex
 
-            h-[60px]
+            h-[58px]
             max-w-7xl
 
             items-center
             justify-between
 
-            rounded-2xl
+            rounded-[20px]
 
             border
             border-white/70
 
-            bg-white/85
+            bg-white/88
 
             px-2.5
+            sm:px-3
 
-            shadow-[0_8px_30px_rgba(15,23,42,0.08)]
+            shadow-[0_10px_34px_rgba(15,23,42,0.09)]
 
             backdrop-blur-2xl
             backdrop-saturate-150
 
-            sm:h-[64px]
+            sm:h-[66px]
             sm:px-3
 
             lg:px-4
@@ -218,7 +318,8 @@ export default function SearchNavbar() {
 
               rounded-full
 
-              bg-slate-100
+              bg-slate-100/80
+              shadow-inner
             "
           >
             <div
@@ -232,6 +333,7 @@ export default function SearchNavbar() {
                 via-violet-500
                 to-purple-500
 
+                search-nav-progress
                 transition-[width]
                 duration-150
               "
@@ -256,6 +358,7 @@ export default function SearchNavbar() {
               aria-label="Go back"
               title="Go back"
               className="
+                search-nav-icon-button
                 group
 
                 relative
@@ -334,8 +437,122 @@ export default function SearchNavbar() {
           </div>
 
           {/* ====================================================
-              CENTER SEARCH BUTTON
+              CENTER — ODikart BRAND
           ==================================================== */}
+
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            aria-label="Go to Odikart home"
+            title="Odikart"
+            className="
+              group/brand
+              absolute
+              left-1/2
+              top-1/2
+              flex
+              -translate-x-1/2
+              -translate-y-1/2
+              items-center
+              justify-center
+              rounded-2xl
+              px-2
+              py-1
+              outline-none
+              transition-all
+              duration-300
+              hover:scale-[1.035]
+              focus-visible:ring-2
+              focus-visible:ring-indigo-500
+              focus-visible:ring-offset-2
+              sm:px-3
+            "
+          >
+            <span
+              className="
+                pointer-events-none
+                absolute
+                -inset-2
+                rounded-3xl
+                bg-gradient-to-r
+                from-indigo-500/10
+                via-violet-500/10
+                to-purple-500/10
+                opacity-0
+                blur-xl
+                transition-opacity
+                duration-500
+                group-hover/brand:opacity-100
+              "
+            />
+
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-0
+                overflow-hidden
+                rounded-2xl
+              "
+            >
+              <span
+                className="
+                  absolute
+                  inset-y-0
+                  -left-1/2
+                  w-1/3
+                  -skew-x-12
+                  bg-gradient-to-r
+                  from-transparent
+                  via-white/90
+                  to-transparent
+                  opacity-0
+                  transition-all
+                  duration-700
+                  group-hover/brand:left-[120%]
+                  group-hover/brand:opacity-100
+                "
+              />
+            </span>
+
+            <span
+              className="
+                relative
+                z-10
+                flex
+                items-center
+                justify-center
+                rounded-xl
+                bg-white/40
+                px-1.5
+                py-0.5
+                backdrop-blur-sm
+                transition-all
+                duration-300
+                group-hover/brand:bg-white/70
+              "
+            >
+              <img
+                src={OdikartLogo}
+                alt="Odikart"
+                className="
+                  block
+                  h-8
+                  w-auto
+                  max-w-[300px]
+                  object-contain
+                  object-center
+                  drop-shadow-[0_4px_10px_rgba(15,23,42,.12)]
+                  transition-transform
+                  duration-300
+                  group-hover/brand:scale-[1.04]
+                  sm:h-9
+                  sm:max-w-[150px]
+                  max-[380px]:max-w-[100px]
+                "
+              />
+            </span>
+          </button>
 
           {/* ====================================================
               RIGHT SIDE
@@ -357,6 +574,7 @@ export default function SearchNavbar() {
     aria-label="Search products"
     title="Search products"
     className="
+      search-nav-icon-button
       group
 
       relative
@@ -378,8 +596,9 @@ export default function SearchNavbar() {
       transition-all
       duration-300
 
-      hover:border-indigo-200
-      hover:bg-indigo-50
+      border border-transparent
+      hover:border-indigo-100
+      hover:bg-gradient-to-br hover:from-indigo-50 hover:to-violet-50
       hover:text-indigo-600
 
       hover:shadow-[0_6px_20px_rgba(79,70,229,0.12)]
