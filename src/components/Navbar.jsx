@@ -1529,7 +1529,7 @@ const reverseGeocode = async (lat, lng) => {
                       false
                     )
                   }
-                  className="odikart-icon-btn relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 hover:bg-indigo-50 hover:text-indigo-600"
+                  className="odikart-icon-btn relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 hover:bg-indigo-50 hover:text-indigo-600 shadow-md"
                 >
                   <X size={16} />
                 </button>
@@ -1666,12 +1666,12 @@ const reverseGeocode = async (lat, lng) => {
       ================================================= */}
 
       <header
-        className={`fixed inset-x-0 top-0 z-40 px-2 pt-2 transition-transform duration-300 sm:px-3 ${
+        className={`fixed inset-x-0 top-0 z-40 p-0 transition-transform duration-300 ${
           showNav ? "translate-y-0" : "-translate-y-full"
         }`}
       >
       <div
-  className={`mx-auto max-w-7xl overflow-visible rounded-[22px] border backdrop-blur-2xl transition-all duration-300 ${
+  className={`w-full max-w-none overflow-visible rounded-none border-x-0 border-t-0 backdrop-blur-2xl transition-all duration-300 ${
             scrolled
               ? "border-indigo-100/80 bg-white/95 shadow-[0_14px_40px_rgba(15,23,42,.10)]"
               : "border-slate-200/70 bg-white/92 shadow-[0_8px_28px_rgba(15,23,42,.07)]"
@@ -1725,7 +1725,7 @@ const reverseGeocode = async (lat, lng) => {
                 type="button"
                 onClick={openSearchPage}
                 aria-label="Search products"
-                className="odikart-icon-btn flex h-10 w-10 items-center justify-center rounded-xl  bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none"
+                className="odikart-icon-btn flex h-10 w-10 items-center justify-center rounded-xl  bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none shadow-md"
               >
                 <Search size={20} />
               </button>
@@ -1735,7 +1735,7 @@ const reverseGeocode = async (lat, lng) => {
               <Link
                 to="/cart"
                 aria-label="Cart"
-                className="odikart-icon-btn relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
+                className="odikart-icon-btn relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 shadow-md"
               >
                 <ShoppingCart size={20} />
 
@@ -2310,12 +2310,12 @@ const reverseGeocode = async (lat, lng) => {
       ================================================= */}
 
       <div
-        className="fixed inset-x-2 bottom-1 z-40 rounded-[24px] border border-white/80 bg-white/90 shadow-[0_12px_45px_rgba(15,23,42,0.16)] backdrop-blur-2xl sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 rounded-none border-x-0 border-b-0 border-t border-white/80 bg-white/95 shadow-[0_-12px_45px_rgba(15,23,42,0.14)] backdrop-blur-2xl sm:hidden"
         style={{
           transform:
             showBottomNav
               ? "translateY(0)"
-              : "translateY(calc(100% + 30px))",
+              : "translateY(100%)",
 
           transition:
             "transform 0.32s cubic-bezier(.22,1,.36,1)",
@@ -2324,7 +2324,13 @@ const reverseGeocode = async (lat, lng) => {
             "transform",
         }}
       >
-        <div className="flex items-center justify-around gap-1 px-1.5 py-2">
+        <div
+          className="flex items-center justify-around gap-1 px-1.5 pt-2"
+          style={{
+            paddingBottom:
+              "calc(0.5rem + env(safe-area-inset-bottom))",
+          }}
+        >
           {BOTTOM_LINKS.map(
             ({
               name,
@@ -2409,7 +2415,7 @@ const reverseGeocode = async (lat, lng) => {
 
 @media (min-width: 641px) {
   .odikart-navbar-shell {
-    border-radius: 20px !important;
+    border-radius: 0 !important;
   }
 }
 

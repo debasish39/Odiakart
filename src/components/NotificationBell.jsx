@@ -334,7 +334,7 @@ export default function NotificationBell() {
           border
           border-transparent
           bg-transparent
-          text-slate-500
+          text-slate-600
           transition-all
           duration-200
           hover:border-slate-200
@@ -342,6 +342,7 @@ export default function NotificationBell() {
           hover:text-indigo-600
           focus:outline-none
           focus:ring-4
+          shadow-md
           focus:ring-indigo-500/10
           active:scale-95
         "
