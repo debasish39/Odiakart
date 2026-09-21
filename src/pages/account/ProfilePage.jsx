@@ -1,27 +1,38 @@
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import {
   FaUser,
   FaMapMarkerAlt,
   FaShoppingBag,
-  FaTruck,
   FaHeart,
   FaBell,
   FaQuestionCircle,
   FaSignOutAlt,
   FaTrash,
   FaChevronRight,
+  FaArrowRight,
   FaShieldAlt,
   FaTimes,
+  FaGift,
+  FaCreditCard,
+  FaWallet,
+  FaLanguage,
+  FaLock,
+  FaMobileAlt,
+  FaInstagram,
+  FaYoutube,
+  FaLinkedin,
+  FaCoins,
+  FaHeadset,
 } from "react-icons/fa";
-import { MdVerified } from "react-icons/md";
+
+import {
+  MdOutlineLocalOffer,
+} from "react-icons/md";
+
 import { useNavigate } from "react-router-dom";
 import { AccountShell, api } from "./AccountShell";
-
-/* =========================================================
-   PROFILE PAGE
-   Modern Tailwind / full-width account UI
-========================================================= */
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -32,12 +43,17 @@ export default function ProfilePage() {
 
   const token = localStorage.getItem("token");
 
+  // =========================================================
+  // CURRENT USER
+  // =========================================================
+
   const {
     data: user = null,
     isLoading: loading,
     error: userError,
   } = useQuery({
     queryKey: ["currentUser", token],
+
     queryFn: async () => {
       const data = await api("/api/auth/me");
 
@@ -47,12 +63,107 @@ export default function ProfilePage() {
 
       return data.user;
     },
+
     enabled: !!token,
+
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
+
     refetchOnWindowFocus: false,
+
     retry: 1,
   });
+
+  // =========================================================
+  // RECENTLY VIEWED PRODUCTS
+  // =========================================================
+
+  const {
+    data: recentlyViewedData,
+    isLoading: recentlyViewedLoading,
+  } = useQuery({
+    queryKey: ["recentlyViewed", token],
+
+    queryFn: async () => {
+      console.log("🟣 GET RECENTLY VIEWED START");
+
+      // IMPORTANT:
+      // Recently Viewed is cookie-based on the backend.
+      // Use the same VITE_BACKEND_URL as SingleProduct.jsx and
+      // explicitly include cookies so recentVisitorId is preserved.
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+      if (!BACKEND_URL) {
+        throw new Error("VITE_BACKEND_URL is not configured");
+      }
+
+      const response = await fetch(
+        `${BACKEND_URL}/api/products/recently-viewed`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
+
+      console.log(
+        "🟢 GET RECENTLY VIEWED STATUS:",
+        response.status
+      );
+
+      const data = await response.json();
+
+      console.log("🟢 GET RECENTLY VIEWED RESPONSE:", data);
+
+      if (!response.ok || !data?.success) {
+        throw new Error(
+          data?.message || "Failed to load recently viewed products"
+        );
+      }
+
+      return data;
+    },
+
+    enabled: !!token,
+
+    // Always fetch latest recently viewed products
+    staleTime: 0,
+
+    gcTime: 5 * 60 * 1000,
+
+    refetchOnMount: "always",
+
+    refetchOnWindowFocus: true,
+
+    retry: 1,
+
+    onError: (error) => {
+      console.error("🔴 RECENTLY VIEWED GET ERROR:", error);
+    },
+  });
+
+  /*
+   * Your API returns:
+   *
+   * {
+   *   success: true,
+   *   products: [...]
+   * }
+   *
+   * Therefore use data.products.
+   */
+
+  const recentlyViewedProducts = Array.isArray(
+    recentlyViewedData?.products
+  )
+    ? recentlyViewedData.products
+    : [];
+
+  // =========================================================
+  // LOGOUT
+  // =========================================================
 
   const handleSignOut = () => {
     setSigningOut(true);
@@ -69,16 +180,22 @@ export default function ProfilePage() {
       queryKey: ["cart", token],
     });
 
+    queryClient.removeQueries({
+      queryKey: ["recentlyViewed", token],
+    });
+
     localStorage.removeItem("token");
 
     setTimeout(() => {
-      navigate("/sign-in", { replace: true });
+      navigate("/sign-in", {
+        replace: true,
+      });
     }, 350);
   };
 
-  /* =======================================================
-     LOADING
-  ======================================================= */
+  // =========================================================
+  // LOADING
+  // =========================================================
 
   if (loading && !user) {
     return (
@@ -88,26 +205,26 @@ export default function ProfilePage() {
     );
   }
 
-  /* =======================================================
-     ERROR
-  ======================================================= */
+  // =========================================================
+  // ERROR
+  // =========================================================
 
   if (userError && !user) {
     return (
       <AccountShell title="Account">
-        <div className="flex min-h-[60vh] w-full items-center justify-center px-4">
-          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-[0_12px_40px_rgba(15,23,42,0.07)] sm:p-9">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+        <div className="flex min-h-[60vh] w-full items-center justify-center bg-[#f7f8fa] px-4">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-sm">
+
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600">
               <FaUser size={19} />
             </div>
 
-            <h2 className="text-[18px] font-bold tracking-[-0.02em] text-slate-900">
+            <h2 className="text-[18px] font-bold text-slate-900">
               Unable to load your profile
             </h2>
 
             <p className="mt-2 text-[13px] leading-5 text-slate-500">
               Something went wrong while loading your account details.
-              Please try again.
             </p>
 
             <button
@@ -117,138 +234,428 @@ export default function ProfilePage() {
                   queryKey: ["currentUser", token],
                 })
               }
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-5 text-[13px] font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-md active:translate-y-0"
+              className="mt-6 h-11 rounded-lg bg-[#2874f0] px-6 text-[13px] font-semibold text-white"
             >
               Try again
             </button>
+
           </div>
         </div>
       </AccountShell>
     );
   }
 
+  // =========================================================
+  // USER INFO
+  // =========================================================
+
   const name =
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
-    "Odikart User";
+    [user?.firstName, user?.lastName]
+      .filter(Boolean)
+      .join(" ") || "Odikart User";
+
+  const firstName =
+    user?.firstName ||
+    name.split(" ")[0] ||
+    "there";
+
+  // =========================================================
+  // MAIN
+  // =========================================================
 
   return (
     <AccountShell title="Account">
-      <div className="w-full overflow-hidden pb-16">
+
+      <div className="min-h-screen w-full bg-[#f6f7f9] pb-24 text-slate-800">
 
         {/* =====================================================
-            PROFILE HERO
-        ====================================================== */}
+            HEADER
+        ===================================================== */}
 
-        <section className="relative w-full overflow-hidden border-b border-slate-200/80 bg-gradient-to-br from-white via-white to-indigo-50/50 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
-          {/* Decorative glow */}
-          <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-indigo-100/50 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-28 left-1/3 h-52 w-52 rounded-full bg-blue-100/30 blur-3xl" />
+        <section className="border-b border-slate-100 bg-white px-4 pb-4 pt-4 sm:px-6">
 
-          <div className="relative flex w-full items-center gap-4 sm:gap-5">
-            {/* Avatar */}
-            <div className="relative shrink-0">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-blue-500 opacity-20 blur-md" />
+          <div className="flex items-center justify-between">
 
-              <div className="relative h-[72px] w-[72px] rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-blue-500 p-[3px] shadow-[0_8px_24px_rgba(79,70,229,0.20)] sm:h-[86px] sm:w-[86px]">
-                <img
-                  src={user?.image || "https://i.pravatar.cc/200"}
-                  alt="Profile"
-                  className="h-full w-full rounded-full border-[3px] border-white object-cover"
-                />
-              </div>
-
-              {/* Verified indicator */}
-              <span className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-white text-blue-600 shadow-sm sm:h-7 sm:w-7">
-                <MdVerified size={19} />
-              </span>
-            </div>
-
-            {/* Profile information */}
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="truncate text-[21px] font-bold tracking-[-0.035em] text-slate-900 sm:text-[25px]">
-                  {name}
-                </h1>
-              </div>
-
-              <p className="mt-1 truncate text-[12px] font-medium text-slate-500 sm:text-[13px]">
-                {user?.email || "No email added"}
+            <div>
+              <p className="text-[15px] font-extrabold tracking-[-0.02em] text-slate-900">
+                Hey, {firstName}
               </p>
 
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-2.5 text-[10px] font-bold text-indigo-700 sm:text-[11px]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                  Odikart member
-                </span>
-
-                <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 text-[10px] font-bold text-emerald-700 sm:text-[11px]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Verified
-                </span>
-              </div>
+              <p className="mt-1 text-[9px] text-slate-400">
+                Manage your Odikart account
+              </p>
             </div>
+
+            <button
+              type="button"
+              onClick={() => navigate("/account/help")}
+              className="flex h-9 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 text-[10px] font-bold text-slate-700 shadow-[0_2px_8px_rgba(15,23,42,0.05)] transition active:scale-95"
+            >
+              <FaHeadset
+                className="text-slate-500"
+                size={10}
+              />
+
+              Help
+            </button>
+
           </div>
+
         </section>
 
         {/* =====================================================
-            ACCOUNT
-        ====================================================== */}
+            ORDERS + WISHLIST
+        ===================================================== */}
 
-        <AccountSection title="Account">
+        <section className="border-b border-slate-100 bg-white px-4 pb-4 sm:px-6">
+
+          <div className="grid grid-cols-2 gap-2.5">
+
+            <QuickAction
+              icon={<FaShoppingBag />}
+              title="Orders"
+              onClick={() => navigate("/account/orders")}
+            />
+
+            <QuickAction
+              icon={<FaHeart />}
+              title="Wishlist"
+              onClick={() => navigate("/account/wishlist")}
+            />
+
+          </div>
+
+        </section>
+
+        {/* =====================================================
+            RECENTLY VIEWED
+        ===================================================== */}
+
+        {(recentlyViewedLoading ||
+          recentlyViewedProducts.length > 0) && (
+
+          <section className="mt-2 border-y border-slate-100 bg-white py-4">
+
+            {/* HEADER */}
+
+            <div className="mb-3 flex items-center justify-between px-4 sm:px-6">
+
+              <div>
+
+                <h2 className="text-[14px] font-extrabold tracking-[-0.025em] text-slate-900">
+                  Recently Viewed
+                </h2>
+
+                <p className="mt-1 text-[9px] text-slate-400">
+                  Pick up where you left off
+                </p>
+
+              </div>
+
+              {recentlyViewedProducts.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/products")}
+                  className="flex items-center gap-1 text-[9px] font-bold text-[#2874f0]"
+                >
+                  View all
+
+                  <FaChevronRight size={7} />
+                </button>
+              )}
+
+            </div>
+
+            {/* =================================================
+                SKELETON
+            ================================================= */}
+
+            {recentlyViewedLoading ? (
+
+              <div className="flex gap-2.5 overflow-hidden px-4 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+
+                {[1, 2, 3, 4].map((item) => (
+
+                  <div
+                    key={item}
+                    className="w-[116px] shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_10px_rgba(15,23,42,0.04)]"
+                  >
+
+                    <div className="aspect-square animate-pulse bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100" />
+
+                    <div className="p-2">
+
+                      <div className="h-2.5 w-16 animate-pulse rounded-full bg-slate-100" />
+
+                      <div className="mt-2 h-2 w-11 animate-pulse rounded-full bg-slate-100" />
+
+                    </div>
+
+                  </div>
+
+                ))}
+
+              </div>
+
+            ) : (
+
+              /* =================================================
+                 PRODUCT LIST
+              ================================================= */
+
+              <div className="flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
+
+                {recentlyViewedProducts.map((product) => {
+
+                  const productId =
+                    product?._id ||
+                    product?.id;
+
+                  if (!productId) {
+                    return null;
+                  }
+
+                  // Collect all possible product images
+                  const images = [
+                    product?.media?.thumbnail,
+
+                    ...(Array.isArray(
+                      product?.media?.images
+                    )
+                      ? product.media.images
+                      : []),
+
+                    ...(Array.isArray(
+                      product?.images
+                    )
+                      ? product.images
+                      : []),
+
+                    ...(Array.isArray(
+                      product?.variants
+                    )
+                      ? product.variants.flatMap(
+                          (variant) =>
+                            Array.isArray(
+                              variant?.images
+                            )
+                              ? variant.images
+                              : []
+                        )
+                      : []),
+
+                    product?.image,
+
+                    product?.thumbnail,
+                  ].filter(Boolean);
+
+                  const image =
+                    images[0] ||
+                    "https://via.placeholder.com/300x300?text=Product";
+
+                  // Product name
+                  const productName =
+                    product?.title ||
+                    product?.name ||
+                    "Product";
+
+                  // Find active variant
+                  const activeVariant =
+                    Array.isArray(product?.variants)
+                      ? product.variants.find(
+                          (variant) =>
+                            variant?.isActive !== false
+                        ) ||
+                        product.variants[0]
+                      : null;
+
+                  // Product price
+                  const price =
+                    activeVariant?.price ??
+                    product?.price ??
+                    null;
+
+                  // Category
+                  const category =
+                    product?.category?.name ||
+                    product?.categoryName ||
+                    product?.category ||
+                    "";
+
+                  return (
+
+                    <button
+                      key={productId}
+                      type="button"
+
+                      onClick={() =>
+                        navigate(
+                          `/products/${productId}`
+                        )
+                      }
+
+                      className="group w-[116px] shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-white text-left shadow-[0_2px_10px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-200 hover:shadow-[0_6px_16px_rgba(15,23,42,0.08)] active:scale-[0.98]"
+                    >
+
+                      {/* =================================================
+                          IMAGE
+                      ================================================= */}
+
+                      <div className="relative aspect-square overflow-hidden bg-slate-50">
+
+                        <img
+                          src={image}
+                          alt={productName}
+                          loading="lazy"
+
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+
+                          onError={(event) => {
+                            event.currentTarget.src =
+                              "https://via.placeholder.com/300x300?text=Product";
+                          }}
+                        />
+
+                        {/* Viewed Badge */}
+
+                        <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[6.5px] font-bold text-slate-600 shadow-sm backdrop-blur-sm">
+                          Viewed
+                        </span>
+
+                      </div>
+
+                      {/* =================================================
+                          PRODUCT INFO
+                      ================================================= */}
+
+                      <div className="p-2">
+
+                        <p className="line-clamp-2 min-h-[24px] text-[8.5px] font-bold leading-[12px] text-slate-800">
+                          {productName}
+                        </p>
+
+                        {category && (
+                          <p className="mt-0.5 truncate text-[7px] text-slate-400">
+                            {category}
+                          </p>
+                        )}
+
+                        {price !== null && (
+                          <p className="mt-1 text-[9px] font-extrabold text-slate-950">
+                            ₹
+                            {Number(
+                              price
+                            ).toLocaleString("en-IN")}
+                          </p>
+                        )}
+
+                        <div className="mt-1.5 flex items-center justify-between">
+
+                          <span className="text-[7px] font-medium text-slate-400">
+                            View product
+                          </span>
+
+                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-50 text-[#2874f0] transition group-hover:bg-[#2874f0] group-hover:text-white">
+
+                            <FaArrowRight size={7} />
+
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                    </button>
+
+                  );
+                })}
+
+              </div>
+
+            )}
+
+          </section>
+        )}
+
+        {/* =====================================================
+            COUPONS
+        ===================================================== */}
+
+        <section className="mt-2 bg-white px-4 py-3 sm:px-6">
+
+          <button
+            type="button"
+            onClick={() => navigate("/coupons")}
+            className="group flex w-full items-center justify-between rounded-xl border border-violet-100 bg-gradient-to-r from-violet-50 via-white to-white px-3.5 py-3 shadow-[0_2px_10px_rgba(124,58,237,0.05)] transition hover:border-violet-200 hover:shadow-[0_5px_16px_rgba(124,58,237,0.08)] active:scale-[0.995]"
+          >
+
+            <div className="flex items-center gap-2.5">
+
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
+
+                <MdOutlineLocalOffer size={17} />
+
+              </span>
+
+              <span className="text-left">
+
+                <span className="block text-[11px] font-bold text-slate-800">
+                  Coupons & Offers
+                </span>
+
+                <span className="mt-0.5 block text-[9px] text-slate-500">
+                  Explore and grab the best deals
+                </span>
+
+              </span>
+
+            </div>
+
+            <FaChevronRight
+              size={9}
+              className="text-slate-400"
+            />
+
+          </button>
+
+        </section>
+
+        {/* =====================================================
+            PROFILE SETTINGS
+        ===================================================== */}
+
+        <AccountSection title="Profile Settings">
+
           <Tile
             icon={<FaUser />}
-            title="Personal information"
+            title="Edit profile"
             sub="Name, phone number and photo"
             path="/account/personal-information"
-            navigate={navigate}
-            iconClassName="bg-indigo-50 text-indigo-600"
-          />
-
-          <Tile
-            icon={<FaMapMarkerAlt />}
-            title="My addresses"
-            sub="Manage your delivery addresses"
-            path="/account/addresses"
             navigate={navigate}
             iconClassName="bg-blue-50 text-blue-600"
           />
 
           <Tile
-            icon={<FaShoppingBag />}
-            title="My orders"
-            sub="View and track your purchases"
-            path="/account/orders"
+            icon={<FaMapMarkerAlt />}
+            title="Saved addresses"
+            sub="Manage your delivery addresses"
+            path="/account/addresses"
+            navigate={navigate}
+            iconClassName="bg-cyan-50 text-cyan-600"
+          />
+
+          <Tile
+            icon={<FaLanguage />}
+            title="Change language"
+            sub="English"
+            path="/account/language"
             navigate={navigate}
             iconClassName="bg-violet-50 text-violet-600"
           />
 
           <Tile
-            icon={<FaTruck />}
-            title="Track an order"
-            sub="Check delivery status and shipment progress"
-            path="/track-order"
-            navigate={navigate}
-            iconClassName="bg-emerald-50 text-emerald-600"
-          />
-
-          <Tile
-            icon={<FaHeart />}
-            title="Wishlist"
-            sub="Products you saved"
-            path="/account/wishlist"
-            navigate={navigate}
-            iconClassName="bg-rose-50 text-rose-600"
-          />
-        </AccountSection>
-
-        {/* =====================================================
-            PREFERENCES
-        ====================================================== */}
-
-        <AccountSection title="Preferences">
-          <Tile
             icon={<FaBell />}
-            title="Notifications"
+            title="Notification settings"
             sub="Manage alerts and offers"
             path="/account/notifications"
             navigate={navigate}
@@ -256,271 +663,402 @@ export default function ProfilePage() {
           />
 
           <Tile
+            icon={<FaCoins />}
+            title="My subscriptions"
+            sub="Manage Odikart membership"
+            path="/account/subscriptions"
+            navigate={navigate}
+            iconClassName="bg-emerald-50 text-emerald-600"
+          />
+
+        </AccountSection>
+
+        {/* =====================================================
+            PAYMENTS
+        ===================================================== */}
+
+        <AccountSection title="Payments & Wallets">
+
+          <Tile
+            icon={<FaGift />}
+            title="Gift card"
+            sub="Add or manage gift cards"
+            path="/account/gift-card"
+            navigate={navigate}
+            iconClassName="bg-blue-50 text-blue-600"
+            rightText="Add gift card"
+          />
+
+          <Tile
+            icon={<FaCreditCard />}
+            title="Saved payment methods"
+            sub="Manage cards and payment preferences"
+            path="/account/payment-methods"
+            navigate={navigate}
+            iconClassName="bg-indigo-50 text-indigo-600"
+          />
+
+          <Tile
+            icon={<FaWallet />}
+            title="Odikart Wallet"
+            sub="View balance and wallet activity"
+            path="/account/wallet"
+            navigate={navigate}
+            iconClassName="bg-emerald-50 text-emerald-600"
+          />
+
+        </AccountSection>
+
+        {/* =====================================================
+            PRIVACY
+        ===================================================== */}
+
+        <AccountSection title="Privacy & Security">
+
+          <Tile
+            icon={<FaLock />}
+            title="Privacy center"
+            sub="Control your privacy preferences"
+            path="/account/privacy"
+            navigate={navigate}
+            iconClassName="bg-blue-50 text-blue-600"
+          />
+
+          <Tile
+            icon={<FaMobileAlt />}
+            title="Manage devices"
+            sub="Review active signed-in devices"
+            path="/account/devices"
+            navigate={navigate}
+            iconClassName="bg-slate-100 text-slate-600"
+            rightText="Active devices"
+          />
+
+        </AccountSection>
+
+        {/* =====================================================
+            EARN WITH ODIKART
+        ===================================================== */}
+
+        <AccountSection title="Earn with Odikart">
+
+          <Tile
+            icon={<FaCoins />}
+            title="Odikart affiliate program"
+            sub="Earn rewards by sharing products"
+            path="/affiliate"
+            navigate={navigate}
+            iconClassName="bg-amber-50 text-amber-600"
+          />
+
+          <Tile
+            icon={<FaShoppingBag />}
+            title="Sell on Odikart"
+            sub="Start selling your products"
+            path="/seller"
+            navigate={navigate}
+            iconClassName="bg-blue-50 text-blue-600"
+          />
+
+        </AccountSection>
+
+        {/* =====================================================
+            FAQ
+        ===================================================== */}
+
+        <AccountSection title="FAQ & Terms">
+
+          <Tile
             icon={<FaQuestionCircle />}
-            title="Help & support"
-            sub="Get help with Odikart"
-            path="/account/help"
+            title="FAQs"
+            sub="Frequently asked questions"
+            path="/faq"
             navigate={navigate}
             iconClassName="bg-cyan-50 text-cyan-600"
           />
 
           <Tile
-            icon={<FaQuestionCircle />}
-            title="Terms & privacy"
-            sub="Policies and legal information"
+            icon={<FaShieldAlt />}
+            title="Terms, Policies & Licences"
+            sub="Read Odikart's legal information"
             path="/account/legal"
             navigate={navigate}
             iconClassName="bg-slate-100 text-slate-600"
           />
+
         </AccountSection>
 
         {/* =====================================================
-            ACCOUNT ACTIONS
-        ====================================================== */}
+            ACTIVITY
+        ===================================================== */}
 
-        <AccountSection
-          title="Account actions"
-          extraClass="mt-9 border-t border-slate-200/80 pt-7"
-        >
+        <AccountSection title="My Activity">
+
           <Tile
-            icon={<FaSignOutAlt />}
-            title="Sign out"
-            sub="Sign back in anytime"
-            onClick={() => setShowSignOutModal(true)}
+            icon={<FaQuestionCircle />}
+            title="Questions & Answers"
+            sub="Your product questions and answers"
+            path="/account/questions"
             navigate={navigate}
-            iconClassName="bg-slate-100 text-slate-600"
+            iconClassName="bg-indigo-50 text-indigo-600"
           />
 
           <Tile
-            danger
-            icon={<FaTrash />}
-            title="Delete account"
-            sub="Permanently remove your account"
-            path="/account/delete"
+            icon={<FaHeart />}
+            title="Wishlist activity"
+            sub="Recently saved products"
+            path="/account/wishlist"
             navigate={navigate}
             iconClassName="bg-rose-50 text-rose-600"
           />
+
         </AccountSection>
-      </div>
 
-      {/* =======================================================
-          SIGN OUT MODAL
-      ======================================================= */}
+        {/* =====================================================
+            SOCIAL
+        ===================================================== */}
 
-      {showSignOutModal && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-end justify-center bg-slate-950/55 p-0 backdrop-blur-md sm:items-center sm:p-5"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget && !signingOut) {
-              setShowSignOutModal(false);
-            }
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="signout-title"
-            className="relative w-full overflow-hidden rounded-t-[28px] border border-white/70 bg-white shadow-[0_-10px_50px_rgba(15,23,42,0.18)] animate-[profileModalIn_.24s_ease-out] sm:max-w-[440px] sm:rounded-[28px] sm:shadow-[0_25px_70px_rgba(15,23,42,0.20)]"
-            onMouseDown={(e) => e.stopPropagation()}
+        <section className="mt-6 bg-white px-4 py-4 sm:px-6">
+
+          <p className="mb-2.5 text-[10px] font-extrabold uppercase tracking-[0.1em] text-slate-500">
+            Follow Us On
+          </p>
+
+          <div className="grid grid-cols-3 gap-2">
+
+            <SocialButton
+              icon={<FaInstagram />}
+              label="Instagram"
+            />
+
+            <SocialButton
+              icon={<FaYoutube />}
+              label="YouTube"
+            />
+
+            <SocialButton
+              icon={<FaLinkedin />}
+              label="LinkedIn"
+            />
+
+          </div>
+
+        </section>
+
+        {/* =====================================================
+            LOGOUT
+        ===================================================== */}
+
+        <section className="bg-white px-4 py-4 sm:px-6">
+
+          <button
+            type="button"
+            onClick={() => setShowSignOutModal(true)}
+            className="flex h-10 w-full items-center justify-center rounded-md border border-[#2874f0] bg-white text-[11px] font-bold text-[#2874f0] transition hover:bg-blue-50"
           >
-            {/* top accent */}
-            <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-blue-500" />
+            Log out
+          </button>
 
-            <div className="p-5 sm:p-7">
-              <button
-                type="button"
-                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-                onClick={() => setShowSignOutModal(false)}
-                disabled={signingOut}
-                aria-label="Close sign out dialog"
-              >
-                <FaTimes size={13} />
-              </button>
+          <p className="mt-3 text-center text-[8px] text-slate-400">
+            v1.0.0
+          </p>
 
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.08)]">
-                <FaSignOutAlt size={21} />
-              </div>
+        </section>
 
-              <div className="mt-5 pr-8">
-                <span className="text-[10px] font-extrabold tracking-[0.12em] text-indigo-600">
-                  ACCOUNT ACTION
-                </span>
+        {/* =====================================================
+            DELETE ACCOUNT
+        ===================================================== */}
 
-                <h2
-                  id="signout-title"
-                  className="mt-1.5 text-[20px] font-bold tracking-[-0.025em] text-slate-900"
+        <section className="px-4 pb-6 pt-2 sm:px-6">
+
+          <button
+            type="button"
+            onClick={() => navigate("/account/delete")}
+            className="mx-auto flex items-center gap-1.5 text-[9px] font-medium text-slate-400 hover:text-rose-500"
+          >
+
+            <FaTrash size={8} />
+
+            Delete account
+
+          </button>
+
+        </section>
+
+        {/* =====================================================
+            SIGN OUT MODAL
+        ===================================================== */}
+
+        {showSignOutModal && (
+
+          <div
+            className="fixed inset-0 z-[9999] flex items-end justify-center bg-slate-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-5"
+
+            onMouseDown={(event) => {
+              if (
+                event.target === event.currentTarget &&
+                !signingOut
+              ) {
+                setShowSignOutModal(false);
+              }
+            }}
+          >
+
+            <div
+              role="dialog"
+              aria-modal="true"
+
+              className="relative w-full overflow-hidden rounded-t-[24px] bg-white shadow-2xl sm:max-w-[420px] sm:rounded-[24px]"
+
+              onMouseDown={(event) =>
+                event.stopPropagation()
+              }
+            >
+
+              <div className="h-1 w-full bg-[#2874f0]" />
+
+              <div className="p-5">
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowSignOutModal(false)
+                  }
+                  disabled={signingOut}
+                  className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500"
                 >
-                  Sign out of your account?
+                  <FaTimes size={12} />
+                </button>
+
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-[#2874f0]">
+                  <FaSignOutAlt size={18} />
+                </div>
+
+                <h2 className="mt-4 text-[18px] font-bold text-slate-900">
+                  Log out of your account?
                 </h2>
 
-                <p className="mt-2 text-[12.5px] leading-5 text-slate-500 sm:text-[13px]">
-                  You will be signed out of this device. You can sign back
-                  in anytime using your account credentials.
+                <p className="mt-2 pr-5 text-[12px] leading-5 text-slate-500">
+                  You can sign back in anytime using your account credentials.
                 </p>
+
+                <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-blue-50 p-3">
+
+                  <FaShieldAlt
+                    className="mt-0.5 shrink-0 text-[#2874f0]"
+                    size={13}
+                  />
+
+                  <p className="text-[10px] leading-4 text-slate-600">
+                    Your account data will remain safe when you sign back in.
+                  </p>
+
+                </div>
+
+                <div className="mt-5 grid grid-cols-2 gap-2.5">
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowSignOutModal(false)
+                    }
+                    disabled={signingOut}
+                    className="h-11 rounded-xl border border-slate-200 text-[12px] font-bold text-slate-700"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    disabled={signingOut}
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2874f0] text-[12px] font-bold text-white disabled:opacity-60"
+                  >
+
+                    {signingOut ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+
+                        Logging out...
+                      </>
+                    ) : (
+                      <>
+                        <FaSignOutAlt size={12} />
+
+                        Log out
+                      </>
+                    )}
+
+                  </button>
+
+                </div>
+
               </div>
 
-              <div className="mt-5 flex items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
-                  <FaShieldAlt size={13} />
-                </span>
-
-                <p className="pt-0.5 text-[10.5px] leading-4 text-slate-600">
-                  Your account data will remain safe and available when
-                  you sign back in.
-                </p>
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  className="h-11 rounded-xl border border-slate-200 bg-white text-[12px] font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-                  onClick={() => setShowSignOutModal(false)}
-                  disabled={signingOut}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="button"
-                  className="flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-900 text-[12px] font-bold text-white shadow-[0_7px_20px_rgba(15,23,42,0.16)] transition-all hover:-translate-y-0.5 hover:bg-indigo-600 hover:shadow-[0_10px_25px_rgba(79,70,229,0.22)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
-                  onClick={handleSignOut}
-                  disabled={signingOut}
-                >
-                  {signingOut ? (
-                    <>
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Signing out...
-                    </>
-                  ) : (
-                    <>
-                      <FaSignOutAlt size={13} />
-                      Sign out
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
-          </div>
-        </div>
-      )}
 
-      <style>{`
-        @keyframes profileModalIn {
-          from { opacity: 0; transform: translateY(12px) scale(.98); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes profileSkeleton {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
+          </div>
+
+        )}
+
+      </div>
+
     </AccountShell>
   );
 }
 
-/* =========================================================
-   PROFILE SKELETON
-========================================================= */
+// =========================================================
+// QUICK ACTION
+// =========================================================
 
-function ProfileSkeleton() {
+function QuickAction({
+  icon,
+  title,
+  onClick,
+}) {
   return (
-    <div
-      className="w-full pb-16"
-      aria-hidden="true"
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-[11px] font-bold text-slate-700 shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]"
     >
-      {/* Profile skeleton */}
-      <section className="relative flex w-full items-center gap-4 overflow-hidden border-b border-slate-200 bg-white px-4 py-6 sm:gap-5 sm:px-6 sm:py-7 lg:px-8">
-        <Skeleton className="h-[72px] w-[72px] shrink-0 rounded-full sm:h-[86px] sm:w-[86px]" />
 
-        <div className="min-w-0 flex-1">
-          <Skeleton className="h-6 w-40 rounded-lg sm:h-7 sm:w-52" />
-          <Skeleton className="mt-3 h-3.5 w-52 max-w-[75%] rounded-md" />
+      <span className="text-[#2874f0]">
+        {icon}
+      </span>
 
-          <div className="mt-3 flex gap-2">
-            <Skeleton className="h-7 w-24 rounded-full" />
-            <Skeleton className="h-7 w-20 rounded-full" />
-          </div>
-        </div>
-      </section>
+      {title}
 
-      <SkeletonSection rows={4} />
-      <SkeletonSection rows={3} />
-      <SkeletonSection rows={2} separated />
-    </div>
+    </button>
   );
 }
 
-function SkeletonSection({ rows = 3, separated = false }) {
-  return (
-    <section
-      className={`w-full ${
-        separated
-          ? "mt-8 border-t border-slate-200 pt-7"
-          : "mt-7"
-      }`}
-    >
-      <Skeleton className="ml-4 h-3 w-24 rounded-md sm:ml-6" />
-
-      <div className="mt-2.5 w-full overflow-hidden border-y border-slate-200 bg-white">
-        {Array.from({ length: rows }).map((_, index) => (
-          <div
-            key={index}
-            className="flex min-h-[70px] items-center gap-3 border-b border-slate-100 px-4 last:border-b-0 sm:px-6"
-          >
-            <Skeleton className="h-10 w-10 shrink-0 rounded-xl" />
-
-            <div className="min-w-0 flex-1">
-              <Skeleton
-                className={`h-3.5 rounded-md ${
-                  index % 2 === 0
-                    ? "w-40 max-w-[70%]"
-                    : "w-32 max-w-[60%]"
-                }`}
-              />
-              <Skeleton className="mt-2 h-2.5 w-56 max-w-[85%] rounded-md" />
-            </div>
-
-            <Skeleton className="h-4 w-2.5 shrink-0 rounded" />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Skeleton({ className = "" }) {
-  return (
-    <div
-      className={`relative overflow-hidden bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 bg-[length:200%_100%] animate-[profileSkeleton_1.4s_ease-in-out_infinite] ${className}`}
-    />
-  );
-}
-
-/* =========================================================
-   ACCOUNT SECTION
-========================================================= */
+// =========================================================
+// ACCOUNT SECTION
+// =========================================================
 
 function AccountSection({
   title,
   children,
-  extraClass = "",
 }) {
   return (
-    <section className={`mt-7 w-full ${extraClass}`}>
-      <div className="mb-2.5 px-4 text-[10px] font-extrabold uppercase tracking-[0.11em] text-slate-500 sm:px-6">
+    <section className="mt-2 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_12px_rgba(15,23,42,0.035)]">
+
+      <div className="flex items-center justify-between px-4 pb-2.5 pt-3.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-slate-500 sm:px-6">
         {title}
       </div>
 
-      <div className="w-full overflow-hidden border-y border-slate-200 bg-white">
+      <div className="overflow-hidden border-t border-slate-100 bg-white">
         {children}
       </div>
+
     </section>
   );
 }
 
-/* =========================================================
-   TILE
-========================================================= */
+// =========================================================
+// TILE
+// =========================================================
 
 function Tile({
   icon,
@@ -529,46 +1067,183 @@ function Tile({
   path,
   onClick,
   navigate,
-  danger = false,
   iconClassName = "",
+  rightText,
 }) {
   return (
     <button
       type="button"
-      className="group relative flex min-h-[72px] w-full items-center gap-3.5 border-b border-slate-100 bg-white px-4 text-left transition-all duration-200 last:border-b-0 hover:bg-slate-50/80 active:scale-[0.998] focus:outline-none focus-visible:bg-indigo-50/40 sm:min-h-[76px] sm:px-6"
+
+      className="group relative flex min-h-[62px] w-full items-center gap-3 border-b border-slate-100 bg-white px-4 text-left last:border-b-0 transition hover:bg-slate-50 active:bg-slate-100 sm:px-6"
+
       onClick={
         onClick ||
         (() => {
-          if (path) navigate(path);
+          if (path) {
+            navigate(path);
+          }
         })
       }
+
       aria-label={title}
     >
-      {/* Hover indicator */}
-      <span className="absolute inset-y-0 left-0 w-0.5 bg-indigo-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 
-      {/* Icon */}
       <span
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[14px] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-sm sm:h-11 sm:w-11 sm:rounded-[13px] ${iconClassName}`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[12px] ${iconClassName} shadow-sm`}
       >
         {icon}
       </span>
 
-      {/* Content */}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13px] font-bold leading-5 tracking-[-0.01em] text-slate-800 sm:text-[14px]">
+
+        <span className="block truncate text-[10.5px] font-semibold text-slate-800">
           {title}
         </span>
 
-        <span className="mt-0.5 block truncate text-[10.5px] leading-4 text-slate-400 sm:text-[11.5px]">
+        <span className="mt-0.5 block truncate text-[8.5px] text-slate-400">
           {sub}
         </span>
+
       </span>
 
-      {/* Arrow */}
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-300 transition-all duration-200 group-hover:translate-x-1 group-hover:bg-slate-100 group-hover:text-slate-500">
-        <FaChevronRight size={10} />
+      {rightText && (
+        <span className="max-w-[90px] truncate text-[8px] font-semibold text-[#2874f0]">
+          {rightText}
+        </span>
+      )}
+
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center text-slate-300 transition group-hover:text-slate-500">
+        <FaChevronRight size={8} />
       </span>
+
     </button>
+  );
+}
+
+// =========================================================
+// SOCIAL BUTTON
+// =========================================================
+
+function SocialButton({
+  icon,
+  label,
+}) {
+  return (
+    <button
+      type="button"
+      className="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-[9px] font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
+    >
+
+      <span className="text-slate-700">
+        {icon}
+      </span>
+
+      {label}
+
+    </button>
+  );
+}
+
+// =========================================================
+// PROFILE SKELETON
+// =========================================================
+
+function ProfileSkeleton() {
+  return (
+    <div className="min-h-screen w-full bg-[#f7f8fa] pb-20">
+
+      {/* Header */}
+
+      <div className="border-b border-slate-100 bg-white px-4 py-4">
+
+        <Skeleton className="h-4 w-28 rounded" />
+
+        <Skeleton className="mt-2 h-2.5 w-40 rounded" />
+
+      </div>
+
+      {/* Main profile */}
+
+      <div className="bg-white px-4 py-3">
+
+        <Skeleton className="h-14 w-full rounded-lg" />
+
+      </div>
+
+      {/* Actions */}
+
+      <div className="bg-white px-4 pb-4">
+
+        <div className="grid grid-cols-2 gap-2.5">
+
+          <Skeleton className="h-11 rounded-md" />
+
+          <Skeleton className="h-11 rounded-md" />
+
+        </div>
+
+      </div>
+
+      {/* Sections */}
+
+      {[4, 3, 5, 3, 2].map(
+        (rows, sectionIndex) => (
+
+          <section
+            key={sectionIndex}
+            className="mt-2 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_12px_rgba(15,23,42,0.035)]"
+          >
+
+            <div className="px-4 py-3">
+
+              <Skeleton className="h-2.5 w-24 rounded" />
+
+            </div>
+
+            {Array.from({
+              length: rows,
+            }).map((_, index) => (
+
+              <div
+                key={index}
+                className="flex min-h-[58px] items-center gap-3 border-y border-slate-50 px-4"
+              >
+
+                <Skeleton className="h-8 w-8 rounded-full" />
+
+                <div className="flex-1">
+
+                  <Skeleton className="h-2.5 w-32 rounded" />
+
+                  <Skeleton className="mt-2 h-2 w-48 max-w-[80%] rounded" />
+
+                </div>
+
+                <Skeleton className="h-3 w-2 rounded" />
+
+              </div>
+
+            ))}
+
+          </section>
+
+        )
+      )}
+
+    </div>
+  );
+}
+
+// =========================================================
+// SKELETON
+// =========================================================
+
+function Skeleton({
+  className = "",
+}) {
+  return (
+    <div
+      className={`animate-pulse bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 ${className}`}
+    />
   );
 }

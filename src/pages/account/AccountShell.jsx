@@ -64,6 +64,19 @@ export function AccountSkeleton() {
         </div>
       </div>
 
+      {/* Recently Viewed */}
+      <div className="ok-skeleton-section-title recent" />
+
+      <div className="ok-skeleton-recent">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div className="ok-skeleton-product" key={index}>
+            <div className="ok-skeleton-product-image" />
+            <div className="ok-skeleton-product-line title" />
+            <div className="ok-skeleton-product-line price" />
+          </div>
+        ))}
+      </div>
+
       {/* Second section */}
       <div className="ok-skeleton-section-title second" />
 
@@ -86,17 +99,10 @@ export function AccountShell({
   onBack,
   loading = false,
 }) {
-  const [shellReady, setShellReady] = React.useState(false);
-
-  React.useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setShellReady(true);
-    }, 650);
-
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  const showSkeleton = loading || !shellReady;
+  // Skeleton is controlled by the real loading state.
+  // Do not add an artificial timeout — it makes the UI feel slower
+  // and can show a skeleton even when the data is already available.
+  const showSkeleton = Boolean(loading);
 
   return (
     <>
@@ -885,6 +891,66 @@ export function AccountShell({
           margin-top: 28px;
         }
 
+        .ok-skeleton-section-title.recent {
+          width: 125px;
+          margin-top: 28px;
+        }
+
+        .ok-skeleton-recent {
+          display: flex;
+          gap: 12px;
+          width: 100%;
+          overflow: hidden;
+          padding: 0 2px 4px;
+          box-sizing: border-box;
+        }
+
+        .ok-skeleton-product {
+          width: 116px;
+          min-width: 116px;
+          box-sizing: border-box;
+        }
+
+        .ok-skeleton-product-image {
+          width: 116px;
+          aspect-ratio: 1 / 1;
+          border-radius: 16px;
+          background:
+            linear-gradient(
+              90deg,
+              #edf0f5 25%,
+              #f8fafc 50%,
+              #edf0f5 75%
+            );
+          background-size: 200% 100%;
+          animation: okSkeletonPulse 1.5s ease-in-out infinite;
+        }
+
+        .ok-skeleton-product-line {
+          height: 9px;
+          margin-top: 9px;
+          border-radius: 999px;
+          background:
+            linear-gradient(
+              90deg,
+              #edf0f5 25%,
+              #f8fafc 50%,
+              #edf0f5 75%
+            );
+          background-size: 200% 100%;
+          animation: okSkeletonPulse 1.5s ease-in-out infinite;
+        }
+
+        .ok-skeleton-product-line.title {
+          width: 82%;
+        }
+
+        .ok-skeleton-product-line.price {
+          width: 48%;
+          height: 8px;
+          margin-top: 6px;
+        }
+
         .ok-skeleton-card {
           position: relative;
 
@@ -1165,6 +1231,20 @@ export function AccountShell({
             grid-template-columns: 1fr;
           }
 
+          .ok-skeleton-recent {
+            gap: 9px;
+          }
+
+          .ok-skeleton-product,
+          .ok-skeleton-product-image {
+            width: 104px;
+            min-width: 104px;
+          }
+
+          .ok-skeleton-product-image {
+            border-radius: 14px;
+          }
+
           .ok-skeleton-box {
             height: 92px;
           }
@@ -1187,7 +1267,9 @@ export function AccountShell({
           .ok-skeleton-section-title,
           .ok-skeleton-circle,
           .ok-skeleton-action,
-          .ok-skeleton-box {
+          .ok-skeleton-box,
+          .ok-skeleton-product-image,
+          .ok-skeleton-product-line {
             animation: none;
           }
 
