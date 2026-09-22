@@ -31,6 +31,7 @@ import AddressesPage from "./pages/account/AddressesPage";
 import AddAddressPage from "./pages/account/AddAddressPage";
 import EditAddressPage from "./pages/account/EditAddressPage";
 import AccountOrdersPage from "./pages/account/OrdersPage";
+import CouponPage from "./pages/account/CouponPage";
 import AccountOrderDetailsPage from "./pages/account/OrderDetailsPage";
 import AccountTrackOrderPage from "./pages/account/TrackOrderPage";
 import AccountWishlistPage from "./pages/account/WishlistPage";
@@ -1021,7 +1022,8 @@ const showSearchNavbar =
                   <Products />
                 }
               />
-
+                
+              <Route path="/coupons" element={<CouponPage />} />
               <Route
                 path="/products/:id"
                 element={
