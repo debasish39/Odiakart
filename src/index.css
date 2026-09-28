@@ -2,25 +2,126 @@
 @import "slick-carousel/slick/slick-theme.css";
 @import "tailwindcss";
 
-/* ================= BASE ================= */
+/* =========================================================
+   GLOBAL RESET & RESPONSIVE BASE
+========================================================= */
 
-body {
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Prevent elements from creating unwanted page width */
+html {
+  width: 100%;
+  max-width: 100%;
   margin: 0;
   padding: 0;
-  background:white;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /* Allow vertical scrolling but prevent pinch gestures */
+  touch-action: pan-y;
+
+  /* Prevent mobile browsers from automatically changing text size */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  margin: 0;
+  padding: 0;
+
+  background: white;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /* Normal vertical scrolling */
+  touch-action: pan-y;
+
+  /* Prevent automatic text enlargement on mobile */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+  font-family: "Poppins", sans-serif;
+}
+
+/* React root */
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+
+  overflow-x: hidden;
 }
 
 
-/* ================= TEXT SELECTION ================= */
+/* =========================================================
+   RESPONSIVE MEDIA
+========================================================= */
 
-::selection{
-  background-color:#6366f1;
-  color:white;
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
 }
 
-/* ================= HIDE SCROLLBAR ================= */
+img {
+  height: auto;
+}
 
-/* Chrome, Edge, Safari */
+
+/* =========================================================
+   FORM ELEMENTS
+========================================================= */
+
+/*
+  16px prevents mobile browsers from automatically
+  zooming into small input fields.
+*/
+
+input,
+textarea,
+select {
+  max-width: 100%;
+  font-size: 16px;
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+button {
+  max-width: 100%;
+}
+
+
+/* =========================================================
+   TEXT SELECTION
+========================================================= */
+
+::selection {
+  background-color: #6366f1;
+  color: white;
+}
+
+
+/* =========================================================
+   HIDE SCROLLBAR
+========================================================= */
+
+/* Chrome / Edge / Safari */
+
 html::-webkit-scrollbar,
 body::-webkit-scrollbar,
 *::-webkit-scrollbar {
@@ -28,95 +129,155 @@ body::-webkit-scrollbar,
 }
 
 /* Firefox */
+
 html,
 body,
 * {
   scrollbar-width: none;
 }
 
-/* Keep scrolling enabled */
+
+/* =========================================================
+   KEEP SCROLLING ENABLED
+========================================================= */
+
 html,
 body {
   overflow-x: hidden;
   overflow-y: auto;
 }
-/* ================= SLICK DOTS ================= */
+
+
+/* =========================================================
+   SLICK CAROUSEL
+========================================================= */
 
 .slick-dots {
-  bottom:-35px;
+  bottom: -35px;
 }
 
-.slick-dots li button:before{
-  font-size:12px;
-  color:#94a3b8;
-  opacity:0.6;
+.slick-dots li button:before {
+  font-size: 12px;
+  color: #94a3b8;
+  opacity: 0.6;
 }
 
-.slick-dots li.slick-active button:before{
-  color:#6366f1;
-  opacity:1;
+.slick-dots li.slick-active button:before {
+  color: #6366f1;
+  opacity: 1;
 }
 
 
-/* ================= PROGRESS DOT ================= */
+/* =========================================================
+   PROGRESS DOT
+========================================================= */
 
-.progress-dot{
-  width:6px;
-  height:6px;
-  background:#e5e7eb;
-  border-radius:999px;
-  overflow:hidden;
-  position:relative;
+.progress-dot {
+  width: 6px;
+  height: 6px;
+
+  background: #e5e7eb;
+
+  border-radius: 999px;
+
+  overflow: hidden;
+
+  position: relative;
 }
 
-.progress-dot::after{
-  content:"";
-  position:absolute;
-  left:0;
-  top:0;
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,#2563eb,#6366f1,#7c3aed);
-  border-radius:999px;
+.progress-dot::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  height: 100%;
+  width: 0%;
+
+  background:
+    linear-gradient(
+      90deg,
+      #2563eb,
+      #6366f1,
+      #7c3aed
+    );
+
+  border-radius: 999px;
 }
 
-.slick-dots li.slick-active .progress-dot::after{
-  animation:sliderProgress 4.5s linear forwards;
+.slick-dots li.slick-active .progress-dot::after {
+  animation: sliderProgress 4.5s linear forwards;
 }
 
-@keyframes sliderProgress{
-  from{
-    width:0%;
+@keyframes sliderProgress {
+  from {
+    width: 0%;
   }
-  to{
-    width:100%;
+
+  to {
+    width: 100%;
   }
 }
 
 
-/* ================= CLERK THEME ================= */
+/* =========================================================
+   CLERK THEME
+========================================================= */
 
 :root {
-  /* BACKGROUND (LIGHT LIKE YOUR IMAGE) */
-  --clerk-color-background: #f8fafc; /* slate-50 */
+  /* Background */
+  --clerk-color-background: #f8fafc;
 
-  /* TEXT */
-  --clerk-color-foreground: #1e293b; /* slate-800 */
+  /* Text */
+  --clerk-color-foreground: #1e293b;
   --clerk-color-neutral: #0f172a;
 
-  /* PRIMARY (GRADIENT BASE) */
-  --clerk-color-primary: #6366f1; /* indigo */
+  /* Primary */
+  --clerk-color-primary: #6366f1;
   --clerk-color-primary-foreground: #ffffff;
 
-  /* INPUT */
+  /* Input */
   --clerk-color-input: #ffffff;
   --clerk-color-input-foreground: #1e293b;
 
-  /* BORDER */
-  --clerk-color-border: rgba(0,0,0,0.08);
+  /* Border */
+  --clerk-color-border: rgba(0, 0, 0, 0.08);
 
-  /* STATES */
+  /* States */
   --clerk-color-focus: #6366f1;
   --clerk-color-success: #22c55e;
   --clerk-color-danger: #ef4444;
 }
+
+
+/* =========================================================
+   MOBILE SAFETY
+========================================================= */
+
+@media (max-width: 640px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    overflow-x: hidden;
+  }
+}
+
+
+/* =========================================================
+   TABLET / DESKTOP
+========================================================= */
+
+@media (min-width: 641px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+  }
+  }
