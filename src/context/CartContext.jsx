@@ -6,6 +6,7 @@ import React, {
   useState,
   useCallback,
 } from "react";
+
 import { toast } from "react-hot-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -111,9 +112,6 @@ function CartProvider({ children }) {
   |--------------------------------------------------------------------------
   | Listen for login/logout token changes
   |--------------------------------------------------------------------------
-  |
-  | Keeps the same behavior as the original context.
-  |
   */
 
   useEffect(() => {
@@ -132,14 +130,6 @@ function CartProvider({ children }) {
   |--------------------------------------------------------------------------
   | CART QUERY
   |--------------------------------------------------------------------------
-  |
-  | The cart is cached per logged-in user token.
-  |
-  | Example:
-  |   User opens Cart page -> API request
-  |   User goes Product -> no request
-  |   User comes back to Cart -> cached data
-  |
   */
 
   const cartQuery = useQuery({
@@ -181,12 +171,12 @@ function CartProvider({ children }) {
     async (product, selectedVariant = null, quantity = 1) => {
       if (!token) {
         toast.error("Please login first");
-        return;
+        return false;
       }
 
       if (!product?._id) {
         toast.error("Invalid product");
-        return;
+        return false;
       }
 
       let variant = selectedVariant;
@@ -197,7 +187,7 @@ function CartProvider({ children }) {
 
       if (product.productType === "variable" && !variant) {
         toast.error("Please select a product variant");
-        return;
+        return false;
       }
 
       const variantSku = variant?.sku || "";
@@ -212,7 +202,8 @@ function CartProvider({ children }) {
         toast("Product already in cart", {
           icon: "🛒",
         });
-        return;
+
+        return false;
       }
 
       if (
@@ -220,7 +211,7 @@ function CartProvider({ children }) {
         Number(quantity) > Number(variant.stock || 0)
       ) {
         toast.error(`Only ${variant.stock} item(s) available`);
-        return;
+        return false;
       }
 
       const payload = {
@@ -246,15 +237,20 @@ function CartProvider({ children }) {
           toast.error(
             data.message || data.error || "Failed to add item"
           );
-          return;
+
+          return false;
         }
 
         updateCartFromResponse(data);
 
         toast.success("Added to cart 🛒");
+
+        return true;
       } catch (error) {
         console.error("ADD TO CART ERROR:", error);
         toast.error("Failed to add item");
+
+        return false;
       }
     },
     [token, cartItem, updateCartFromResponse]
@@ -270,7 +266,7 @@ function CartProvider({ children }) {
     async (productId, variantSku = "") => {
       if (!token) {
         toast.error("Please login first");
-        return;
+        return false;
       }
 
       try {
@@ -294,13 +290,18 @@ function CartProvider({ children }) {
               data.error ||
               "Failed to increase quantity"
           );
-          return;
+
+          return false;
         }
 
         updateCartFromResponse(data);
+
+        return true;
       } catch (error) {
         console.error("INCREASE ERROR:", error);
         toast.error("Failed to increase quantity");
+
+        return false;
       }
     },
     [token, updateCartFromResponse]
@@ -316,7 +317,7 @@ function CartProvider({ children }) {
     async (productId, variantSku = "") => {
       if (!token) {
         toast.error("Please login first");
-        return;
+        return false;
       }
 
       try {
@@ -340,13 +341,18 @@ function CartProvider({ children }) {
               data.error ||
               "Failed to decrease quantity"
           );
-          return;
+
+          return false;
         }
 
         updateCartFromResponse(data);
+
+        return true;
       } catch (error) {
         console.error("DECREASE ERROR:", error);
         toast.error("Failed to decrease quantity");
+
+        return false;
       }
     },
     [token, updateCartFromResponse]
@@ -382,8 +388,11 @@ function CartProvider({ children }) {
 
         if (!res.ok || !data.success) {
           toast.error(
-            data.message || data.error || "Failed to remove item"
+            data.message ||
+              data.error ||
+              "Failed to remove item"
           );
+
           return false;
         }
 
@@ -395,6 +404,7 @@ function CartProvider({ children }) {
       } catch (error) {
         console.error("REMOVE CART ERROR:", error);
         toast.error("Failed to remove item");
+
         return false;
       }
     },
@@ -408,9 +418,15 @@ function CartProvider({ children }) {
   */
 
   const clearCart = useCallback(async () => {
+    /*
+    |--------------------------------------------------------------------------
+    | No logged-in user
+    |--------------------------------------------------------------------------
+    */
+
     if (!token) {
       queryClient.setQueryData(["cart", token], []);
-      return;
+      return false;
     }
 
     try {
@@ -423,19 +439,39 @@ function CartProvider({ children }) {
 
       const data = await res.json();
 
+      /*
+      |--------------------------------------------------------------------------
+      | Backend failed
+      |--------------------------------------------------------------------------
+      */
+
       if (!res.ok || !data.success) {
         toast.error(
-          data.message || "Failed to clear cart"
+          data.message ||
+            data.error ||
+            "Failed to clear cart"
         );
-        return;
+
+        return false;
       }
+
+      /*
+      |--------------------------------------------------------------------------
+      | Clear React Query cache immediately
+      |--------------------------------------------------------------------------
+      */
 
       queryClient.setQueryData(["cart", token], []);
 
       toast.success("Cart cleared");
+
+      return true;
     } catch (error) {
-      console.error("Clear cart failed:", error);
+      console.error("CLEAR CART ERROR:", error);
+
       toast.error("Failed to clear cart");
+
+      return false;
     }
   }, [token, queryClient]);
 
@@ -476,19 +512,30 @@ function CartProvider({ children }) {
   const contextValue = useMemo(
     () => ({
       cartItem,
+
       addToCart,
+
       removeFromCart,
+
       increaseQty,
+
       decreaseQty,
+
       clearCart,
+
       cartTotal,
+
       cartCount,
+
       token,
 
-      // Optional query status for Cart page / loader UI.
+      // Cart query status
       cartLoading: cartQuery.isLoading,
+
       cartFetching: cartQuery.isFetching,
+
       cartError: cartQuery.error?.message || null,
+
       refetchCart: cartQuery.refetch,
     }),
     [
@@ -515,13 +562,27 @@ function CartProvider({ children }) {
   );
 }
 
+/*
+|--------------------------------------------------------------------------
+| Export Provider
+|--------------------------------------------------------------------------
+*/
+
 export default CartProvider;
+
+/*
+|--------------------------------------------------------------------------
+| useCart Hook
+|--------------------------------------------------------------------------
+*/
 
 export const useCart = () => {
   const context = useContext(CartContext);
 
   if (!context) {
-    throw new Error("useCart must be used inside CartProvider");
+    throw new Error(
+      "useCart must be used inside CartProvider"
+    );
   }
 
   return context;

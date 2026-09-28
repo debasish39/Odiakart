@@ -216,7 +216,7 @@ export default function SignIn() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/send-login-otp`, {
+      const res = await fetch(`${BACKEND_URL}/resend-login-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

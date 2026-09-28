@@ -17,13 +17,18 @@ import {
   FaHeart,
   FaUserCircle,
   FaCheck,
+  FaTag,
   FaThLarge,
 } from "react-icons/fa";
 import {
   FiShoppingBag,
   FiMapPin,
   FiCreditCard,
+FiChevronRight ,
+FiInfo,
+FiClock 
 } from "react-icons/fi";
+
 import {
   MdPayments,
   MdLocationCity,
@@ -1508,6 +1513,161 @@ const Cart = ({
 
   const [couponLoading, setCouponLoading] =
     useState(false);
+
+  /* =======================================================
+     AVAILABLE COUPONS
+     Reuse the customer-safe coupon listing endpoint used by
+     the standalone CouponPage. This only displays offers;
+     final pricing still comes from the apply-coupon backend.
+  ======================================================= */
+
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [couponsLoading, setCouponsLoading] = useState(false);
+  const [couponsOpen, setCouponsOpen] = useState(true);
+
+  const formatCouponMoney = (value) =>
+    `₹${Number(value || 0).toLocaleString("en-IN", {
+      maximumFractionDigits: 2,
+    })}`;
+
+  const couponDiscountText = (coupon) => {
+    const value = Number(coupon?.discountValue || 0);
+
+    if (coupon?.discountType === "PERCENTAGE") {
+      return `${value}% OFF`;
+    }
+
+    return `${formatCouponMoney(value)} OFF`;
+  };
+const handleClearCart = async () => {
+  if (!cartItem.length) {
+    onDeleteClose();
+    return;
+  }
+
+  try {
+    const success = await clearCart();
+
+    if (!success) {
+      return;
+    }
+
+    setSelectedItem(null);
+
+    // Reset checkout state
+    setCouponCode("");
+    setCouponDiscount(0);
+    setCouponError("");
+    setCouponSuccess("");
+    setFinalTotal(0);
+
+    // Reset serviceability if your Cart has this state
+    setServiceability((prev) => ({
+      ...prev,
+      checked: false,
+      checking: false,
+      serviceableItems: [],
+      unavailableItems: [],
+      message: "",
+    }));
+
+    onDeleteClose();
+
+    toast.success("Cart cleared successfully");
+  } catch (error) {
+    console.error("CLEAR CART ERROR:", error);
+    toast.error(error?.message || "Unable to clear cart");
+  }
+};
+  const couponDescription = (coupon) => {
+    const minimum = Number(coupon?.minOrderAmount || 0);
+
+    return minimum > 0
+      ? `${couponDiscountText(coupon)} on orders above ${formatCouponMoney(minimum)}`
+      : `${couponDiscountText(coupon)} on your order`;
+  };
+
+  const formatCouponExpiry = (value) => {
+    if (!value) return "No expiry";
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "No expiry";
+
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const loadAvailableCoupons = async () => {
+    if (!token) return;
+
+    try {
+      setCouponsLoading(true);
+
+      const response = await fetch(
+        `${BACKEND_URL}/api/coupons/available`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to load coupons");
+      }
+
+      const data = await response.json();
+
+      const list =
+        Array.isArray(data?.coupons)
+          ? data.coupons
+          : Array.isArray(data?.data?.coupons)
+          ? data.data.coupons
+          : Array.isArray(data?.data)
+          ? data.data
+          : [];
+
+      const now = Date.now();
+
+      const validCoupons = list.filter((coupon) => {
+        if (coupon?.isActive === false) return false;
+
+        if (!coupon?.expiryDate) return true;
+
+        const expiry = new Date(coupon.expiryDate).getTime();
+        return !Number.isFinite(expiry) || expiry > now;
+      });
+
+      setAvailableCoupons(validCoupons);
+    } catch (error) {
+      console.error("LOAD AVAILABLE COUPONS ERROR:", error);
+      setAvailableCoupons([]);
+    } finally {
+      setCouponsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (step === 2 && token) {
+      loadAvailableCoupons();
+    }
+  }, [step, token]);
+
+  const selectAvailableCoupon = (coupon) => {
+    const code = String(coupon?.code || "").trim().toUpperCase();
+    if (!code) return;
+
+    setCouponCode(code);
+    setCouponError("");
+    setCouponSuccess("");
+
+    toast.success(`Coupon ${code} selected`);
+  };
 
 
   /* =======================================================
@@ -7562,16 +7722,19 @@ total:
             </p>
           </div>
 
-          <button
-            type="button"
-            className="cart-top-clear"
-            onClick={onDeleteOpen}
-            disabled={cartItem.length === 0}
-            aria-label="Clear cart"
-          >
-            <FaRegTrashAlt size={16} />
-            <span>Clear</span>
-          </button>
+        <button
+  type="button"
+  className="cart-top-clear"
+  onClick={() => {
+    setSelectedItem(null);
+    onDeleteOpen();
+  }}
+  disabled={cartItem.length === 0}
+  aria-label="Clear cart"
+>
+  <FaRegTrashAlt size={16} />
+  <span>Clear</span>
+</button>
         </div>
       </nav>
 
@@ -9578,6 +9741,253 @@ total:
       )}
     </button>
   </div>
+
+
+  {/* =========================================================
+      AVAILABLE COUPONS — MODERN
+  ========================================================= */}
+  {(couponsLoading || availableCoupons.length > 0) && (
+    <section className="coupon-offers-shell relative z-10 mt-4 overflow-hidden rounded-[22px] border border-slate-200/80 bg-white shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+      <div className="coupon-offers-head relative overflow-hidden px-4 py-3.5 sm:px-5">
+        <span className="coupon-head-glow" aria-hidden="true" />
+
+        <button
+          type="button"
+          onClick={() => setCouponsOpen((prev) => !prev)}
+          className="relative z-10 flex w-full items-center justify-between gap-3 text-left"
+          aria-expanded={couponsOpen}
+        >
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="coupon-tag-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.22)]">
+              <FaTag size={16} />
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-[13px] font-extrabold tracking-[-0.02em] text-slate-900 sm:text-sm">
+                  Available offers
+                </p>
+
+                {availableCoupons.length > 0 && (
+                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[8px] font-extrabold text-blue-700">
+                    {availableCoupons.length} {availableCoupons.length === 1 ? "offer" : "offers"}
+                  </span>
+                )}
+              </div>
+
+              <p className="mt-0.5 text-[9px] text-slate-500 sm:text-[10px]">
+                Choose an offer and we'll fill the code for you
+              </p>
+            </div>
+          </div>
+
+          <span
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-transform duration-300 ${
+              couponsOpen ? "rotate-90" : ""
+            }`}
+          >
+            <FiChevronRight size={15} />
+          </span>
+        </button>
+      </div>
+
+      {couponsOpen && (
+        <div className="relative border-t border-slate-100 bg-slate-50/55 px-3 py-3.5 sm:px-4 sm:py-4">
+          {couponsLoading ? (
+            <div className="flex gap-3 overflow-hidden">
+              {[1, 2, 3].map((item) => (
+                <div
+                  key={item}
+                  className="h-[146px] w-[270px] shrink-0 animate-pulse rounded-[20px] border border-slate-200 bg-white p-3"
+                >
+                  <div className="flex gap-3">
+                    <div className="h-11 w-11 rounded-xl bg-slate-200" />
+                    <div className="flex-1">
+                      <div className="h-3 w-24 rounded-full bg-slate-200" />
+                      <div className="mt-2 h-2.5 w-36 rounded-full bg-slate-200" />
+                    </div>
+                  </div>
+                  <div className="mt-4 h-10 rounded-xl bg-slate-100" />
+                  <div className="mt-3 h-2.5 w-32 rounded-full bg-slate-100" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="coupon-scroll flex gap-3 overflow-x-auto pb-1">
+              {availableCoupons.map((coupon, index) => {
+                const code = String(coupon?.code || "").toUpperCase();
+                const maxDiscount =
+                  coupon?.discountType === "PERCENTAGE" &&
+                  Number(coupon?.maxDiscount || 0) > 0
+                    ? Number(coupon.maxDiscount)
+                    : null;
+
+                return (
+                  <article
+                    key={coupon?._id || `${code}-${index}`}
+                    className="coupon-ticket group relative flex min-h-[152px] w-[278px] shrink-0 flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_8px_25px_rgba(15,23,42,0.055)] transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_16px_34px_rgba(15,23,42,0.09)]"
+                  >
+                    {/* Ticket accent */}
+                    <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-blue-500 via-indigo-500 to-emerald-400" />
+
+                    {/* Animated shine */}
+                    <span
+                      className="coupon-ticket-shine pointer-events-none absolute -left-1/2 top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/70 to-transparent"
+                      aria-hidden="true"
+                    />
+
+                    {/* Decorative perforation */}
+                    <span className="absolute -right-2 top-[63%] h-4 w-4 rounded-full bg-slate-50 ring-1 ring-slate-100" />
+                    <span className="absolute -left-2 top-[63%] h-4 w-4 rounded-full bg-slate-50 ring-1 ring-slate-100" />
+
+                    <div className="relative z-10 flex flex-1 flex-col p-3.5 pl-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                            <FaTag size={15} />
+                          </div>
+
+                          <div className="min-w-0">
+                            <p className="text-[14px] font-black tracking-[-0.025em] text-slate-900">
+                              {couponDiscountText(coupon)}
+                            </p>
+                            <p className="mt-0.5 truncate text-[9px] text-slate-500">
+                              {couponDescription(coupon)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[7px] font-extrabold uppercase tracking-[0.08em] text-emerald-700 ring-1 ring-emerald-100">
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                          Live
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex items-center gap-2 border-t border-dashed border-slate-200 pt-3">
+                        <div className="min-w-0 flex-1 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-2">
+                          <p className="truncate text-[10px] font-black tracking-[0.16em] text-slate-800">
+                            {code}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => selectAvailableCoupon(coupon)}
+                          className="group/use relative h-9 shrink-0 overflow-hidden rounded-xl bg-blue-600 px-3.5 text-[9px] font-extrabold text-white shadow-[0_6px_16px_rgba(37,99,235,0.22)] transition-all duration-200 hover:bg-blue-700 hover:shadow-[0_8px_20px_rgba(37,99,235,0.28)] active:scale-[0.96]"
+                        >
+                          <span className="coupon-use-shine pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/45 to-transparent" />
+                          <span className="relative z-10 flex items-center gap-1.5">
+                            Use
+                            <FiChevronRight size={12} />
+                          </span>
+                        </button>
+                      </div>
+
+                      <div className="mt-auto flex items-center gap-3 pt-2.5 text-[8px] text-slate-400">
+                        <span className="inline-flex items-center gap-1">
+                          <FiClock size={10} />
+                          {coupon?.expiryDate
+                            ? `Until ${formatCouponExpiry(coupon.expiryDate)}`
+                            : "No expiry"}
+                        </span>
+
+                        {maxDiscount !== null && (
+                          <span className="inline-flex items-center gap-1 font-semibold text-violet-500">
+                            <FiInfo size={10} />
+                            Max {formatCouponMoney(maxDiscount)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  )}
+
+  <style>{`
+    .coupon-scroll {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      scroll-snap-type: x proximity;
+      overscroll-behavior-x: contain;
+    }
+
+    .coupon-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .coupon-ticket {
+      scroll-snap-align: start;
+    }
+
+    .coupon-head-glow {
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      right: -70px;
+      top: -105px;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.12);
+      filter: blur(34px);
+      animation: couponHeadGlow 3.5s ease-in-out infinite;
+    }
+
+    .coupon-ticket-shine {
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+
+    .coupon-ticket:hover .coupon-ticket-shine {
+      opacity: 1;
+      animation: couponTicketShine 1s cubic-bezier(.22,1,.36,1);
+    }
+
+    .coupon-use-shine {
+      animation: couponUseShine 3.8s ease-in-out infinite;
+    }
+
+    @keyframes couponHeadGlow {
+      0%, 100% { transform: scale(.92); opacity: .45; }
+      50% { transform: scale(1.08); opacity: .9; }
+    }
+
+    @keyframes couponTicketShine {
+      from { transform: translateX(-180%) skewX(-12deg); }
+      to { transform: translateX(520%) skewX(-12deg); }
+    }
+
+    @keyframes couponUseShine {
+      0%, 55%, 100% { transform: translateX(-180%) skewX(-12deg); }
+      70% { transform: translateX(420%) skewX(-12deg); }
+    }
+
+    @media (max-width: 640px) {
+      .coupon-offers-shell {
+        border-radius: 20px;
+      }
+
+      .coupon-ticket {
+        width: min(82vw, 278px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .coupon-head-glow,
+      .coupon-ticket-shine,
+      .coupon-use-shine {
+        animation: none !important;
+      }
+
+      .coupon-ticket-shine {
+        opacity: 0;
+      }
+    }
+  `}</style>
 
   {/* =========================================================
       COUPON ERROR
@@ -15230,7 +15640,7 @@ total:
                 sm:text-[17px]
               "
             >
-              Remove item?
+              {selectedItem ? "Remove item?" : "Clear cart?"}
             </h3>
 
             <p
@@ -15243,7 +15653,9 @@ total:
                 md:text-xs
               "
             >
-              This item will be removed from your cart.
+              {selectedItem
+                ? "This item will be removed from your cart."
+                : `All ${cartItem.length} ${cartItem.length === 1 ? "item" : "items"} will be removed from your cart.`}
             </p>
           </div>
         </ModalHeader>
@@ -15336,7 +15748,9 @@ total:
                     md:text-xs
                   "
                 >
-                  Are you sure you want to remove this item?
+                  {selectedItem
+                    ? "Are you sure you want to remove this item?"
+                    : "Are you sure you want to clear your entire cart?"}
                 </p>
 
                 <p
@@ -15348,8 +15762,9 @@ total:
                     sm:text-[10px]
                   "
                 >
-                  The item will be removed from your cart. You can
-                  add it again later if you change your mind.
+                  {selectedItem
+                    ? "The item will be removed from your cart. You can add it again later if you change your mind."
+                    : "Every item currently in your cart will be removed. You can add products again later."}
                 </p>
               </div>
             </div>
@@ -15540,6 +15955,7 @@ total:
           <Button
             onPress={async () => {
               if (!selectedItem) {
+                await handleClearCart();
                 return;
               }
 
@@ -15674,7 +16090,7 @@ total:
               />
 
               <span>
-                Remove item
+                {selectedItem ? "Remove item" : "Clear cart"}
               </span>
             </span>
           </Button>
