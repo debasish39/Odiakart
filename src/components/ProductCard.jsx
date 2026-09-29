@@ -44,6 +44,7 @@ import {
 
 export default function ProductCard({
   product,
+  horizontalScrollMode = false,
 }) {
 
   const navigate = useNavigate();
@@ -580,6 +581,7 @@ export default function ProductCard({
     const dy = e.clientY - pointerStart.current.y;
 
     if (
+      !horizontalScrollMode &&
       allImages.length > 1 &&
       Math.abs(dx) >= SWIPE_THRESHOLD &&
       Math.abs(dx) > Math.abs(dy)
@@ -798,6 +800,277 @@ export default function ProductCard({
           width: 100%;
         }
 
+
+        /* =====================================================
+           MODERN ANIME SHINE CARD
+           ===================================================== */
+
+        @keyframes pcCardAura {
+          0%, 100% {
+            opacity: .35;
+            transform: scale(.96);
+          }
+          50% {
+            opacity: .75;
+            transform: scale(1.02);
+          }
+        }
+
+        @keyframes pcCardBorderGlow {
+          0%, 100% {
+            opacity: .35;
+          }
+          50% {
+            opacity: .9;
+          }
+        }
+
+        @keyframes pcPricePulse {
+          0%, 100% {
+            filter: drop-shadow(0 0 0 rgba(99,102,241,0));
+          }
+          50% {
+            filter: drop-shadow(0 0 8px rgba(99,102,241,.18));
+          }
+        }
+
+        @keyframes pcCartGlow {
+          0%, 100% {
+            box-shadow:
+              0 5px 15px rgba(79,70,229,.18),
+              inset 0 1px 0 rgba(255,255,255,.18);
+          }
+          50% {
+            box-shadow:
+              0 8px 22px rgba(79,70,229,.30),
+              0 0 18px rgba(99,102,241,.16),
+              inset 0 1px 0 rgba(255,255,255,.28);
+          }
+        }
+
+        .pc-card {
+          isolation: isolate;
+        }
+
+        .pc-card::before {
+          content: "";
+          position: absolute;
+          inset: -1px;
+          z-index: -1;
+          border-radius: inherit;
+          background:
+            linear-gradient(
+              135deg,
+              rgba(129,140,248,.35),
+              transparent 32%,
+              transparent 68%,
+              rgba(96,165,250,.28)
+            );
+          opacity: .5;
+          animation: pcCardBorderGlow 3.8s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        .pc-card::after {
+          content: "";
+          position: absolute;
+          width: 150px;
+          height: 150px;
+          left: 50%;
+          top: 35%;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          background: radial-gradient(
+            circle,
+            rgba(99,102,241,.11),
+            transparent 68%
+          );
+          filter: blur(18px);
+          animation: pcCardAura 3.6s ease-in-out infinite;
+          pointer-events: none;
+          z-index: -1;
+        }
+
+        .pc-card:hover {
+          transform: translateY(-4px) scale(1.008);
+          border-color: rgba(99,102,241,.28);
+          box-shadow:
+            0 15px 34px rgba(79,70,229,.14),
+            0 0 0 1px rgba(129,140,248,.08);
+        }
+
+        .pc-card:active {
+          transform: translateY(-1px) scale(.992);
+        }
+
+        .pc-image-area {
+          background:
+            radial-gradient(
+              circle at 50% 25%,
+              rgba(99,102,241,.13),
+              transparent 58%
+            ),
+            linear-gradient(
+              145deg,
+              #f8faff 0%,
+              #ffffff 52%,
+              #f5f7ff 100%
+            );
+        }
+
+        .pc-image-area.pc-anime-shine::before {
+          content: "";
+          position: absolute;
+          inset: 12% 18%;
+          z-index: 1;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle,
+            rgba(129,140,248,.10),
+            transparent 68%
+          );
+          filter: blur(15px);
+          animation: pcCardAura 3s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        .pc-img {
+          filter: drop-shadow(0 8px 12px rgba(15,23,42,.07));
+        }
+
+        .pc-card:hover .pc-img {
+          filter:
+            drop-shadow(0 12px 18px rgba(79,70,229,.12))
+            saturate(1.04);
+        }
+
+        .pc-card:hover .pc-heart {
+          box-shadow:
+            0 5px 16px rgba(15,23,42,.11),
+            0 0 14px rgba(99,102,241,.10);
+        }
+
+        .pc-price-row .price-text {
+          animation: pcPricePulse 2.8s ease-in-out infinite;
+        }
+
+        .btn-cart.new {
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+          background:
+            linear-gradient(135deg, #4338ca 0%, #6366f1 38%, #7c3aed 68%, #2563eb 100%);
+          box-shadow:
+            0 5px 15px rgba(79,70,229,.18),
+            inset 0 1px 0 rgba(255,255,255,.18);
+          animation: pcCartGlow 2.8s ease-in-out infinite;
+        }
+
+        .btn-cart.new::before {
+          content: "";
+          position: absolute;
+          top: -55%;
+          left: -70%;
+          width: 32%;
+          height: 210%;
+          transform: skewX(-20deg);
+          background:
+            linear-gradient(
+              90deg,
+              transparent 0%,
+              rgba(255,255,255,.06) 25%,
+              rgba(255,255,255,.86) 50%,
+              rgba(255,255,255,.08) 75%,
+              transparent 100%
+            );
+          pointer-events: none;
+          z-index: 0;
+          animation: pcAnimeShine 2.7s ease-in-out infinite;
+        }
+
+        .btn-cart.new::after {
+          content: "";
+          position: absolute;
+          inset: 1px;
+          border-radius: inherit;
+          pointer-events: none;
+          z-index: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,.18), transparent 35%, rgba(167,139,250,.12) 65%, rgba(96,165,250,.16));
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 0 18px rgba(124,58,237,.12);
+          animation: pcAnimeButtonAura 2.4s ease-in-out infinite;
+        }
+
+        @keyframes pcAnimeButtonAura {
+          0%, 100% { opacity: .55; transform: scale(.985); }
+          50% { opacity: 1; transform: scale(1); }
+        }
+
+        .btn-cart.new > * {
+          position: relative;
+          z-index: 1;
+        }
+
+        .btn-cart.new:hover {
+          transform: translateY(-2px);
+          box-shadow:
+            0 10px 24px rgba(79,70,229,.30),
+            0 0 20px rgba(99,102,241,.16),
+            inset 0 1px 0 rgba(255,255,255,.28);
+        }
+
+        .btn-cart.in-cart {
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+        }
+
+        .btn-cart.in-cart::before {
+          content: "";
+          position: absolute;
+          top: -55%;
+          left: -70%;
+          width: 30%;
+          height: 210%;
+          transform: skewX(-20deg);
+          background:
+            linear-gradient(
+              90deg,
+              transparent,
+              rgba(255,255,255,.72),
+              transparent
+            );
+          pointer-events: none;
+          animation: pcAnimeShine 3.4s ease-in-out infinite;
+        }
+
+        .btn-cart.in-cart > * {
+          position: relative;
+          z-index: 1;
+        }
+
+        @media (max-width: 640px) {
+          .pc-card:hover {
+            transform: translateY(-2px);
+          }
+
+          .pc-card::after {
+            width: 120px;
+            height: 120px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .pc-card::before,
+          .pc-card::after,
+          .pc-image-area.pc-anime-shine::before,
+          .pc-price-row .price-text,
+          .btn-cart.new,
+          .btn-cart.new::before,
+          .btn-cart.new::after,
+          .btn-cart.in-cart::before {
+            animation: none !important;
+          }
+        }
 
         /* =====================================================
            SMALL MODERN CARD
@@ -1680,7 +1953,7 @@ export default function ProductCard({
 
           box-shadow:
             0 4px 12px
-            rgba(79,70,229,.18);
+            rgba(79,70,229,.24);
         }
 
 
@@ -1715,6 +1988,213 @@ export default function ProductCard({
             translateY(-1px);
         }
 
+
+
+        /* =====================================================
+           ANIME SHINING CART BUTTON
+           ===================================================== */
+
+        @keyframes pcButtonShineSweep {
+          0%, 12% {
+            transform: translateX(-180%) skewX(-22deg);
+            opacity: 0;
+          }
+          22% {
+            opacity: .15;
+          }
+          38% {
+            opacity: 1;
+          }
+          56% {
+            opacity: .2;
+          }
+          72%, 100% {
+            transform: translateX(430%) skewX(-22deg);
+            opacity: 0;
+          }
+        }
+
+        @keyframes pcButtonPulseGlow {
+          0%, 100% {
+            box-shadow:
+              0 5px 15px rgba(79,70,229,.20),
+              0 0 0 rgba(99,102,241,0),
+              inset 0 1px 0 rgba(255,255,255,.18);
+          }
+          50% {
+            box-shadow:
+              0 8px 24px rgba(79,70,229,.34),
+              0 0 22px rgba(99,102,241,.22),
+              inset 0 1px 0 rgba(255,255,255,.32);
+          }
+        }
+
+        @keyframes pcButtonSpark {
+          0%, 100% {
+            opacity: 0;
+            transform: scale(.65) rotate(0deg);
+          }
+          45% {
+            opacity: .9;
+          }
+          70% {
+            opacity: 0;
+            transform: scale(1.15) rotate(45deg);
+          }
+        }
+
+        .btn-cart.new {
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+          background:
+            linear-gradient(
+              135deg,
+              #7c83ff 0%,
+              #6366f1 28%,
+              #4f46e5 58%,
+              #4338ca 100%
+            );
+          box-shadow:
+            0 5px 15px rgba(79,70,229,.20),
+            inset 0 1px 0 rgba(255,255,255,.18);
+          animation: pcButtonPulseGlow 2.8s ease-in-out infinite;
+        }
+
+        /* Moving glass-light streak */
+        .btn-cart.new::before {
+          content: "";
+          position: absolute;
+          top: -65%;
+          left: -70%;
+          width: 34%;
+          height: 230%;
+          transform: skewX(-22deg);
+          background:
+            linear-gradient(
+              90deg,
+              transparent 0%,
+              rgba(255,255,255,.04) 18%,
+              rgba(255,255,255,.35) 34%,
+              rgba(255,255,255,.98) 50%,
+              rgba(255,255,255,.30) 66%,
+              rgba(255,255,255,.04) 82%,
+              transparent 100%
+            );
+          filter: blur(.2px);
+          pointer-events: none;
+          z-index: 0;
+          animation: pcButtonShineSweep 2.6s ease-in-out infinite;
+        }
+
+        /* Soft inner glass edge */
+        .btn-cart.new::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          border: 1px solid rgba(255,255,255,.18);
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .btn-cart.new > * {
+          position: relative;
+          z-index: 2;
+        }
+
+        .btn-cart.new:hover {
+          transform: translateY(-2px) scale(1.015);
+          box-shadow:
+            0 11px 26px rgba(79,70,229,.36),
+            0 0 26px rgba(99,102,241,.24),
+            inset 0 1px 0 rgba(255,255,255,.34);
+        }
+
+        .btn-cart.new:active {
+          transform: translateY(0) scale(.96);
+        }
+
+        /* Tiny anime sparkle points */
+        .btn-cart.new .cart-spark {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: #fff;
+          box-shadow:
+            0 0 7px rgba(255,255,255,.95),
+            0 0 14px rgba(165,180,252,.75);
+          pointer-events: none;
+          z-index: 1;
+          animation: pcButtonSpark 1.9s ease-in-out infinite;
+        }
+
+        .btn-cart.new .cart-spark:nth-of-type(1) {
+          left: 18%;
+          top: 25%;
+          animation-delay: .25s;
+        }
+
+        .btn-cart.new .cart-spark:nth-of-type(2) {
+          right: 22%;
+          top: 62%;
+          animation-delay: .9s;
+        }
+
+        .btn-cart.new .cart-spark:nth-of-type(3) {
+          right: 38%;
+          top: 20%;
+          width: 3px;
+          height: 3px;
+          animation-delay: 1.35s;
+        }
+
+        /* Keep already-in-cart button premium too */
+        .btn-cart.in-cart {
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+          box-shadow:
+            0 4px 14px rgba(79,70,229,.12),
+            inset 0 1px 0 rgba(255,255,255,.8);
+        }
+
+        .btn-cart.in-cart::before {
+          content: "";
+          position: absolute;
+          top: -60%;
+          left: -75%;
+          width: 30%;
+          height: 220%;
+          transform: skewX(-22deg);
+          background:
+            linear-gradient(
+              90deg,
+              transparent,
+              rgba(99,102,241,.05) 25%,
+              rgba(255,255,255,.95) 50%,
+              rgba(99,102,241,.05) 75%,
+              transparent
+            );
+          pointer-events: none;
+          z-index: 0;
+          animation: pcButtonShineSweep 3.4s ease-in-out infinite;
+        }
+
+        .btn-cart.in-cart > * {
+          position: relative;
+          z-index: 2;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .btn-cart.new,
+          .btn-cart.new::before,
+          .btn-cart.new .cart-spark,
+          .btn-cart.in-cart::before {
+            animation: none !important;
+          }
+        }
 
         /* =====================================================
            MOBILE
@@ -2919,7 +3399,9 @@ export default function ProductCard({
       <div
         className="pc-root pc-card pc-anime-shine"
 
-        style={{ touchAction: "pan-y" }}
+        style={{
+          touchAction: horizontalScrollMode ? "pan-x pan-y" : "pan-y",
+        }}
 
         onClick={handleCardClick}
         onPointerDown={handlePointerDown}
