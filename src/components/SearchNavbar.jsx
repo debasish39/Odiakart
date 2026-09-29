@@ -421,7 +421,7 @@ export default function SearchNavbar() {
               />
 
               <FaArrowLeft
-                size={14}
+                size={16}
                 className="
                   relative
                   z-10
@@ -537,9 +537,7 @@ export default function SearchNavbar() {
                 alt="Odikart"
                 className="
                   block
-                  h-8
-                  w-auto
-                  max-w-[300px]
+                  h-12
                   object-contain
                   object-center
                   drop-shadow-[0_4px_10px_rgba(15,23,42,.12)]
@@ -547,8 +545,7 @@ export default function SearchNavbar() {
                   duration-300
                   group-hover/brand:scale-[1.04]
                   sm:h-9
-                  sm:max-w-[150px]
-                  max-[380px]:max-w-[100px]
+                  max-[380px]:max-w-25
                 "
               />
             </span>

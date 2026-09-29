@@ -1255,7 +1255,7 @@ if (loading) {
 
                   {images.length > 1 && (
                     <>
-                      <div className="pp-dots">
+                      {/* <div className="pp-dots">
                         {images.map((_, imageIndex) => (
                           <button
                             key={imageIndex}
@@ -1277,7 +1277,7 @@ if (loading) {
                             }
                           />
                         ))}
-                      </div>
+                      </div> */}
 
                       <div className="pp-count">
                         {activeIdx + 1}/{images.length}

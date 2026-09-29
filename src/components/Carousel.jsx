@@ -1,102 +1,186 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AiOutlineArrowRight } from "react-icons/ai";
 
+/* ============================================================
+   BANNER SKELETON
+============================================================ */
+
+function BannerSkeleton() {
+  return (
+    <section className="offer-section max-w-7xl mx-auto">
+      <div
+        className="banner-skeleton"
+        role="status"
+        aria-label="Loading offer banner"
+      >
+        {/* LEFT CONTENT */}
+        <div className="banner-skeleton-content">
+
+          <div className="skeleton-badge skeleton-shimmer" />
+
+          <div className="skeleton-heading skeleton-shimmer" />
+
+          <div className="skeleton-heading skeleton-heading-small skeleton-shimmer" />
+
+          <div className="skeleton-text skeleton-shimmer" />
+
+          <div className="skeleton-text skeleton-text-small skeleton-shimmer" />
+
+          <div className="skeleton-button skeleton-shimmer" />
+
+        </div>
+
+
+        {/* RIGHT VISUAL */}
+        <div className="banner-skeleton-visual">
+
+          <div className="skeleton-discount skeleton-shimmer" />
+
+          <div
+            className="
+              skeleton-floating
+              skeleton-floating-one
+              skeleton-shimmer
+            "
+          />
+
+          <div
+            className="
+              skeleton-floating
+              skeleton-floating-two
+              skeleton-shimmer
+            "
+          />
+
+          <div
+            className="
+              skeleton-floating
+              skeleton-floating-three
+              skeleton-shimmer
+            "
+          />
+
+        </div>
+
+
+        <span className="sr-only">
+          Loading offer banner...
+        </span>
+
+      </div>
+    </section>
+  );
+}
+
+
+/* ============================================================
+   CAROUSEL
+============================================================ */
+
 export default function Carousel() {
+
   const navigate = useNavigate();
+
+
+  /* ============================================================
+     FIRST SESSION LOADING
+
+     Skeleton appears only if this session has not loaded
+     the banner before.
+  ============================================================ */
+
+  const [loading, setLoading] = useState(() => {
+
+    try {
+
+      return sessionStorage.getItem(
+        "odikart_banner_loaded"
+      ) !== "true";
+
+    } catch (error) {
+
+      // If sessionStorage is unavailable,
+      // simply show the banner normally.
+      return false;
+
+    }
+
+  });
+
+
+  /* ============================================================
+     LOADING EFFECT
+
+     Only runs the first time the banner is opened
+     in the current browser session.
+  ============================================================ */
+
+  useEffect(() => {
+
+    if (!loading) {
+      return;
+    }
+
+
+    const timer = window.setTimeout(() => {
+
+      setLoading(false);
+
+
+      try {
+
+        sessionStorage.setItem(
+          "odikart_banner_loaded",
+          "true"
+        );
+
+      } catch (error) {
+
+        // Ignore storage errors
+
+      }
+
+    }, 1200);
+
+
+    return () => {
+
+      window.clearTimeout(timer);
+
+    };
+
+  }, [loading]);
+
 
   return (
     <>
-      {/* =====================================================
-          OFFER BANNER
-      ===================================================== */}
-
-      <section className="offer-section max-w-7xl mx-auto">
-        <div className="offer-banner">
-          {/* Decorative background */}
-          <div className="offer-glow offer-glow-one" />
-          <div className="offer-glow offer-glow-two" />
-
-          <div className="offer-shape offer-shape-one" />
-          <div className="offer-shape offer-shape-two" />
-
-          {/* =================================================
-              LEFT CONTENT
-          ================================================= */}
-
-          <div className="offer-content">
-            {/* Badge */}
-            <div className="offer-label">
-              <span className="offer-label-icon">⚡</span>
-              LIMITED TIME OFFER
-            </div>
-
-            {/* Heading */}
-            <h1 className="offer-title">
-              Big Savings.
-              <br />
-
-              <span>Better Shopping.</span>
-            </h1>
-
-            {/* Description */}
-            <p className="offer-description">
-              Discover amazing products at unbeatable prices. Shop your
-              favourites before the offer ends.
-            </p>
-
-            {/* CTA */}
-            <button
-              type="button"
-              onClick={() => navigate("/products")}
-              className="offer-button"
-            >
-              <span>Shop Offers</span>
-
-              <span className="offer-button-icon">
-                <AiOutlineArrowRight size={16} />
-              </span>
-            </button>
-          </div>
-
-          {/* =================================================
-              RIGHT OFFER VISUAL
-          ================================================= */}
-
-          <div className="offer-visual">
-            {/* Main discount circle */}
-            <div className="offer-circle">
-              <span className="offer-up-to">UP TO</span>
-
-              <strong>20%</strong>
-
-              <span className="offer-off">OFF</span>
-            </div>
-
-            {/* Floating badges */}
-            <div className="offer-tag offer-tag-one">
-              🔥 HOT DEAL
-            </div>
-
-            <div className="offer-tag offer-tag-two">
-              ✨ BEST PRICE
-            </div>
-
-            <div className="offer-tag offer-tag-three">
-              🛍️ SHOP NOW
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          STYLES
-      ===================================================== */}
+      {/* ======================================================
+          ALL CSS
+      ====================================================== */}
 
       <style>{`
-        /* ===================================================
+
+        /* ======================================================
+           ACCESSIBILITY
+        ====================================================== */
+
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+
+
+        /* ======================================================
            SECTION
-        =================================================== */
+        ====================================================== */
 
         .offer-section {
           width: 100%;
@@ -104,9 +188,10 @@ export default function Carousel() {
           background: #ffffff;
         }
 
-        /* ===================================================
-           MAIN BANNER
-        =================================================== */
+
+        /* ======================================================
+           MAIN OFFER BANNER
+        ====================================================== */
 
         .offer-banner {
           position: relative;
@@ -139,13 +224,13 @@ export default function Carousel() {
             );
 
           box-shadow:
-            0 18px 50px
-            rgba(79, 70, 229, 0.18);
+            0 18px 50px rgba(79, 70, 229, 0.18);
         }
 
-        /* ===================================================
+
+        /* ======================================================
            DECORATIVE GLOW
-        =================================================== */
+        ====================================================== */
 
         .offer-glow {
           position: absolute;
@@ -177,9 +262,10 @@ export default function Carousel() {
           background: rgba(255, 255, 255, 0.07);
         }
 
-        /* ===================================================
+
+        /* ======================================================
            DECORATIVE SHAPES
-        =================================================== */
+        ====================================================== */
 
         .offer-shape {
           position: absolute;
@@ -209,9 +295,10 @@ export default function Carousel() {
           top: 40px;
         }
 
-        /* ===================================================
+
+        /* ======================================================
            CONTENT
-        =================================================== */
+        ====================================================== */
 
         .offer-content {
           position: relative;
@@ -221,9 +308,10 @@ export default function Carousel() {
           max-width: 620px;
         }
 
-        /* ===================================================
+
+        /* ======================================================
            LABEL
-        =================================================== */
+        ====================================================== */
 
         .offer-label {
           display: inline-flex;
@@ -254,8 +342,9 @@ export default function Carousel() {
 
           letter-spacing: 0.09em;
 
-          backdrop-filter:
-            blur(10px);
+          backdrop-filter: blur(10px);
+
+          -webkit-backdrop-filter: blur(10px);
         }
 
         .offer-label-icon {
@@ -275,9 +364,10 @@ export default function Carousel() {
           font-size: 12px;
         }
 
-        /* ===================================================
+
+        /* ======================================================
            TITLE
-        =================================================== */
+        ====================================================== */
 
         .offer-title {
           margin: 0;
@@ -285,7 +375,11 @@ export default function Carousel() {
           color: #ffffff;
 
           font-size:
-            clamp(32px, 4.5vw, 54px);
+            clamp(
+              32px,
+              4.5vw,
+              54px
+            );
 
           line-height: 1.02;
 
@@ -298,15 +392,15 @@ export default function Carousel() {
           color: #c4b5fd;
         }
 
-        /* ===================================================
+
+        /* ======================================================
            DESCRIPTION
-        =================================================== */
+        ====================================================== */
 
         .offer-description {
           max-width: 500px;
 
-          margin:
-            14px 0 23px;
+          margin: 14px 0 23px;
 
           color:
             rgba(255, 255, 255, 0.72);
@@ -316,9 +410,10 @@ export default function Carousel() {
           line-height: 1.65;
         }
 
-        /* ===================================================
+
+        /* ======================================================
            BUTTON
-        =================================================== */
+        ====================================================== */
 
         .offer-button {
           display: inline-flex;
@@ -328,7 +423,10 @@ export default function Carousel() {
           gap: 10px;
 
           padding:
-            11px 12px 11px 19px;
+            11px
+            12px
+            11px
+            19px;
 
           border: 0;
 
@@ -370,6 +468,13 @@ export default function Carousel() {
             scale(0.96);
         }
 
+        .offer-button:focus-visible {
+          outline:
+            2px solid #ffffff;
+
+          outline-offset: 3px;
+        }
+
         .offer-button-icon {
           width: 27px;
           height: 27px;
@@ -381,15 +486,15 @@ export default function Carousel() {
 
           border-radius: 50%;
 
-          background:
-            #4f46e5;
+          background: #4f46e5;
 
-          color: white;
+          color: #ffffff;
         }
 
-        /* ===================================================
+
+        /* ======================================================
            RIGHT VISUAL
-        =================================================== */
+        ====================================================== */
 
         .offer-visual {
           position: relative;
@@ -407,9 +512,10 @@ export default function Carousel() {
           z-index: 4;
         }
 
-        /* ===================================================
+
+        /* ======================================================
            DISCOUNT CIRCLE
-        =================================================== */
+        ====================================================== */
 
         .offer-circle {
           width: 190px;
@@ -442,7 +548,8 @@ export default function Carousel() {
             rotate(-6deg);
 
           animation:
-            offer-float 4s
+            offer-float
+            4s
             ease-in-out
             infinite;
         }
@@ -477,9 +584,10 @@ export default function Carousel() {
           letter-spacing: 0.25em;
         }
 
-        /* ===================================================
+
+        /* ======================================================
            FLOATING TAGS
-        =================================================== */
+        ====================================================== */
 
         .offer-tag {
           position: absolute;
@@ -498,6 +606,9 @@ export default function Carousel() {
           backdrop-filter:
             blur(12px);
 
+          -webkit-backdrop-filter:
+            blur(12px);
+
           color: #ffffff;
 
           font-size: 9px;
@@ -513,7 +624,6 @@ export default function Carousel() {
 
         .offer-tag-one {
           top: 15px;
-
           right: 0;
 
           transform:
@@ -522,7 +632,6 @@ export default function Carousel() {
 
         .offer-tag-two {
           bottom: 15px;
-
           left: 0;
 
           transform:
@@ -531,7 +640,6 @@ export default function Carousel() {
 
         .offer-tag-three {
           top: 50%;
-
           right: -18px;
 
           transform:
@@ -539,11 +647,13 @@ export default function Carousel() {
             rotate(4deg);
         }
 
-        /* ===================================================
+
+        /* ======================================================
            FLOAT ANIMATION
-        =================================================== */
+        ====================================================== */
 
         @keyframes offer-float {
+
           0%,
           100% {
             transform:
@@ -556,23 +666,235 @@ export default function Carousel() {
               translateY(-7px)
               rotate(-4deg);
           }
+
         }
 
-        /* ===================================================
+
+        /* ======================================================
+           BANNER SKELETON
+        ====================================================== */
+
+        .banner-skeleton {
+          position: relative;
+
+          width: 100%;
+
+          min-height: 280px;
+
+          display: flex;
+
+          align-items: center;
+
+          justify-content: space-between;
+
+          overflow: hidden;
+
+          padding: 42px 55px;
+
+          border-radius: 30px;
+
+          background:
+            linear-gradient(
+              135deg,
+              #f8fafc,
+              #eef2f7
+            );
+
+          border:
+            1px solid #e2e8f0;
+
+          box-shadow:
+            0 18px 50px
+            rgba(15, 23, 42, 0.06);
+        }
+
+
+        /* ======================================================
+           SKELETON SHIMMER
+        ====================================================== */
+
+        .skeleton-shimmer {
+          position: relative;
+
+          overflow: hidden;
+
+          background:
+            linear-gradient(
+              90deg,
+              #dfe5ec 0%,
+              #ffffff 45%,
+              #dfe5ec 90%
+            );
+
+          background-size:
+            250% 100%;
+
+          animation:
+            banner-skeleton-shimmer
+            1.4s
+            ease-in-out
+            infinite;
+        }
+
+        @keyframes banner-skeleton-shimmer {
+
+          0% {
+            background-position:
+              200% 0;
+          }
+
+          100% {
+            background-position:
+              -50% 0;
+          }
+
+        }
+
+
+        /* ======================================================
+           SKELETON LEFT CONTENT
+        ====================================================== */
+
+        .banner-skeleton-content {
+          position: relative;
+
+          z-index: 2;
+
+          width: 58%;
+        }
+
+        .skeleton-badge {
+          width: 135px;
+          height: 29px;
+
+          margin-bottom: 17px;
+
+          border-radius: 999px;
+        }
+
+        .skeleton-heading {
+          width:
+            min(380px, 100%);
+
+          height: 43px;
+
+          margin-bottom: 10px;
+
+          border-radius: 10px;
+        }
+
+        .skeleton-heading-small {
+          width:
+            min(300px, 80%);
+        }
+
+        .skeleton-text {
+          width:
+            min(460px, 90%);
+
+          height: 12px;
+
+          margin-top: 18px;
+
+          border-radius: 999px;
+        }
+
+        .skeleton-text-small {
+          width:
+            min(370px, 75%);
+
+          margin-top: 8px;
+        }
+
+        .skeleton-button {
+          width: 125px;
+          height: 40px;
+
+          margin-top: 25px;
+
+          border-radius: 999px;
+        }
+
+
+        /* ======================================================
+           SKELETON RIGHT VISUAL
+        ====================================================== */
+
+        .banner-skeleton-visual {
+          position: relative;
+
+          width: 310px;
+          height: 245px;
+
+          flex-shrink: 0;
+
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+        }
+
+        .skeleton-discount {
+          width: 190px;
+          height: 190px;
+
+          border-radius: 50%;
+        }
+
+        .skeleton-floating {
+          position: absolute;
+
+          width: 90px;
+          height: 28px;
+
+          border-radius: 999px;
+        }
+
+        .skeleton-floating-one {
+          top: 15px;
+          right: 0;
+
+          transform:
+            rotate(6deg);
+        }
+
+        .skeleton-floating-two {
+          bottom: 15px;
+          left: 0;
+
+          transform:
+            rotate(-6deg);
+        }
+
+        .skeleton-floating-three {
+          top: 50%;
+          right: -18px;
+
+          transform:
+            translateY(-50%)
+            rotate(4deg);
+        }
+
+
+        /* ======================================================
            TABLET
-        =================================================== */
+        ====================================================== */
 
         @media (max-width: 900px) {
+
           .offer-banner {
             min-height: 250px;
 
-            padding:
-              35px 30px;
+            padding: 35px 30px;
           }
 
           .offer-title {
             font-size:
-              clamp(30px, 5vw, 45px);
+              clamp(
+                30px,
+                5vw,
+                45px
+              );
           }
 
           .offer-visual {
@@ -591,23 +913,70 @@ export default function Carousel() {
           .offer-tag-three {
             right: -5px;
           }
+
+
+          /* SKELETON */
+
+          .banner-skeleton {
+            min-height: 250px;
+
+            padding: 35px 30px;
+          }
+
+          .banner-skeleton-content {
+            width: 58%;
+          }
+
+          .skeleton-heading {
+            width: 280px;
+          }
+
+          .skeleton-heading-small {
+            width: 220px;
+          }
+
+          .skeleton-text {
+            width: 320px;
+          }
+
+          .skeleton-text-small {
+            width: 260px;
+          }
+
+          .banner-skeleton-visual {
+            width: 240px;
+          }
+
+          .skeleton-discount {
+            width: 165px;
+            height: 165px;
+          }
+
+          .skeleton-floating-three {
+            right: -5px;
+          }
+
         }
 
-        /* ===================================================
+
+        /* ======================================================
            MOBILE
-        =================================================== */
+        ====================================================== */
 
         @media (max-width: 640px) {
+
           .offer-section {
             padding:
-              8px 10px 14px;
+              8px
+              10px
+              14px;
           }
+
 
           .offer-banner {
             min-height: 210px;
 
-            padding:
-              25px 19px;
+            padding: 25px 19px;
 
             border-radius: 23px;
           }
@@ -619,8 +988,7 @@ export default function Carousel() {
           .offer-label {
             margin-bottom: 9px;
 
-            padding:
-              5px 8px;
+            padding: 5px 8px;
 
             gap: 5px;
 
@@ -656,7 +1024,10 @@ export default function Carousel() {
             gap: 7px;
 
             padding:
-              8px 9px 8px 13px;
+              8px
+              9px
+              8px
+              13px;
 
             font-size: 9px;
           }
@@ -693,8 +1064,7 @@ export default function Carousel() {
           }
 
           .offer-tag {
-            padding:
-              5px 7px;
+            padding: 5px 7px;
 
             font-size: 6px;
           }
@@ -718,7 +1088,6 @@ export default function Carousel() {
             height: 210px;
 
             right: -35px;
-
             top: 0;
           }
 
@@ -727,21 +1096,110 @@ export default function Carousel() {
             height: 150px;
 
             right: 0;
-
             top: 30px;
           }
+
+
+          /* MOBILE SKELETON */
+
+          .banner-skeleton {
+            min-height: 210px;
+
+            padding: 25px 19px;
+
+            border-radius: 23px;
+          }
+
+          .banner-skeleton-content {
+            width: 69%;
+          }
+
+          .skeleton-badge {
+            width: 85px;
+            height: 20px;
+
+            margin-bottom: 10px;
+          }
+
+          .skeleton-heading {
+            width: 150px;
+            height: 25px;
+
+            margin-bottom: 6px;
+
+            border-radius: 7px;
+          }
+
+          .skeleton-heading-small {
+            width: 120px;
+          }
+
+          .skeleton-text {
+            width: 145px;
+            height: 8px;
+
+            margin-top: 10px;
+          }
+
+          .skeleton-text-small {
+            width: 115px;
+
+            margin-top: 6px;
+          }
+
+          .skeleton-button {
+            width: 85px;
+            height: 28px;
+
+            margin-top: 15px;
+          }
+
+          .banner-skeleton-visual {
+            position: absolute;
+
+            right: -26px;
+
+            width: 175px;
+            height: 175px;
+          }
+
+          .skeleton-discount {
+            width: 130px;
+            height: 130px;
+          }
+
+          .skeleton-floating {
+            width: 55px;
+            height: 17px;
+          }
+
+          .skeleton-floating-one {
+            top: 2px;
+            right: 0;
+          }
+
+          .skeleton-floating-two {
+            bottom: 2px;
+            left: 0;
+          }
+
+          .skeleton-floating-three {
+            display: none;
+          }
+
         }
 
-        /* ===================================================
+
+        /* ======================================================
            SMALL PHONES
-        =================================================== */
+        ====================================================== */
 
         @media (max-width: 390px) {
+
           .offer-banner {
             min-height: 195px;
 
-            padding:
-              21px 15px;
+            padding: 21px 15px;
           }
 
           .offer-content {
@@ -765,13 +1223,54 @@ export default function Carousel() {
             transform:
               scale(0.88);
           }
+
+
+          /* SKELETON */
+
+          .banner-skeleton {
+            min-height: 195px;
+
+            padding: 21px 15px;
+          }
+
+          .banner-skeleton-content {
+            width: 70%;
+          }
+
+          .skeleton-heading {
+            width: 130px;
+
+            height: 22px;
+          }
+
+          .skeleton-heading-small {
+            width: 100px;
+          }
+
+          .skeleton-text {
+            width: 125px;
+          }
+
+          .skeleton-text-small {
+            width: 95px;
+          }
+
+          .banner-skeleton-visual {
+            right: -34px;
+
+            transform:
+              scale(0.88);
+          }
+
         }
 
-        /* ===================================================
+
+        /* ======================================================
            REDUCED MOTION
-        =================================================== */
+        ====================================================== */
 
         @media (prefers-reduced-motion: reduce) {
+
           .offer-circle {
             animation: none;
           }
@@ -779,8 +1278,212 @@ export default function Carousel() {
           .offer-button {
             transition: none;
           }
+
+          .skeleton-shimmer {
+            animation: none;
+          }
+
         }
+
       `}</style>
+
+
+      {/* ======================================================
+          LOADING / REAL CONTENT
+      ====================================================== */}
+
+      {loading ? (
+
+        <BannerSkeleton />
+
+      ) : (
+
+        <section
+          className="
+            offer-section
+            max-w-7xl
+            mx-auto
+          "
+        >
+
+          <div className="offer-banner">
+
+            {/* ==================================================
+                DECORATIVE BACKGROUND
+            ================================================== */}
+
+            <div
+              className="
+                offer-glow
+                offer-glow-one
+              "
+              aria-hidden="true"
+            />
+
+            <div
+              className="
+                offer-glow
+                offer-glow-two
+              "
+              aria-hidden="true"
+            />
+
+            <div
+              className="
+                offer-shape
+                offer-shape-one
+              "
+              aria-hidden="true"
+            />
+
+            <div
+              className="
+                offer-shape
+                offer-shape-two
+              "
+              aria-hidden="true"
+            />
+
+
+            {/* ==================================================
+                LEFT CONTENT
+            ================================================== */}
+
+            <div className="offer-content">
+
+              {/* BADGE */}
+
+              <div className="offer-label">
+
+                <span
+                  className="offer-label-icon"
+                  aria-hidden="true"
+                >
+                  ⚡
+                </span>
+
+                LIMITED TIME OFFER
+
+              </div>
+
+
+              {/* TITLE */}
+
+              <h1 className="offer-title">
+
+                Big Savings.
+
+                <br />
+
+                <span>
+                  Better Shopping.
+                </span>
+
+              </h1>
+
+
+              {/* DESCRIPTION */}
+
+              <p className="offer-description">
+
+                Discover amazing products at unbeatable prices.
+                Shop your favourites before the offer ends.
+
+              </p>
+
+
+              {/* CTA */}
+
+              <button
+                type="button"
+                onClick={() => navigate("/products")}
+                className="offer-button"
+              >
+
+                <span>
+                  Shop Offers
+                </span>
+
+                <span
+                  className="
+                    offer-button-icon
+                  "
+                  aria-hidden="true"
+                >
+
+                  <AiOutlineArrowRight
+                    size={16}
+                  />
+
+                </span>
+
+              </button>
+
+            </div>
+
+
+            {/* ==================================================
+                RIGHT OFFER VISUAL
+            ================================================== */}
+
+            <div className="offer-visual">
+
+              {/* DISCOUNT CIRCLE */}
+
+              <div className="offer-circle">
+
+                <span className="offer-up-to">
+                  UP TO
+                </span>
+
+                <strong>
+                  20%
+                </strong>
+
+                <span className="offer-off">
+                  OFF
+                </span>
+
+              </div>
+
+
+              {/* FLOATING TAGS */}
+
+              <div
+                className="
+                  offer-tag
+                  offer-tag-one
+                "
+              >
+                🔥 HOT DEAL
+              </div>
+
+              <div
+                className="
+                  offer-tag
+                  offer-tag-two
+                "
+              >
+                ✨ BEST PRICE
+              </div>
+
+              <div
+                className="
+                  offer-tag
+                  offer-tag-three
+                "
+              >
+                🛍️ SHOP NOW
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      )}
+
     </>
   );
 }
