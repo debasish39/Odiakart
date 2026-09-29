@@ -34,7 +34,6 @@ import { Controlled as ControlledZoom } from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 import { MdVerified } from "react-icons/md";
 import ProductCard from "../components/ProductCard";
-import Spinner from "../components/Spinner";
 /* ─── colour map ─── */
 const COLOR_MAP = {
   Blue: "#3b82f6", Black: "#1f2937", White: "#e5e7eb", Red: "#ef4444",
@@ -59,6 +58,176 @@ const Stars = ({ rating = 0, size = 13, interactive = false, onRate, hover = 0, 
       ) : <Icon key={i} size={size} color={(lit || half) ? "#fbbf24" : "#d1d5db"} />;
     })}
   </div>
+);
+
+/* ─── Modern product loading skeleton ─── */
+const ProductDetailsSkeleton = () => (
+  <>
+    <style>{CSS}</style>
+
+    <div className="sp sp-modern-skeleton" aria-busy="true" aria-label="Loading product">
+      <div className="sp-skel-navbar">
+        <div className="sp-skel-icon" />
+        <div className="sp-skel-nav-center">
+          <div className="sp-skel-line nav-title" />
+          <div className="sp-skel-line nav-subtitle" />
+        </div>
+        <div className="sp-skel-actions">
+          <div className="sp-skel-icon small" />
+          <div className="sp-skel-icon small" />
+        </div>
+      </div>
+
+      <div className="sp-skel-progress">
+        <span />
+      </div>
+
+      <main className="sp-skel-shell">
+        <div className="sp-skel-gallery-column">
+          <div className="sp-skel-gallery">
+            <div className="sp-skel-badge top-left" />
+            <div className="sp-skel-badge top-right" />
+            <div className="sp-skel-image">
+              <div className="sp-skel-image-inner">
+                <div className="sp-skel-image-shine" />
+              </div>
+            </div>
+            <div className="sp-skel-gallery-count" />
+          </div>
+
+          <div className="sp-skel-thumbs">
+            {[1, 2, 3, 4, 5].map((item, index) => (
+              <div
+                key={item}
+                className={`sp-skel-thumb ${index === 0 ? "active" : ""}`}
+              />
+            ))}
+          </div>
+
+          <div className="sp-skel-seller">
+            <div className="sp-skel-avatar" />
+            <div className="sp-skel-seller-copy">
+              <div className="sp-skel-line seller-name" />
+              <div className="sp-skel-line seller-meta" />
+            </div>
+            <div className="sp-skel-pill" />
+          </div>
+        </div>
+
+        <div className="sp-skel-details">
+          <section className="sp-skel-card hero">
+            <div className="sp-skel-chip" />
+            <div className="sp-skel-line title xl" />
+            <div className="sp-skel-line title lg" />
+            <div className="sp-skel-line description" />
+            <div className="sp-skel-line description short" />
+
+            <div className="sp-skel-rating-row">
+              <div className="sp-skel-stars" />
+              <div className="sp-skel-line rating-copy" />
+              <div className="sp-skel-rating-badge" />
+            </div>
+          </section>
+
+          <section className="sp-skel-card price">
+            <div className="sp-skel-price-row">
+              <div className="sp-skel-price" />
+              <div className="sp-skel-old-price" />
+              <div className="sp-skel-discount" />
+            </div>
+            <div className="sp-skel-line price-note" />
+            <div className="sp-skel-offer">
+              <div className="sp-skel-offer-icon" />
+              <div className="sp-skel-offer-copy">
+                <div className="sp-skel-line offer-title" />
+                <div className="sp-skel-line offer-subtitle" />
+              </div>
+            </div>
+          </section>
+
+          <section className="sp-skel-card options">
+            <div className="sp-skel-section-head">
+              <div className="sp-skel-line section-title" />
+              <div className="sp-skel-line section-link" />
+            </div>
+
+            <div className="sp-skel-option-row">
+              <div className="sp-skel-option" />
+              <div className="sp-skel-option" />
+              <div className="sp-skel-option" />
+              <div className="sp-skel-option" />
+            </div>
+
+            <div className="sp-skel-section-head second">
+              <div className="sp-skel-line section-title small" />
+            </div>
+
+            <div className="sp-skel-color-row">
+              <div className="sp-skel-color" />
+              <div className="sp-skel-color" />
+              <div className="sp-skel-color" />
+              <div className="sp-skel-color" />
+              <div className="sp-skel-color" />
+            </div>
+
+            <div className="sp-skel-buy-row">
+              <div className="sp-skel-quantity" />
+              <div className="sp-skel-buy-button" />
+              <div className="sp-skel-wishlist" />
+            </div>
+          </section>
+
+          <section className="sp-skel-card delivery">
+            <div className="sp-skel-section-head">
+              <div className="sp-skel-line section-title" />
+            </div>
+            <div className="sp-skel-delivery-grid">
+              <div className="sp-skel-delivery-item">
+                <div className="sp-skel-delivery-icon" />
+                <div>
+                  <div className="sp-skel-line delivery-title" />
+                  <div className="sp-skel-line delivery-copy" />
+                </div>
+              </div>
+              <div className="sp-skel-delivery-item">
+                <div className="sp-skel-delivery-icon" />
+                <div>
+                  <div className="sp-skel-line delivery-title" />
+                  <div className="sp-skel-line delivery-copy" />
+                </div>
+              </div>
+              <div className="sp-skel-delivery-item">
+                <div className="sp-skel-delivery-icon" />
+                <div>
+                  <div className="sp-skel-line delivery-title" />
+                  <div className="sp-skel-line delivery-copy" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="sp-skel-card mini-info">
+            <div className="sp-skel-mini-row">
+              <div className="sp-skel-mini-icon" />
+              <div className="sp-skel-line mini-copy" />
+              <div className="sp-skel-chevron" />
+            </div>
+            <div className="sp-skel-mini-row">
+              <div className="sp-skel-mini-icon" />
+              <div className="sp-skel-line mini-copy medium" />
+              <div className="sp-skel-chevron" />
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <div className="sp-skel-mobile-bar">
+        <div className="sp-skel-mobile-wish" />
+        <div className="sp-skel-mobile-button" />
+        <div className="sp-skel-mobile-button buy" />
+      </div>
+    </div>
+  </>
 );
 
 /* ─── CSS (no :root changes) ─── */
@@ -599,6 +768,124 @@ const CSS = `
 /* Main image interaction */
 .spx-slide{user-select:none}
 .spx-img{user-select:none;-webkit-user-drag:none}
+
+/* ── Product details skeleton ── */
+.spx-skeleton-page{
+  min-height:100vh;
+  padding-top:60px;
+  background:#f8fafc;
+  overflow-x:hidden;
+}
+.spx-skeleton-navbar{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:2001;
+  height:60px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 14px;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid #e9edf2;
+  box-shadow:0 3px 18px rgba(15,23,42,.06);
+  backdrop-filter:blur(16px);
+}
+.spx-skeleton{
+  position:relative;
+  overflow:hidden;
+  background:#e9eef5;
+}
+.spx-skeleton::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent);
+  animation:spSkeletonShimmer 1.35s ease-in-out infinite;
+}
+@keyframes spSkeletonShimmer{
+  100%{transform:translateX(100%)}
+}
+.spx-skeleton .sk-circle{border-radius:50%}
+.spx-skeleton-navbar > .sk-circle{
+  width:40px;height:40px;flex:0 0 40px;border-radius:50%;
+}
+.spx-skeleton-navbar .sk-nav-title{width:125px;height:17px;border-radius:6px}
+.spx-skeleton-wrap{
+  width:min(1320px,100%);
+  margin:0 auto;
+  padding:26px 24px 90px;
+  display:grid;
+  grid-template-columns:minmax(0,560px) minmax(0,1fr);
+  gap:46px;
+}
+.spx-skeleton-left{min-width:0}
+.spx-skeleton-gallery{
+  height:560px;
+  display:grid;
+  place-items:center;
+  padding:44px;
+  border:1px solid #e2e8f0;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 12px 38px rgba(15,23,42,.05);
+}
+.sk-gallery-image{
+  width:72%;height:68%;border-radius:22px;
+}
+.spx-skeleton-thumbs{
+  display:flex;gap:9px;margin-top:12px;overflow:hidden;
+}
+.sk-thumb{width:66px;height:66px;flex:0 0 66px;border-radius:13px}
+.spx-skeleton-right{display:flex;flex-direction:column;gap:16px;min-width:0}
+.spx-skeleton-card{
+  padding:22px 24px;
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 6px 26px rgba(15,23,42,.04);
+}
+.sk-line{height:14px;border-radius:7px;width:100%}
+.sk-title-line{height:24px;width:92%;border-radius:8px}
+.sk-title-line.short{width:62%;margin-top:10px}
+.spx-skeleton-row{display:flex;align-items:center;gap:12px;margin-top:18px}
+.sk-rating{width:82px;height:22px;border-radius:8px}
+.sk-rating-text{width:110px;height:12px;border-radius:6px}
+.sk-price{width:180px;height:38px;border-radius:9px}
+.sk-line.medium{width:45%;margin-top:14px}
+.sk-line.small{width:130px;height:13px;margin-bottom:14px}
+.sk-offer{width:210px;height:34px;border-radius:9px;margin-top:16px}
+.spx-skeleton-variants{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:22px}
+.sk-variant{width:76px;height:42px;border-radius:10px}
+.sk-qty{width:112px;height:42px;border-radius:10px}
+.sk-button{height:48px;flex:1;border-radius:12px}
+.sk-trust{height:46px;border-radius:11px;margin-top:9px}
+
+@media(max-width:900px){
+  .spx-skeleton-wrap{grid-template-columns:1fr;gap:16px;padding:18px 16px 100px}
+  .spx-skeleton-gallery{height:420px}
+}
+@media(max-width:768px){
+  .spx-skeleton-page{padding-top:58px;background:#fff}
+  .spx-skeleton-navbar{height:58px}
+  .spx-skeleton-wrap{display:block;width:100%;padding:0 0 96px}
+  .spx-skeleton-gallery{height:365px;border:0;border-radius:0;box-shadow:none;padding:20px 34px}
+  .sk-gallery-image{width:70%;height:70%;border-radius:18px}
+  .spx-skeleton-thumbs{padding:9px 14px;margin:0;border-top:1px solid #eef0f3;border-bottom:1px solid #eef0f3}
+  .sk-thumb{width:58px;height:58px;flex-basis:58px;border-radius:11px}
+  .spx-skeleton-right{gap:7px}
+  .spx-skeleton-card{border:0;border-radius:0;box-shadow:none;padding:17px 28px;border-bottom:1px solid #e7eaee}
+  .sk-title-line{height:20px}
+  .sk-price{height:30px;width:150px}
+  .sk-button{height:48px}
+}
+@media(max-width:420px){
+  .spx-skeleton-gallery{height:350px;padding:15px 25px}
+  .sk-gallery-image{width:72%;height:68%}
+  .spx-skeleton-card{padding-left:18px;padding-right:18px}
+}
 
 .spx-loading{background:#f8fafc!important}
 
@@ -2200,6 +2487,792 @@ const CSS = `
   }
 }
 
+/* =========================================================
+   MODERN MARKETPLACE UI/UX — SKELETON + FINAL POLISH
+   ========================================================= */
+
+.sp-modern-skeleton{
+  min-height:100dvh;
+  background:
+    radial-gradient(circle at 8% 4%,rgba(99,102,241,.08),transparent 28%),
+    radial-gradient(circle at 92% 14%,rgba(59,130,246,.07),transparent 25%),
+    #f6f8fc;
+  color:#0f172a;
+  overflow:hidden;
+}
+
+.sp-skel-navbar{
+  position:fixed;
+  inset:0 0 auto;
+  z-index:3000;
+  height:64px;
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:0 22px;
+  background:rgba(255,255,255,.88);
+  border-bottom:1px solid rgba(226,232,240,.9);
+  box-shadow:0 8px 28px rgba(15,23,42,.06);
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+}
+
+.sp-skel-icon{
+  width:40px;
+  height:40px;
+  flex:0 0 40px;
+  border-radius:50%;
+}
+.sp-skel-icon.small{
+  width:36px;
+  height:36px;
+  flex-basis:36px;
+}
+.sp-skel-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left:auto;
+}
+.sp-skel-nav-center{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:0;
+}
+.sp-skel-line,
+.sp-skel-icon,
+.sp-skel-badge,
+.sp-skel-image,
+.sp-skel-thumb,
+.sp-skel-avatar,
+.sp-skel-pill,
+.sp-skel-chip,
+.sp-skel-stars,
+.sp-skel-rating-badge,
+.sp-skel-offer-icon,
+.sp-skel-option,
+.sp-skel-color,
+.sp-skel-quantity,
+.sp-skel-buy-button,
+.sp-skel-wishlist,
+.sp-skel-delivery-icon,
+.sp-skel-mini-icon,
+.sp-skel-chevron,
+.sp-skel-gallery-count,
+.sp-skel-mobile-wish,
+.sp-skel-mobile-button{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(100deg,#e9eef5 0%,#f3f6fa 45%,#e2e8f0 100%);
+}
+.sp-skel-line::after,
+.sp-skel-icon::after,
+.sp-skel-badge::after,
+.sp-skel-image::after,
+.sp-skel-thumb::after,
+.sp-skel-avatar::after,
+.sp-skel-pill::after,
+.sp-skel-chip::after,
+.sp-skel-stars::after,
+.sp-skel-rating-badge::after,
+.sp-skel-offer-icon::after,
+.sp-skel-option::after,
+.sp-skel-color::after,
+.sp-skel-quantity::after,
+.sp-skel-buy-button::after,
+.sp-skel-wishlist::after,
+.sp-skel-delivery-icon::after,
+.sp-skel-mini-icon::after,
+.sp-skel-chevron::after,
+.sp-skel-gallery-count::after,
+.sp-skel-mobile-wish::after,
+.sp-skel-mobile-button::after,
+.sp-skel-image-inner::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  transform:translateX(-110%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.82),transparent);
+  animation:spModernShimmer 1.45s cubic-bezier(.4,0,.2,1) infinite;
+}
+@keyframes spModernShimmer{
+  100%{transform:translateX(110%)}
+}
+.sp-skel-nav-center .nav-title{
+  width:140px;
+  height:14px;
+  border-radius:7px;
+}
+.sp-skel-nav-center .nav-subtitle{
+  width:92px;
+  height:8px;
+  border-radius:4px;
+}
+.sp-skel-progress{
+  position:fixed;
+  top:64px;
+  left:0;
+  right:0;
+  z-index:2999;
+  height:3px;
+  background:#edf1f6;
+}
+.sp-skel-progress span{
+  display:block;
+  width:42%;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#6366f1,#3b82f6,#8b5cf6);
+  animation:spLoadingProgress 1.6s ease-in-out infinite;
+}
+@keyframes spLoadingProgress{
+  0%{transform:translateX(-120%);width:25%}
+  55%{width:48%}
+  100%{transform:translateX(270%);width:25%}
+}
+
+.sp-skel-shell{
+  width:min(1380px,100%);
+  margin:0 auto;
+  padding:96px 28px 100px;
+  display:grid;
+  grid-template-columns:minmax(0,600px) minmax(420px,1fr);
+  gap:42px;
+  align-items:start;
+}
+.sp-skel-gallery-column{
+  position:sticky;
+  top:84px;
+  min-width:0;
+}
+.sp-skel-gallery{
+  position:relative;
+  height:570px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border:1px solid #e2e8f0;
+  border-radius:30px;
+  background:rgba(255,255,255,.92);
+  box-shadow:0 22px 65px rgba(15,23,42,.08);
+}
+.sp-skel-image{
+  width:70%;
+  height:72%;
+  border-radius:28px;
+  background:linear-gradient(145deg,#edf1f6,#f8fafc);
+}
+.sp-skel-image-inner{
+  position:absolute;
+  inset:12% 13%;
+  border-radius:24px;
+  background:linear-gradient(145deg,#e5eaf1,#f8fafc);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.8);
+}
+.sp-skel-image-shine{
+  position:absolute;
+  inset:18% 20%;
+  border-radius:20px;
+  background:linear-gradient(145deg,#eef2f7,#e2e8f0);
+}
+.sp-skel-badge{
+  position:absolute;
+  z-index:2;
+  height:28px;
+  border-radius:999px;
+}
+.sp-skel-badge.top-left{
+  width:92px;
+  left:18px;
+  top:18px;
+}
+.sp-skel-badge.top-right{
+  width:40px;
+  height:40px;
+  right:18px;
+  top:18px;
+  border-radius:13px;
+}
+.sp-skel-gallery-count{
+  position:absolute;
+  right:18px;
+  bottom:18px;
+  width:58px;
+  height:26px;
+  border-radius:9px;
+}
+.sp-skel-thumbs{
+  display:flex;
+  gap:10px;
+  overflow:hidden;
+  padding:13px 2px 4px;
+}
+.sp-skel-thumb{
+  width:68px;
+  height:68px;
+  flex:0 0 68px;
+  border-radius:14px;
+  border:2px solid transparent;
+}
+.sp-skel-thumb.active{
+  border-color:#c7d2fe;
+  box-shadow:0 0 0 2px rgba(99,102,241,.08);
+}
+.sp-skel-seller{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin-top:10px;
+  padding:13px 15px;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  background:#fff;
+}
+.sp-skel-avatar{
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  border-radius:12px;
+}
+.sp-skel-seller-copy{
+  flex:1;
+  min-width:0;
+}
+.sp-skel-seller-copy .seller-name{
+  width:105px;
+  height:11px;
+  border-radius:5px;
+}
+.sp-skel-seller-copy .seller-meta{
+  width:145px;
+  height:8px;
+  border-radius:4px;
+  margin-top:7px;
+}
+.sp-skel-pill{
+  width:76px;
+  height:27px;
+  border-radius:999px;
+}
+
+.sp-skel-details{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  min-width:0;
+}
+.sp-skel-card{
+  padding:22px 24px;
+  border:1px solid #e2e8f0;
+  border-radius:22px;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 9px 30px rgba(15,23,42,.045);
+}
+.sp-skel-card.hero{
+  padding:27px 28px 23px;
+}
+.sp-skel-chip{
+  width:86px;
+  height:25px;
+  border-radius:999px;
+  margin-bottom:17px;
+}
+.sp-skel-line.title{
+  height:25px;
+  border-radius:8px;
+}
+.sp-skel-line.title.xl{width:93%}
+.sp-skel-line.title.lg{
+  width:68%;
+  margin-top:10px;
+}
+.sp-skel-line.description{
+  width:88%;
+  height:10px;
+  margin-top:18px;
+  border-radius:5px;
+}
+.sp-skel-line.description.short{
+  width:61%;
+  margin-top:7px;
+}
+.sp-skel-rating-row{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-top:18px;
+}
+.sp-skel-stars{
+  width:88px;
+  height:22px;
+  border-radius:7px;
+}
+.sp-skel-line.rating-copy{
+  width:118px;
+  height:10px;
+  border-radius:5px;
+}
+.sp-skel-rating-badge{
+  width:65px;
+  height:24px;
+  margin-left:auto;
+  border-radius:999px;
+}
+.sp-skel-card.price{
+  padding:22px 24px;
+}
+.sp-skel-price-row{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+.sp-skel-price{
+  width:172px;
+  height:39px;
+  border-radius:9px;
+}
+.sp-skel-old-price{
+  width:72px;
+  height:13px;
+  border-radius:6px;
+}
+.sp-skel-discount{
+  width:64px;
+  height:24px;
+  border-radius:999px;
+}
+.sp-skel-line.price-note{
+  width:175px;
+  height:9px;
+  margin-top:11px;
+  border-radius:4px;
+}
+.sp-skel-offer{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin-top:18px;
+  padding:11px 12px;
+  border:1px solid #e8eaff;
+  border-radius:13px;
+  background:#fafaff;
+}
+.sp-skel-offer-icon{
+  width:32px;
+  height:32px;
+  flex:0 0 32px;
+  border-radius:9px;
+}
+.sp-skel-offer-copy{
+  flex:1;
+}
+.sp-skel-line.offer-title{
+  width:145px;
+  height:10px;
+  border-radius:5px;
+}
+.sp-skel-line.offer-subtitle{
+  width:215px;
+  max-width:70%;
+  height:8px;
+  margin-top:6px;
+  border-radius:4px;
+}
+.sp-skel-section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:13px;
+}
+.sp-skel-line.section-title{
+  width:115px;
+  height:11px;
+  border-radius:5px;
+}
+.sp-skel-line.section-title.small{width:92px}
+.sp-skel-line.section-link{
+  width:58px;
+  height:9px;
+  border-radius:5px;
+}
+.sp-skel-section-head.second{
+  margin-top:22px;
+}
+.sp-skel-option-row,
+.sp-skel-color-row{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+}
+.sp-skel-option{
+  width:70px;
+  height:40px;
+  border-radius:10px;
+}
+.sp-skel-color{
+  width:29px;
+  height:29px;
+  border-radius:50%;
+}
+.sp-skel-buy-row{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-top:22px;
+}
+.sp-skel-quantity{
+  width:112px;
+  height:50px;
+  border-radius:12px;
+}
+.sp-skel-buy-button{
+  flex:1;
+  height:50px;
+  border-radius:13px;
+}
+.sp-skel-wishlist{
+  width:50px;
+  height:50px;
+  flex:0 0 50px;
+  border-radius:13px;
+}
+.sp-skel-card.delivery{
+  padding-bottom:19px;
+}
+.sp-skel-delivery-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+}
+.sp-skel-delivery-item{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  padding:11px;
+  border:1px solid #edf0f4;
+  border-radius:12px;
+}
+.sp-skel-delivery-icon{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  border-radius:9px;
+}
+.sp-skel-line.delivery-title{
+  width:75px;
+  height:9px;
+  border-radius:4px;
+}
+.sp-skel-line.delivery-copy{
+  width:94px;
+  max-width:100%;
+  height:7px;
+  margin-top:6px;
+  border-radius:4px;
+}
+.sp-skel-card.mini-info{
+  padding:0 18px;
+}
+.sp-skel-mini-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:58px;
+  border-bottom:1px solid #f1f4f7;
+}
+.sp-skel-mini-row:last-child{border-bottom:0}
+.sp-skel-mini-icon{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  border-radius:9px;
+}
+.sp-skel-line.mini-copy{
+  width:165px;
+  height:9px;
+  border-radius:4px;
+}
+.sp-skel-line.mini-copy.medium{width:205px}
+.sp-skel-chevron{
+  width:10px;
+  height:10px;
+  margin-left:auto;
+  border-radius:3px;
+}
+
+.sp-skel-mobile-bar{
+  display:none;
+}
+
+@media(max-width:900px){
+  .sp-skel-shell{
+    grid-template-columns:1fr;
+    gap:18px;
+    padding:88px 18px 100px;
+  }
+  .sp-skel-gallery-column{position:static}
+  .sp-skel-gallery{height:480px}
+  .sp-skel-details{gap:12px}
+  .sp-skel-delivery-grid{grid-template-columns:1fr 1fr}
+}
+
+@media(max-width:768px){
+  .sp-modern-skeleton{
+    background:#f1f3f6;
+    padding-bottom:74px;
+  }
+  .sp-skel-navbar{
+    height:58px;
+    padding:0 12px;
+  }
+  .sp-skel-icon{
+    width:38px;
+    height:38px;
+    flex-basis:38px;
+  }
+  .sp-skel-icon.small{
+    width:34px;
+    height:34px;
+    flex-basis:34px;
+  }
+  .sp-skel-progress{top:58px}
+  .sp-skel-shell{
+    display:block;
+    width:100%;
+    padding:58px 0 86px;
+  }
+  .sp-skel-gallery{
+    height:365px;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+  }
+  .sp-skel-image{
+    width:72%;
+    height:70%;
+    border-radius:22px;
+  }
+  .sp-skel-image-inner{inset:12% 13%}
+  .sp-skel-badge.top-left{left:12px;top:12px;width:78px;height:24px}
+  .sp-skel-badge.top-right{right:12px;top:12px;width:36px;height:36px}
+  .sp-skel-gallery-count{right:12px;bottom:12px;width:50px;height:23px}
+  .sp-skel-thumbs{
+    margin:0;
+    padding:9px 10px;
+    background:#fff;
+    border-top:1px solid #eceff2;
+    border-bottom:1px solid #eceff2;
+  }
+  .sp-skel-thumb{
+    width:56px;
+    height:56px;
+    flex-basis:56px;
+    border-radius:10px;
+  }
+  .sp-skel-seller{
+    margin:0;
+    border:0;
+    border-radius:0;
+    padding:11px 12px;
+    background:#fff;
+    border-bottom:1px solid #e8ebef;
+  }
+  .sp-skel-details{
+    gap:7px;
+  }
+  .sp-skel-card{
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    padding:15px 12px;
+    background:#fff;
+    border-bottom:1px solid #e6e9ed;
+  }
+  .sp-skel-card.hero{
+    padding:15px 12px 14px;
+  }
+  .sp-skel-line.title{
+    height:18px;
+  }
+  .sp-skel-line.title.xl{width:94%}
+  .sp-skel-line.title.lg{width:69%;margin-top:8px}
+  .sp-skel-line.description{
+    margin-top:13px;
+    height:8px;
+  }
+  .sp-skel-line.description.short{margin-top:6px}
+  .sp-skel-rating-row{margin-top:13px}
+  .sp-skel-stars{width:78px;height:20px}
+  .sp-skel-rating-badge{width:55px;height:21px}
+  .sp-skel-price{width:145px;height:31px}
+  .sp-skel-old-price{width:58px}
+  .sp-skel-discount{width:57px;height:21px}
+  .sp-skel-offer{margin-top:13px}
+  .sp-skel-buy-row{margin-top:17px}
+  .sp-skel-quantity{height:46px;width:100px}
+  .sp-skel-buy-button{height:46px}
+  .sp-skel-wishlist{width:46px;height:46px;flex-basis:46px}
+  .sp-skel-delivery-grid{grid-template-columns:1fr;gap:7px}
+  .sp-skel-card.mini-info{padding:0 12px}
+  .sp-skel-mobile-bar{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    z-index:3100;
+    display:flex;
+    gap:7px;
+    padding:8px 9px calc(8px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.94);
+    border-top:1px solid #e1e5ea;
+    box-shadow:0 -8px 25px rgba(15,23,42,.09);
+    backdrop-filter:blur(18px);
+  }
+  .sp-skel-mobile-wish{
+    width:48px;
+    height:48px;
+    flex:0 0 48px;
+    border-radius:9px;
+  }
+  .sp-skel-mobile-button{
+    flex:1;
+    height:48px;
+    border-radius:9px;
+  }
+  .sp-skel-mobile-button.buy{
+    flex:1.25;
+  }
+}
+
+@media(max-width:420px){
+  .sp-skel-gallery{height:350px}
+  .sp-skel-image{width:73%;height:68%}
+  .sp-skel-option{width:62px}
+  .sp-skel-offer-subtitle{max-width:65%}
+}
+
+/* =========================================================
+   ACTUAL PRODUCT PAGE POLISH
+   ========================================================= */
+.sp-product-modern-surface{
+  isolation:isolate;
+}
+.sp-product-modern-surface .spx-card{
+  background:rgba(255,255,255,.97);
+}
+.sp-product-modern-surface .spx-card:not(.spx-gallery){
+  box-shadow:0 8px 28px rgba(15,23,42,.045);
+}
+.sp-product-modern-surface .spx-card:not(.spx-gallery):hover{
+  transform:translateY(-1px);
+}
+.sp-product-modern-surface .spx-btn{
+  letter-spacing:-.01em;
+}
+.sp-product-modern-surface .spx-add{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  background:linear-gradient(135deg,#4f46e5,#6366f1);
+  box-shadow:0 10px 26px rgba(79,70,229,.26), inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+.sp-product-modern-surface .spx-add::before,
+.sp-product-modern-surface .sp-mobile-buy::before{
+  content:"";
+  position:absolute;
+  top:-45%;
+  left:-70%;
+  width:38%;
+  height:190%;
+  transform:skewX(-22deg);
+  background:linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,.05) 25%,
+    rgba(255,255,255,.72) 50%,
+    rgba(255,255,255,.08) 75%,
+    transparent 100%
+  );
+  filter:blur(.2px);
+  pointer-events:none;
+  z-index:0;
+  animation:spButtonShine 2.6s ease-in-out infinite;
+}
+
+.sp-product-modern-surface .spx-add::after,
+.sp-product-modern-surface .sp-mobile-buy::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:0;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+  animation:spButtonGlow 2.6s ease-in-out infinite;
+}
+
+.sp-product-modern-surface .spx-add > *,
+.sp-product-modern-surface .sp-mobile-buy > *{
+  position:relative;
+  z-index:1;
+}
+
+@keyframes spButtonShine{
+  0%,18%{left:-70%;opacity:0}
+  28%{opacity:1}
+  62%{left:135%;opacity:1}
+  63%,100%{left:135%;opacity:0}
+}
+
+@keyframes spButtonGlow{
+  0%,100%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 0 0 rgba(99,102,241,0)}
+  50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.28),0 0 22px rgba(99,102,241,.20)}
+}
+
+.sp-product-modern-surface .spx-add:hover{
+  background:linear-gradient(135deg,#4338ca,#4f46e5);
+  box-shadow:0 14px 30px rgba(79,70,229,.34),0 0 24px rgba(99,102,241,.16);
+}
+
+.sp-product-modern-surface .sp-mobile-buy{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8) !important;
+  box-shadow:0 10px 24px rgba(37,99,235,.28);
+}
+
+.sp-product-modern-surface .sp-mobile-buy:active{
+  transform:scale(.97);
+}
+
+@media(prefers-reduced-motion:reduce){
+  .sp-product-modern-surface .spx-add::before,
+  .sp-product-modern-surface .spx-add::after,
+  .sp-product-modern-surface .sp-mobile-buy::before,
+  .sp-product-modern-surface .sp-mobile-buy::after{
+    animation:none;
+  }
+}
+.sp-product-modern-surface .spx-add:hover{
+  background:linear-gradient(135deg,#4338ca,#4f46e5);
+}
+.sp-product-modern-surface .spx-wb{
+  transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.sp-product-modern-surface .spx-wb:hover{
+  box-shadow:0 8px 20px rgba(225,29,72,.10);
+}
+@media(max-width:768px){
+  .sp-product-modern-surface .spx-card:not(.spx-gallery){
+    box-shadow:none;
+  }
+}
+
 `;
 
 
@@ -2810,14 +3883,9 @@ const handleMouseLeave = useCallback(() => {
   };
 
   /* ── Loading / error ── */
-  if (productLoading && !product) return (
-    <div className="spx-loading sp" style={{ minHeight: "70vh", display: "grid", placeItems: "center", padding: 24 }}>
-      <div style={{ textAlign: "center" }}>
-        <Spinner />
-        <div style={{ marginTop: 12, fontSize: 12, color: "#64748b", fontWeight: 700 }}>Loading product…</div>
-      </div>
-    </div>
-  );
+  if ((productLoading && !product) || (productFetching && product?.id !== id && !product)) {
+    return <ProductDetailsSkeleton />;
+  }
 
   if (productError && !product) return (
     <div className="spx-loading sp" style={{ minHeight: "70vh", display: "grid", placeItems: "center", padding: 24 }}>

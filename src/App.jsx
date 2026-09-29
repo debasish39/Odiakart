@@ -972,7 +972,7 @@ const showSearchNavbar =
 
               <Route
                 path="/sign-in/*"
-                element={<SignInPage />}
+                element={<PhoneLogin />}
               />
 
               <Route
