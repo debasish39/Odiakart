@@ -164,17 +164,16 @@ const AppWrapper = () => {
   const [
     deferredPrompt,
     setDeferredPrompt,
-  ] = useState(null);
+] = useState(null);
 
   const [
     showInstall,
     setShowInstall,
   ] = useState(false);
 
-  const [
-    appLoading,
-    setAppLoading,
-  ] = useState(true);
+const [appLoading, setAppLoading] = useState(() => {
+  return localStorage.getItem("odikart_splash_seen") !== "true";
+});
 
 
   /* =======================================================
@@ -277,21 +276,16 @@ const showSearchNavbar =
      APP LOADING
   ======================================================= */
 
-  useEffect(() => {
+useEffect(() => {
+  if (!appLoading) return;
 
-    const timer =
-      setTimeout(
-        () => {
-          setAppLoading(false);
-        },
-        2400
-      );
+  const timer = setTimeout(() => {
+    localStorage.setItem("odikart_splash_seen", "true");
+    setAppLoading(false);
+  }, 900);
 
-    return () =>
-      clearTimeout(timer);
-
-  }, []);
-
+  return () => clearTimeout(timer);
+}, [appLoading]);
 
   /* =======================================================
      ONLINE / OFFLINE
@@ -544,22 +538,10 @@ const showSearchNavbar =
   /* =======================================================
      INSTALL APP
   ======================================================= */
-
-  const handleInstall =
-    async () => {
-
-      if (!deferredPrompt) {
-        return;
-      }
-
-      deferredPrompt.prompt();
-
-      await deferredPrompt.userChoice;
-
-      setShowInstall(false);
-
-    };
-
+const handleInstall = () => {
+  window.location.href =
+    "https://play.google.com/store/apps/details?id=in.odikart.app";
+};
 
   /* =======================================================
      LOADING
