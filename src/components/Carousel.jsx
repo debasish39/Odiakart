@@ -3,6 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { AiOutlineArrowRight } from "react-icons/ai";
 
 /* ============================================================
+   CACHE CONFIGURATION
+============================================================ */
+
+const BANNER_CACHE_KEY = "odikart_banner_loaded";
+const BANNER_LOADING_TIME = 1200;
+
+/* ============================================================
    BANNER SKELETON
 ============================================================ */
 
@@ -30,7 +37,6 @@ function BannerSkeleton() {
           <div className="skeleton-button skeleton-shimmer" />
 
         </div>
-
 
         {/* RIGHT VISUAL */}
         <div className="banner-skeleton-visual">
@@ -63,68 +69,86 @@ function BannerSkeleton() {
 
         </div>
 
-
         <span className="sr-only">
           Loading offer banner...
         </span>
-
       </div>
     </section>
   );
 }
-
 
 /* ============================================================
    CAROUSEL
 ============================================================ */
 
 export default function Carousel() {
-
   const navigate = useNavigate();
 
-
   /* ============================================================
-     FIRST SESSION LOADING
+     FIRST SESSION LOADING + CACHE
 
-     Skeleton appears only if this session has not loaded
-     the banner before.
-  ============================================================ */
+     First visit:
+     - Show skeleton
+     - After 1.2 seconds cache the loaded state
+
+     Next visits in same browser session:
+     - Read sessionStorage
+     - Skip skeleton
+============================================================ */
 
   const [loading, setLoading] = useState(() => {
-
     try {
+      const cached = sessionStorage.getItem(BANNER_CACHE_KEY);
 
-      return sessionStorage.getItem(
-        "odikart_banner_loaded"
-      ) !== "true";
-
+      return cached !== "true";
     } catch (error) {
+      console.warn(
+        "Unable to read banner cache:",
+        error
+      );
 
       // If sessionStorage is unavailable,
-      // simply show the banner normally.
+      // show the banner normally.
       return false;
-
     }
-
   });
-
 
   /* ============================================================
      LOADING EFFECT
 
-     Only runs the first time the banner is opened
-     in the current browser session.
-  ============================================================ */
+     Runs only when the banner needs to be loaded.
 
+     After loading:
+     - Hide skeleton
+     - Store cache flag
+============================================================ */
 
+  useEffect(() => {
+    // Already cached → nothing to do
+    if (!loading) {
+      return;
+    }
 
-useEffect(() => {
-  const timer = setTimeout(() => {
-    setLoading(false);
-  }, 1200);
+    const timer = setTimeout(() => {
+      setLoading(false);
 
-  return () => clearTimeout(timer);
-}, []);
+      try {
+        sessionStorage.setItem(
+          BANNER_CACHE_KEY,
+          "true"
+        );
+      } catch (error) {
+        console.warn(
+          "Unable to save banner cache:",
+          error
+        );
+      }
+    }, BANNER_LOADING_TIME);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [loading]);
 
   return (
     <>
@@ -945,7 +969,6 @@ useEffect(() => {
               14px;
           }
 
-
           .offer-banner {
             min-height: 210px;
 
@@ -1266,11 +1289,8 @@ useEffect(() => {
       ====================================================== */}
 
       {loading ? (
-
         <BannerSkeleton />
-
       ) : (
-
         <section
           className="
             offer-section
@@ -1278,7 +1298,6 @@ useEffect(() => {
             mx-auto
           "
         >
-
           <div className="offer-banner">
 
             {/* ==================================================
@@ -1452,9 +1471,7 @@ useEffect(() => {
             </div>
 
           </div>
-
         </section>
-
       )}
 
     </>

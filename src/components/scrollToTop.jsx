@@ -73,8 +73,8 @@ export default function ScrollToTopButton() {
         z-[999999]
         -translate-x-1/2
 
-        bottom-9
-        sm:bottom-9
+        top-148
+        sm:top-148
         max-sm:bottom-[calc(68px+env(safe-area-inset-bottom))]
 
         flex
@@ -88,8 +88,8 @@ export default function ScrollToTopButton() {
         rounded-full
 
         border
-        border-white/70
-
+        border-indigo-50
+        cursor-pointer
         bg-white/60
         backdrop-blur-xl
         backdrop-saturate-150
