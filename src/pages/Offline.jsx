@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   WifiOff,
   RefreshCw,
-  Smartphone,
-  Router,
-  Wifi,
   Signal,
   ShoppingBag,
   CheckCircle2,
+  ShieldCheck,
+  Zap,
+  Radio,
+  ArrowRight,
+  Sparkles,
 } from "lucide-react";
 
 const Offline = () => {
@@ -16,22 +18,34 @@ const Offline = () => {
     typeof navigator !== "undefined" ? navigator.onLine : false
   );
 
-  /* =====================================================
-     LIVE CONNECTION STATUS
-  ===================================================== */
+  const retryTimerRef = useRef(null);
+  const reloadTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
+      setChecking(false);
 
-      // Give the browser a moment before reloading.
-      setTimeout(() => {
+      if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+      reloadTimerRef.current = setTimeout(() => {
         window.location.reload();
-      }, 700);
+      }, 900);
     };
 
     const handleOffline = () => {
       setIsOnline(false);
+      setChecking(false);
+
+      if (reloadTimerRef.current) {
+        clearTimeout(reloadTimerRef.current);
+      }
     };
 
     window.addEventListener("online", handleOnline);
@@ -43,1184 +57,996 @@ const Offline = () => {
     };
   }, []);
 
-  /* =====================================================
-     RETRY CONNECTION
-  ===================================================== */
-
-  const handleRetry = async () => {
+  const handleRetry = useCallback(() => {
     if (checking) return;
 
     setChecking(true);
 
-    // Small delay makes the interaction feel intentional.
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
 
-    if (navigator.onLine) {
-      setIsOnline(true);
+    retryTimerRef.current = setTimeout(() => {
+      if (navigator.onLine) {
+        setIsOnline(true);
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    } else {
+        reloadTimerRef.current = setTimeout(() => {
+          window.location.reload();
+        }, 650);
+
+        return;
+      }
+
       setIsOnline(false);
       setChecking(false);
-    }
-  };
+    }, 900);
+  }, [checking]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Enter" && !checking) handleRetry();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleRetry, checking]);
 
   return (
-    <div className="offline-page">
+    <main className="odikart-offline">
       <style>{`
-        /* =================================================
-           RESET
-        ================================================= */
-
-        .offline-page,
-        .offline-page * {
-          box-sizing: border-box;
-        }
-
-        .offline-page {
+        .odikart-offline {
+          --blue: #2563eb;
+          --indigo: #4f46e5;
+          --violet: #7c3aed;
+          --purple: #9333ea;
+          --ink: #111827;
+          --muted: #64748b;
+          --line: rgba(79, 70, 229, .11);
           position: relative;
+          isolation: isolate;
           min-height: 100vh;
           min-height: 100dvh;
           width: 100%;
           overflow: hidden;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          padding: 28px;
-
-          color: #111827;
-
-          font-family:
-            Inter,
-            ui-sans-serif,
-            system-ui,
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
-            sans-serif;
-
+          display: grid;
+          grid-template-columns: minmax(0, 1.08fr) minmax(390px, .92fr);
+          color: var(--ink);
           background:
-            radial-gradient(
-              circle at 15% 15%,
-              rgba(99, 102, 241, 0.13),
-              transparent 28%
-            ),
-            radial-gradient(
-              circle at 85% 80%,
-              rgba(59, 130, 246, 0.13),
-              transparent 30%
-            ),
-            linear-gradient(
-              135deg,
-              #f8fafc 0%,
-              #eef2ff 48%,
-              #f8fafc 100%
-            );
+            radial-gradient(circle at 8% 10%, rgba(79,70,229,.13), transparent 30%),
+            radial-gradient(circle at 92% 5%, rgba(147,51,234,.10), transparent 28%),
+            radial-gradient(circle at 55% 100%, rgba(37,99,235,.10), transparent 35%),
+            linear-gradient(135deg, #fff 0%, #fbfbff 46%, #f6f7ff 100%);
+          font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+            BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        /* =================================================
-           BACKGROUND GRID
-        ================================================= */
+        .odikart-offline *,
+        .odikart-offline *::before,
+        .odikart-offline *::after { box-sizing: border-box; }
 
-        .offline-grid {
+        .offline-bg,
+        .offline-bg::before,
+        .offline-bg::after {
           position: absolute;
           inset: 0;
-
-          background-image:
-            linear-gradient(
-              rgba(99, 102, 241, 0.035) 1px,
-              transparent 1px
-            ),
-            linear-gradient(
-              90deg,
-              rgba(99, 102, 241, 0.035) 1px,
-              transparent 1px
-            );
-
-          background-size: 42px 42px;
-
-          mask-image: linear-gradient(
-            to bottom,
-            black,
-            transparent 90%
-          );
-
           pointer-events: none;
         }
 
-        /* =================================================
-           FLOATING BLOBS
-        ================================================= */
-
-        .offline-glow {
-          position: absolute;
-          border-radius: 999px;
-          pointer-events: none;
-          filter: blur(80px);
-        }
-
-        .offline-glow-one {
-          width: 330px;
-          height: 330px;
-
-          left: -150px;
-          top: -120px;
-
-          background: rgba(99, 102, 241, 0.16);
-
-          animation: driftOne 10s ease-in-out infinite;
-        }
-
-        .offline-glow-two {
-          width: 350px;
-          height: 350px;
-
-          right: -160px;
-          bottom: -130px;
-
-          background: rgba(59, 130, 246, 0.14);
-
-          animation: driftTwo 12s ease-in-out infinite;
-        }
-
-        @keyframes driftOne {
-          0%,
-          100% {
-            transform: translate(0, 0);
-          }
-
-          50% {
-            transform: translate(35px, 25px);
-          }
-        }
-
-        @keyframes driftTwo {
-          0%,
-          100% {
-            transform: translate(0, 0);
-          }
-
-          50% {
-            transform: translate(-25px, -30px);
-          }
-        }
-
-        /* =================================================
-           MAIN CONTAINER
-        ================================================= */
-
-        .offline-container {
-          position: relative;
-          z-index: 10;
-
-          width: min(1050px, 100%);
-
-          display: grid;
-          grid-template-columns: 0.95fr 1.05fr;
-
-          min-height: 600px;
-
+        .offline-bg {
+          z-index: -5;
           overflow: hidden;
-
-          border: 1px solid rgba(255, 255, 255, 0.85);
-          border-radius: 34px;
-
-          background: rgba(255, 255, 255, 0.68);
-
-          box-shadow:
-            0 35px 100px rgba(30, 41, 59, 0.12),
-            0 10px 30px rgba(30, 41, 59, 0.06);
-
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
+          background-image:
+            linear-gradient(rgba(79,70,229,.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(79,70,229,.035) 1px, transparent 1px);
+          background-size: 52px 52px;
+          mask-image: linear-gradient(to bottom, black, transparent 90%);
+          animation: gridMove 18s linear infinite;
         }
 
-        /* =================================================
-           LEFT VISUAL
-        ================================================= */
+        .offline-bg::before {
+          content: "";
+          inset: -20%;
+          background:
+            conic-gradient(from 210deg at 50% 50%,
+              transparent 0 18%,
+              rgba(99,102,241,.08) 25%,
+              transparent 34% 62%,
+              rgba(139,92,246,.07) 70%,
+              transparent 78%);
+          filter: blur(28px);
+          animation: bgRotate 24s linear infinite;
+        }
+
+        .offline-bg::after {
+          content: "";
+          opacity: .035;
+          background-image: repeating-linear-gradient(
+            0deg,
+            #4f46e5 0,
+            #4f46e5 1px,
+            transparent 1px,
+            transparent 4px
+          );
+        }
+
+        .aurora {
+          position: absolute;
+          z-index: -4;
+          width: 34vw;
+          height: 34vw;
+          min-width: 240px;
+          min-height: 240px;
+          border-radius: 50%;
+          filter: blur(80px);
+          opacity: .18;
+          pointer-events: none;
+          animation: aurora 11s ease-in-out infinite;
+        }
+
+        .aurora.a { left: -13%; top: -18%; background: #6366f1; }
+        .aurora.b { right: -13%; bottom: -20%; background: #3b82f6; animation-delay: -4s; }
+        .aurora.c {
+          width: 20vw;
+          height: 20vw;
+          left: 43%;
+          top: 35%;
+          background: #a855f7;
+          animation-delay: -7s;
+        }
+
+        .spark-field {
+          position: absolute;
+          inset: 0;
+          z-index: -2;
+          pointer-events: none;
+        }
+
+        .spark-field i {
+          position: absolute;
+          width: 3px;
+          height: 3px;
+          border-radius: 50%;
+          background: #818cf8;
+          box-shadow: 0 0 12px rgba(99,102,241,.8);
+          animation: particle 6s ease-in-out infinite;
+        }
+
+        .spark-field i:nth-child(1) { top: 14%; left: 12%; }
+        .spark-field i:nth-child(2) { top: 23%; right: 17%; width: 4px; height: 4px; animation-delay: -2s; }
+        .spark-field i:nth-child(3) { bottom: 18%; left: 21%; animation-delay: -4s; }
+        .spark-field i:nth-child(4) { bottom: 25%; right: 10%; width: 2px; height: 2px; animation-delay: -1s; }
+        .spark-field i:nth-child(5) { top: 12%; left: 52%; width: 2px; height: 2px; animation-delay: -5s; }
+        .spark-field i:nth-child(6) { bottom: 13%; right: 42%; animation-delay: -3s; }
 
         .offline-visual {
           position: relative;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          min-height: 600px;
-
+          min-height: 100vh;
+          display: grid;
+          place-items: center;
           overflow: hidden;
-
-          color: white;
-
-          background:
-            radial-gradient(
-              circle at 75% 20%,
-              rgba(129, 140, 248, 0.35),
-              transparent 28%
-            ),
-            radial-gradient(
-              circle at 20% 85%,
-              rgba(96, 165, 250, 0.24),
-              transparent 30%
-            ),
-            linear-gradient(
-              145deg,
-              #111827 0%,
-              #1e1b4b 45%,
-              #312e81 100%
-            );
-        }
-
-        .visual-content {
-          position: relative;
-          z-index: 5;
-
-          width: min(370px, 80%);
-
-          text-align: center;
+          border-right: 1px solid var(--line);
         }
 
         .brand {
-          display: inline-flex;
+          position: absolute;
+          top: 28px;
+          left: 32px;
+          z-index: 20;
+          display: flex;
           align-items: center;
-          justify-content: center;
-
-          padding: 1px 1px;
-
-          border: 1px solid rgba(255, 255, 255, 0.13);
-          border-radius: 14px;
-
-          background: gray;
-
-          backdrop-filter: blur(14px);
+          gap: 10px;
         }
 
         .brand img {
-          width: auto;
-          max-width: 145px;
-          max-height: 38px;
-
-          object-fit: contain;
+          width: 112px;
+          height: auto;
+          display: block;
+          filter: drop-shadow(0 8px 18px rgba(79,70,229,.18));
         }
 
-        /* =================================================
-           SIGNAL VISUAL
-        ================================================= */
-
-        .signal-stage {
-          position: relative;
-
-          width: 230px;
-          height: 230px;
-
-          margin: 48px auto 30px;
-
-          display: flex;
+        .brand-badge {
+          display: inline-flex;
           align-items: center;
-          justify-content: center;
+          gap: 7px;
+          padding: 7px 10px;
+          border: 1px solid rgba(99,102,241,.13);
+          border-radius: 999px;
+          color: #4338ca;
+          background: rgba(255,255,255,.7);
+          backdrop-filter: blur(12px);
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: .1em;
+          text-transform: uppercase;
         }
 
-        .signal-ring {
-          position: absolute;
-
-          width: 100%;
-          height: 100%;
-
-          border: 1px solid rgba(255, 255, 255, 0.11);
+        .brand-dot {
+          width: 5px;
+          height: 5px;
           border-radius: 50%;
-
-          animation: signalPulse 3.5s ease-out infinite;
+          background: #ef4444;
+          box-shadow: 0 0 0 4px rgba(239,68,68,.07), 0 0 12px rgba(239,68,68,.5);
         }
 
-        .signal-ring:nth-child(2) {
-          width: 75%;
-          height: 75%;
-
-          animation-delay: 0.8s;
+        /* Premium anime-style energy scene */
+        .energy-scene {
+          position: relative;
+          width: min(560px, 92%);
+          aspect-ratio: 1;
+          display: grid;
+          place-items: center;
         }
 
-        .signal-ring:nth-child(3) {
-          width: 50%;
-          height: 50%;
-
-          animation-delay: 1.6s;
+        .energy-scene::before {
+          content: "";
+          position: absolute;
+          width: 74%;
+          aspect-ratio: 1;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(99,102,241,.18), rgba(124,58,237,.08) 42%, transparent 70%);
+          filter: blur(18px);
+          animation: breathe 3.8s ease-in-out infinite;
         }
 
-        @keyframes signalPulse {
-          0% {
-            opacity: 0.7;
-            transform: scale(0.82);
-          }
-
-          70% {
-            opacity: 0.12;
-            transform: scale(1);
-          }
-
-          100% {
-            opacity: 0;
-            transform: scale(1.08);
-          }
+        .energy-scene::after {
+          content: "";
+          position: absolute;
+          width: 42%;
+          aspect-ratio: 1;
+          border-radius: 50%;
+          background: rgba(255,255,255,.62);
+          filter: blur(34px);
+          animation: coreAura 2.8s ease-in-out infinite;
         }
 
-        .signal-core {
+        .halo {
+          position: absolute;
+          border-radius: 50%;
+          pointer-events: none;
+        }
+
+        .halo.one {
+          width: 58%;
+          aspect-ratio: 1;
+          border: 1px solid rgba(99,102,241,.28);
+          box-shadow:
+            0 0 45px rgba(99,102,241,.10),
+            inset 0 0 30px rgba(99,102,241,.07);
+          animation: haloPulse 3.2s ease-in-out infinite;
+        }
+
+        .halo.two {
+          width: 76%;
+          aspect-ratio: 1;
+          border: 1px solid rgba(139,92,246,.18);
+          animation: haloPulse 4.2s ease-in-out -.8s infinite;
+        }
+
+        .halo.three {
+          width: 91%;
+          aspect-ratio: 1;
+          border: 1px dashed rgba(37,99,235,.16);
+          animation: spin 22s linear infinite;
+        }
+
+        .orbit {
+          position: absolute;
+          width: 78%;
+          height: 28%;
+          border: 1px solid rgba(79,70,229,.24);
+          border-radius: 50%;
+          transform: rotate(-27deg);
+          animation: orbit 8s linear infinite;
+        }
+
+        .orbit.two {
+          width: 66%;
+          height: 24%;
+          transform: rotate(57deg);
+          border-color: rgba(139,92,246,.22);
+          animation-direction: reverse;
+          animation-duration: 10s;
+        }
+
+        .orbit::after {
+          content: "";
+          position: absolute;
+          top: -4px;
+          left: 50%;
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          background: #a5b4fc;
+          box-shadow: 0 0 12px #6366f1, 0 0 30px rgba(99,102,241,.8);
+        }
+
+        .orbit.two::after {
+          background: #ddd6fe;
+          box-shadow: 0 0 12px #8b5cf6, 0 0 30px rgba(139,92,246,.8);
+        }
+
+        .energy-core {
           position: relative;
           z-index: 5;
-
-          width: 100px;
-          height: 100px;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          border-radius: 30px;
-
-          background:
-            linear-gradient(
-              145deg,
-              rgba(255, 255, 255, 0.15),
-              rgba(255, 255, 255, 0.05)
-            );
-
+          width: 148px;
+          height: 148px;
+          display: grid;
+          place-items: center;
+          border-radius: 42px;
+          transform: rotate(45deg);
+          background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(239,242,255,.86));
+          border: 1px solid rgba(99,102,241,.2);
           box-shadow:
-            0 25px 55px rgba(0, 0, 0, 0.22),
-            inset 0 1px 0 rgba(255, 255, 255, 0.16);
-
-          backdrop-filter: blur(20px);
-
+            inset 0 1px 2px rgba(255,255,255,.98),
+            0 0 35px rgba(99,102,241,.22),
+            0 28px 70px rgba(49,46,129,.15);
           animation: coreFloat 4s ease-in-out infinite;
         }
 
-        .signal-core svg {
-          width: 44px;
-          height: 44px;
-
-          color: #c7d2fe;
-        }
-
-        @keyframes coreFloat {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-
-          50% {
-            transform: translateY(-8px);
-          }
-        }
-
-        .visual-title {
-          margin: 0;
-
-          font-size: 26px;
-          line-height: 1.15;
-          font-weight: 850;
-
-          letter-spacing: -0.04em;
-        }
-
-        .visual-description {
-          margin: 12px auto 0;
-
-          max-width: 330px;
-
-          color: rgba(255, 255, 255, 0.62);
-
-          font-size: 12px;
-          line-height: 1.7;
-        }
-
-        /* =================================================
-           FLOATING CARDS
-        ================================================= */
-
-        .floating-card {
+        .energy-core::before {
+          content: "";
           position: absolute;
+          inset: -14px;
+          border-radius: 48px;
+          border: 1px solid rgba(99,102,241,.25);
+          box-shadow: 0 0 30px rgba(99,102,241,.12);
+          animation: borderPulse 2.6s ease-in-out infinite;
+        }
 
+        .energy-core::after {
+          content: "";
+          position: absolute;
+          inset: 11px;
+          border-radius: 33px;
+          background: linear-gradient(135deg, rgba(99,102,241,.10), rgba(168,85,247,.13));
+          border: 1px solid rgba(255,255,255,.9);
+        }
+
+        .core-inner {
+          position: relative;
           z-index: 3;
+          width: 92px;
+          height: 92px;
+          display: grid;
+          place-items: center;
+          border-radius: 29px;
+          transform: rotate(-45deg);
+          color: #fff;
+          background: linear-gradient(135deg, #2563eb 0%, #4f46e5 45%, #7c3aed 100%);
+          box-shadow:
+            inset 0 1px 2px rgba(255,255,255,.45),
+            0 0 25px rgba(79,70,229,.45),
+            0 0 65px rgba(124,58,237,.18);
+          overflow: hidden;
+        }
 
-          display: flex;
+        .core-inner::before {
+          content: "";
+          position: absolute;
+          inset: -80%;
+          background: linear-gradient(115deg, transparent 43%, rgba(255,255,255,.78) 49%, transparent 55%);
+          transform: translateX(-55%) rotate(8deg);
+          animation: shineSweep 2.7s ease-in-out infinite;
+        }
+
+        .core-inner svg {
+          position: relative;
+          z-index: 2;
+          filter: drop-shadow(0 0 8px rgba(255,255,255,.35));
+        }
+
+        .anime-spark {
+          position: absolute;
+          z-index: 10;
+          color: #6366f1;
+          filter: drop-shadow(0 0 9px rgba(99,102,241,.55));
+          animation: sparkle 2.7s ease-in-out infinite;
+        }
+
+        .anime-spark.one { top: 19%; left: 18%; }
+        .anime-spark.two { top: 27%; right: 15%; animation-delay: -.8s; transform: scale(.7); }
+        .anime-spark.three { bottom: 20%; left: 22%; animation-delay: -1.6s; transform: scale(.55); }
+
+        .scene-caption {
+          position: absolute;
+          bottom: 38px;
+          left: 50%;
+          z-index: 15;
+          width: min(460px, 80%);
+          transform: translateX(-50%);
+          text-align: center;
+        }
+
+        .scene-caption h2 {
+          margin: 0;
+          font-size: clamp(21px, 2vw, 27px);
+          line-height: 1.2;
+          letter-spacing: -.04em;
+          font-weight: 850;
+          color: #1e1b4b;
+        }
+
+        .scene-caption h2 span {
+          background: linear-gradient(90deg, #2563eb, #4f46e5, #9333ea);
+          background-size: 180% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          animation: gradientFlow 5s linear infinite;
+        }
+
+        .scene-caption p {
+          margin: 9px auto 0;
+          max-width: 390px;
+          color: #64748b;
+          font-size: 11px;
+          line-height: 1.65;
+        }
+
+        .floating-chip {
+          position: absolute;
+          z-index: 20;
+          display: inline-flex;
           align-items: center;
           gap: 8px;
-
           padding: 9px 12px;
-
-          border: 1px solid rgba(255, 255, 255, 0.13);
-          border-radius: 12px;
-
-          color: rgba(255, 255, 255, 0.8);
-
-          background: rgba(255, 255, 255, 0.07);
-
-          font-size: 9px;
-          font-weight: 750;
-
+          border: 1px solid rgba(99,102,241,.13);
+          border-radius: 14px;
+          color: #3730a3;
+          background: rgba(255,255,255,.68);
+          box-shadow: 0 16px 36px rgba(49,46,129,.08);
           backdrop-filter: blur(14px);
-
-          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
-
-          animation: cardFloat 5s ease-in-out infinite;
+          font-size: 9px;
+          font-weight: 800;
+          animation: chipFloat 5s ease-in-out infinite;
         }
 
-        .floating-card svg {
-          width: 13px;
-          height: 13px;
-          color: #c7d2fe;
-        }
-
-        .floating-one {
-          top: 24%;
-          left: 10%;
-        }
-
-        .floating-two {
-          top: 35%;
-          right: 8%;
-          animation-delay: 1s;
-        }
-
-        .floating-three {
-          bottom: 23%;
-          left: 13%;
-          animation-delay: 2s;
-        }
-
-        @keyframes cardFloat {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-
-          50% {
-            transform: translateY(-9px);
-          }
-        }
-
-        /* =================================================
-           RIGHT CONTENT
-        ================================================= */
+        .floating-chip svg { width: 15px; height: 15px; }
+        .chip-one { top: 27%; left: 7%; color: #dc2626; }
+        .chip-two { top: 34%; right: 7%; color: #7c3aed; animation-delay: -1.3s; }
+        .chip-three { bottom: 23%; left: 10%; color: #16a34a; animation-delay: -2.4s; }
 
         .offline-content {
+          position: relative;
           display: flex;
-          align-items: center;
+          flex-direction: column;
           justify-content: center;
-
-          padding: 55px;
+          min-width: 0;
+          padding: 60px clamp(30px, 5vw, 76px);
+          background: radial-gradient(circle at 100% 0%, rgba(99,102,241,.08), transparent 38%);
         }
 
-        .content-inner {
-          width: min(420px, 100%);
+        .content-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 18px;
+          // margin-bottom: 34px;
+        }
+
+        .content-logo { width: 82px; }
+        .content-logo img {
+          display: block;
+          width: 100%;
+          height: auto;
+          filter: drop-shadow(0 8px 16px rgba(79,70,229,.14));
         }
 
         .status {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-
           padding: 7px 11px;
-
-          border: 1px solid #fee2e2;
+          border: 1px solid rgba(239,68,68,.15);
           border-radius: 999px;
-
           color: #dc2626;
-
-          background: #fff7f7;
-
+          background: rgba(239,68,68,.055);
           font-size: 10px;
-          font-weight: 800;
-
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-        }
-
-        .status-dot {
-          width: 7px;
-          height: 7px;
-
-          border-radius: 50%;
-
-          background: #ef4444;
-
-          box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.08);
-
-          animation: statusPulse 1.7s ease-in-out infinite;
-        }
-
-        @keyframes statusPulse {
-          0%,
-          100% {
-            opacity: 1;
-          }
-
-          50% {
-            opacity: 0.35;
-          }
+          font-weight: 850;
         }
 
         .status.online {
-          border-color: #dcfce7;
           color: #15803d;
-          background: #f0fdf4;
+          border-color: rgba(34,197,94,.2);
+          background: rgba(34,197,94,.07);
+        }
+
+        .status-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #ef4444;
+          box-shadow: 0 0 0 4px rgba(239,68,68,.07), 0 0 12px rgba(239,68,68,.5);
+          animation: statusPulse 1.8s ease-in-out infinite;
         }
 
         .status.online .status-dot {
           background: #22c55e;
+          box-shadow: 0 0 0 4px rgba(34,197,94,.07), 0 0 12px rgba(34,197,94,.5);
+        }
+
+        .eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          margin-bottom: 13px;
+          color: #4f46e5;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: .17em;
+          text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+          content: "";
+          width: 23px;
+          height: 1px;
+          background: linear-gradient(90deg, #4f46e5, transparent);
         }
 
         .content-title {
-          margin: 19px 0 0;
-
+          max-width: 560px;
+          margin: 0;
+          font-size: clamp(48px, 5vw, 72px);
+          line-height: .92;
+          letter-spacing: -.065em;
+          font-weight: 950;
           color: #111827;
-
-          font-size: clamp(38px, 5vw, 54px);
-          line-height: 1;
-          font-weight: 900;
-
-          letter-spacing: -0.065em;
         }
 
         .content-title span {
           display: block;
-
-          background: linear-gradient(
-            90deg,
-            #312e81,
-            #4f46e5,
-            #7c3aed
-          );
-
+          background: linear-gradient(90deg, #2563eb, #4f46e5 42%, #7c3aed 72%, #9333ea);
+          background-size: 200% auto;
           -webkit-background-clip: text;
           background-clip: text;
-          -webkit-text-fill-color: transparent;
+          color: transparent;
+          animation: gradientFlow 5s linear infinite;
         }
 
         .content-description {
-          margin: 19px 0 0;
-
-          max-width: 400px;
-
+          max-width: 480px;
+          margin: 21px 0 0;
           color: #64748b;
-
           font-size: 14px;
           line-height: 1.75;
         }
 
-        /* =================================================
-           CONNECTION CHECK
-        ================================================= */
-
         .connection-box {
+          position: relative;
           display: flex;
           align-items: center;
-          gap: 13px;
+          gap: 14px;
+          width: 100%;
+          margin-top: 9px;
+          padding: 15px;
+          overflow: hidden;
+          border: 1px solid rgba(99,102,241,.12);
+          border-radius: 18px;
+          background: rgba(255,255,255,.72);
+          box-shadow: 0 14px 35px rgba(49,46,129,.05);
+          backdrop-filter: blur(16px);
+        }
 
-          margin-top: 28px;
-          padding: 14px;
-
-          border: 1px solid #e5e7eb;
-          border-radius: 15px;
-
-          background: rgba(248, 250, 252, 0.8);
+        .connection-box::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          width: 35%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+          transform: translateX(-140%);
+          animation: panelShine 4.5s ease-in-out infinite;
         }
 
         .connection-icon {
-          width: 38px;
-          height: 38px;
-
-          flex: 0 0 38px;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          border-radius: 11px;
-
+          position: relative;
+          z-index: 1;
+          flex: 0 0 45px;
+          width: 45px;
+          height: 45px;
+          display: grid;
+          place-items: center;
+          border: 1px solid rgba(99,102,241,.15);
+          border-radius: 14px;
           color: #4f46e5;
-
-          background: #eef2ff;
+          background: rgba(255,255,255,.92);
         }
 
-        .connection-copy {
-          min-width: 0;
-
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-        }
-
-        .connection-copy strong {
+        .connection-title {
+          margin: 0 0 3px;
           color: #1e293b;
-
-          font-size: 11px;
+          font-size: 13px;
           font-weight: 850;
         }
 
-        .connection-copy span {
-          color: #94a3b8;
-
-          font-size: 10px;
-          line-height: 1.45;
+        .connection-text {
+          margin: 0;
+          color: #64748b;
+          font-size: 11px;
+          line-height: 1.5;
         }
-
-        /* =================================================
-           RETRY BUTTON
-        ================================================= */
 
         .retry-button {
           position: relative;
-
+          isolation: isolate;
           width: 100%;
-          height: 54px;
-
-          margin-top: 15px;
-
+          min-height: 56px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 9px;
-
+          gap: 10px;
+          margin-top: 14px;
+          padding: 15px 20px;
           overflow: hidden;
-
-          border: 0;
-          border-radius: 15px;
-
-          color: white;
-
-          background:
-            linear-gradient(
-              135deg,
-              #4338ca,
-              #4f46e5,
-              #7c3aed
-            );
-
-          box-shadow:
-            0 16px 30px rgba(79, 70, 229, 0.23);
-
-          font-size: 12px;
+          border: 1px solid rgba(255,255,255,.5);
+          border-radius: 16px;
+          color: #fff;
+          background: linear-gradient(105deg, #2563eb, #4f46e5 42%, #7c3aed 74%, #9333ea);
+          background-size: 220% 100%;
+          box-shadow: 0 16px 38px rgba(79,70,229,.24);
+          font: inherit;
+          font-size: 13px;
           font-weight: 850;
-
           cursor: pointer;
-
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease,
-            opacity 0.2s ease;
+          transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
+          animation: buttonFlow 6s ease infinite;
         }
 
         .retry-button::before {
           content: "";
-
           position: absolute;
-
-          top: 0;
-          left: -120%;
-
-          width: 70%;
-          height: 100%;
-
-          transform: skewX(-18deg);
-
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.18),
-            transparent
-          );
-
-          transition: left 0.7s ease;
+          inset: -60% -25%;
+          z-index: -1;
+          background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,.42) 50%, transparent 60%);
+          transform: translateX(-65%) rotate(8deg);
+          animation: buttonShine 3.2s ease-in-out infinite;
         }
 
-        .retry-button:hover:not(:disabled) {
+        .retry-button:hover {
           transform: translateY(-2px);
-
-          box-shadow:
-            0 20px 38px rgba(79, 70, 229, 0.3);
+          filter: brightness(1.04);
+          box-shadow: 0 20px 46px rgba(79,70,229,.31);
         }
 
-        .retry-button:hover:not(:disabled)::before {
-          left: 130%;
-        }
-
-        .retry-button:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .retry-button:disabled {
-          opacity: 0.72;
-          cursor: not-allowed;
-        }
-
-        .retry-icon {
-          width: 15px;
-          height: 15px;
-        }
-
-        .retry-icon.spin {
-          animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        /* =================================================
-           TIPS
-        ================================================= */
-
-        .tips-title {
-          margin: 25px 0 11px;
-
-          color: #475569;
-
-          font-size: 10px;
-          font-weight: 850;
-
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-        }
+        .retry-button:active { transform: translateY(0) scale(.99); }
+        .retry-button:disabled { cursor: not-allowed; opacity: .82; transform: none; }
+        .retry-button.loading svg { animation: spin .8s linear infinite; }
+        .retry-label { position: relative; z-index: 2; }
 
         .tips {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 8px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+          margin-top: 18px;
         }
 
         .tip {
           display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 5px;
-
-          min-height: 38px;
-
-          padding: 7px;
-
-          border: 1px solid #e5e7eb;
-          border-radius: 11px;
-
+          align-items: flex-start;
+          gap: 8px;
           color: #64748b;
-
-          background: #fff;
-
-          font-size: 9px;
-          font-weight: 700;
-
-          transition:
-            transform 0.2s ease,
-            border-color 0.2s ease,
-            color 0.2s ease;
+          font-size: 10px;
+          line-height: 1.5;
         }
 
-        .tip:hover {
-          transform: translateY(-2px);
+        .tip svg { flex-shrink: 0; color: #4f46e5; }
 
-          border-color: #c7d2fe;
-
-          color: #4f46e5;
-        }
-
-        .tip svg {
-          width: 12px;
-          height: 12px;
-        }
-
-        /* =================================================
-           FOOTER
-        ================================================= */
-
-        .footer-note {
+        .offline-footer {
           display: flex;
           align-items: center;
-          justify-content: center;
-          gap: 6px;
-
-          margin-top: 22px;
-
-          color: #94a3b8;
-
+          justify-content: space-between;
+          gap: 15px;
+          margin-top: 27px;
+          padding-top: 17px;
+          border-top: 1px solid rgba(99,102,241,.1);
+          color: #64748b;
           font-size: 9px;
-          line-height: 1.5;
-
-          text-align: center;
         }
 
-        .footer-note svg {
-          width: 12px;
-          height: 12px;
-
-          color: #22c55e;
+        .footer-brand {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          color: #3730a3;
+          font-weight: 800;
         }
 
-        /* =================================================
-           MOBILE
-        ================================================= */
+        .footer-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #6366f1;
+          box-shadow: 0 0 10px rgba(99,102,241,.55);
+        }
 
-        @media (max-width: 900px) {
-          .offline-container {
-            grid-template-columns: 1fr;
+        @keyframes gridMove {
+          to { background-position: 0 52px, 52px 0; }
+        }
 
-            width: min(520px, 100%);
+        @keyframes bgRotate { to { transform: rotate(360deg); } }
 
-            min-height: auto;
-          }
+        @keyframes aurora {
+          0%,100% { transform: translate3d(0,0,0) scale(1); }
+          50% { transform: translate3d(25px,18px,0) scale(1.08); }
+        }
+
+        @keyframes particle {
+          0%,100% { opacity: .25; transform: translate3d(0,0,0); }
+          50% { opacity: 1; transform: translate3d(12px,-18px,0); }
+        }
+
+        @keyframes breathe {
+          0%,100% { transform: scale(.9); opacity: .65; }
+          50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        @keyframes coreAura {
+          0%,100% { transform: scale(.82); opacity: .45; }
+          50% { transform: scale(1.12); opacity: .9; }
+        }
+
+        @keyframes haloPulse {
+          0%,100% { transform: scale(.94); opacity: .45; }
+          50% { transform: scale(1.04); opacity: .9; }
+        }
+
+        @keyframes orbit {
+          from { transform: rotate(-27deg) rotate(0deg); }
+          to { transform: rotate(-27deg) rotate(360deg); }
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes coreFloat {
+          0%,100% { transform: rotate(45deg) translateY(0); }
+          50% { transform: rotate(45deg) translateY(-9px); }
+        }
+
+        @keyframes borderPulse {
+          0%,100% { transform: scale(1); opacity: .28; }
+          50% { transform: scale(1.1); opacity: .82; }
+        }
+
+        @keyframes shineSweep {
+          0% { transform: translateX(-70%) rotate(8deg); }
+          45%,100% { transform: translateX(75%) rotate(8deg); }
+        }
+
+        @keyframes sparkle {
+          0%,100% { opacity: .25; transform: translate3d(0,0,0) scale(1) rotate(0); }
+          50% { opacity: 1; transform: translate3d(8px,-10px,0) scale(1.18) rotate(12deg); }
+        }
+
+        @keyframes chipFloat {
+          0%,100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+
+        @keyframes gradientFlow { to { background-position: 200% center; } }
+
+        @keyframes panelShine {
+          0%,45% { transform: translateX(-140%); }
+          65%,100% { transform: translateX(340%); }
+        }
+
+        @keyframes buttonFlow {
+          0%,100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+
+        @keyframes buttonShine {
+          0%,45% { transform: translateX(-70%) rotate(8deg); }
+          65%,100% { transform: translateX(110%) rotate(8deg); }
+        }
+
+        @keyframes statusPulse {
+          0%,100% { opacity: 1; transform: scale(1); }
+          50% { opacity: .45; transform: scale(.82); }
+        }
+
+        @media (max-width: 980px) {
+          .odikart-offline { grid-template-columns: 1fr; overflow-y: auto; }
 
           .offline-visual {
-            min-height: 340px;
+            min-height: 500px;
+            border-right: 0;
+            border-bottom: 1px solid var(--line);
           }
 
-          .visual-content {
-            padding: 35px 20px;
-          }
+          .energy-scene { width: min(520px, 86%); }
 
-          .signal-stage {
-            width: 170px;
-            height: 170px;
+          .scene-caption { bottom: 24px; }
 
-            margin: 28px auto 22px;
-          }
+          .offline-content { padding: 46px 42px; }
 
-          .signal-core {
-            width: 76px;
-            height: 76px;
-
-            border-radius: 23px;
-          }
-
-          .signal-core svg {
-            width: 34px;
-            height: 34px;
-          }
-
-          .visual-title {
-            font-size: 22px;
-          }
-
-          .visual-description {
-            display: none;
-          }
-
-          .floating-one {
-            top: 20%;
-            left: 7%;
-          }
-
-          .floating-two {
-            top: 25%;
-            right: 7%;
-          }
-
-          .floating-three {
-            bottom: 15%;
-            left: 9%;
-          }
-
-          .offline-content {
-            padding: 38px 30px 42px;
-          }
+          .content-title { font-size: 58px; }
         }
 
-        @media (max-width: 560px) {
-          .offline-page {
-            padding: 0;
+        @media (max-width: 620px) {
+          .offline-visual { min-height: 360px; }
+
+          .brand { top: 18px; left: 18px; }
+          .brand img { width: 86px; }
+          .brand-badge { display: none; }
+
+          .energy-scene {
+            width: 350px;
+            max-width: 112%;
           }
 
-          .offline-container {
-            width: 100%;
-            min-height: 100dvh;
+          .energy-core { width: 120px; height: 120px; border-radius: 36px; }
+          .core-inner { width: 76px; height: 76px; border-radius: 24px; }
+          .core-inner svg { width: 31px; height: 31px; }
 
-            border: 0;
-            border-radius: 0;
+          .scene-caption { display: none; }
+          .floating-chip { padding: 7px 9px; font-size: 8px; }
+          .chip-one { left: 8px; top: 30%; }
+          .chip-two { right: 8px; top: 36%; }
+          .chip-three { left: 12px; bottom: 13%; }
 
-            box-shadow: none;
+          .offline-content { padding: 28px 19px 23px; }
 
-            background: rgba(255, 255, 255, 0.82);
-          }
+          .content-top { margin-bottom: 27px; }
+          .content-logo { width: 70px; }
 
-          .offline-visual {
-            min-height: 285px;
-          }
+          .content-title { font-size: 44px; }
+          .content-description { font-size: 12px; line-height: 1.65; }
 
-          .visual-content {
-            width: 90%;
-          }
-
-          .brand {
-            padding: 8px 13px;
-          }
-
-          .brand img {
-            max-width: 125px;
-            max-height: 31px;
-          }
-
-          .signal-stage {
-            width: 140px;
-            height: 140px;
-
-            margin: 20px auto;
-          }
-
-          .signal-core {
-            width: 65px;
-            height: 65px;
-
-            border-radius: 19px;
-          }
-
-          .signal-core svg {
-            width: 29px;
-            height: 29px;
-          }
-
-          .visual-title {
-            font-size: 19px;
-          }
-
-          .floating-card {
-            padding: 7px 9px;
-
-            font-size: 8px;
-          }
-
-          .floating-card svg {
-            width: 11px;
-            height: 11px;
-          }
-
-          .offline-content {
-            align-items: flex-start;
-
-            padding: 31px 20px 30px;
-          }
-
-          .content-title {
-            font-size: 39px;
-          }
-
-          .content-description {
-            font-size: 13px;
-          }
-
-          .connection-box {
-            margin-top: 23px;
-          }
-
-          .tips {
-            gap: 6px;
-          }
-
-          .tip {
-            min-height: 36px;
-
-            font-size: 8px;
-          }
+          .tips { gap: 8px; }
+          .offline-footer { margin-top: 22px; }
         }
 
-        @media (max-width: 370px) {
-          .offline-visual {
-            min-height: 260px;
-          }
-
-          .content-title {
-            font-size: 34px;
-          }
-
-          .content-description {
-            font-size: 12px;
-          }
-
-          .tips {
-            grid-template-columns: 1fr;
-          }
-
-          .tip {
-            justify-content: flex-start;
-            padding-left: 12px;
-          }
+        @media (max-width: 390px) {
+          .offline-visual { min-height: 315px; }
+          .energy-scene { transform: scale(.86); }
+          .floating-chip { display: none; }
+          .content-title { font-size: 39px; }
+          .tips { grid-template-columns: 1fr; }
         }
 
-        /* =================================================
-           REDUCE MOTION
-        ================================================= */
-
-        @media (ps-reduced-motion: reduce) {
-          .offline-page *,
-          .offline-page *::before,
-          .offline-page *::after {
-            animation-duration: 0.01ms !important;
+        @media (prefers-reduced-motion: reduce) {
+          .odikart-offline *,
+          .odikart-offline *::before,
+          .odikart-offline *::after {
+            animation-duration: .01ms !important;
             animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
+            transition-duration: .01ms !important;
           }
         }
       `}</style>
 
-      {/* Background */}
-      <div className="offline-grid" />
-      <div className="offline-glow offline-glow-one" />
-      <div className="offline-glow offline-glow-two" />
+      <div className="offline-bg" aria-hidden="true" />
+      <div className="aurora a" aria-hidden="true" />
+      <div className="aurora b" aria-hidden="true" />
+      <div className="aurora c" aria-hidden="true" />
 
-      {/* Main */}
-      <main className="offline-container">
-        {/* =================================================
-            VISUAL PANEL
-        ================================================= */}
+      <div className="spark-field" aria-hidden="true">
+        {Array.from({ length: 6 }, (_, index) => <i key={index} />)}
+      </div>
 
-        <section className="offline-visual">
-          <div className="visual-content">
-            <div className="brand">
-              <img src="/logo.png" alt="Odikart" />
+      <section className="offline-visual">
+        <div className="brand">
+          <img src="/logo.png" alt="Odikart" />
+          <span className="brand-badge">
+            <span className="brand-dot" />
+            Offline mode
+          </span>
+        </div>
+
+        <div className="energy-scene" aria-hidden="true">
+          <div className="halo one" />
+          <div className="halo two" />
+          <div className="halo three" />
+          <div className="orbit" />
+          <div className="orbit two" />
+
+          <Sparkles className="anime-spark one" size={21} />
+          <Sparkles className="anime-spark two" size={16} />
+          <Sparkles className="anime-spark three" size={14} />
+
+          <div className="energy-core">
+            <div className="core-inner">
+              <WifiOff size={40} strokeWidth={1.7} />
             </div>
+          </div>
+        </div>
 
-            <div className="signal-stage">
-              <div className="signal-ring" />
-              <div className="signal-ring" />
-              <div className="signal-ring" />
+        <div className="scene-caption">
+          <h2>
+            Your shopping journey is{" "}
+            <span>charging back up.</span>
+          </h2>
+          <p>
+            Your cart and account stay safe while Odikart waits for the
+            network to reconnect.
+          </p>
+        </div>
 
-              <div className="signal-core">
-                <WifiOff />
-              </div>
-            </div>
+        <div className="floating-chip chip-one">
+          <Signal /> Network unavailable
+        </div>
 
-            <h2 className="visual-title">
-              Your shopping journey
-              <br />
-              is taking a short pause.
-            </h2>
+        <div className="floating-chip chip-two">
+          <ShoppingBag /> Cart protected
+        </div>
 
-            <p className="visual-description">
-              Don't worry. Your account and shopping data are safe.
-              We'll reconnect as soon as your network is available.
-            </p>
+        <div className="floating-chip chip-three">
+          <CheckCircle2 /> Data protected
+        </div>
+      </section>
+
+      <section className="offline-content">
+        <div className="content-top">
+          <div className="content-logo">
+            <img src="/logo.png" alt="Odikart" />
           </div>
 
-          {/* Floating status cards */}
-          <div className="floating-card floating-one">
-            <Signal />
-            Network unavailable
+          <div className={`status ${isOnline ? "online" : ""}`}>
+            <span className="status-dot" />
+            {isOnline ? "Connection restored" : "You're offline"}
+          </div>
+        </div>
+
+        <div className="connection-box">
+          <div className="connection-icon">
+            {checking ? (
+              <RefreshCw size={21} />
+            ) : isOnline ? (
+              <Radio size={21} />
+            ) : (
+              <WifiOff size={21} />
+            )}
           </div>
 
-          <div className="floating-card floating-two">
-            <ShoppingBag />
-            Cart saved
-          </div>
-
-          <div className="floating-card floating-three">
-            <CheckCircle2 />
-            Data protected
-          </div>
-        </section>
-
-        {/* =================================================
-            CONTENT PANEL
-        ================================================= */}
-
-        <section className="offline-content">
-          <div className="content-inner">
-            {/* Status */}
-            <div className={`status ${isOnline ? "online" : ""}`}>
-              <span className="status-dot" />
-
-              {isOnline
-                ? "Connection restored"
-                : "You're offline"}
-            </div>
-
-            {/* Heading */}
-            <h1 className="content-title">
-              Connection
-              <span>Lost.</span>
-            </h1>
-
-            <p className="content-description">
-              We couldn't connect to the Odikart network right now.
-              Check your Wi-Fi or mobile data and try again.
-            </p>
-
-            {/* Connection status */}
-            <div className="connection-box">
-              <div className="connection-icon">
-                {isOnline ? <Wifi /> : <WifiOff />}
-              </div>
-
-              <div className="connection-copy">
-                <strong>
-                  {checking
-                    ? "Checking your connection..."
-                    : isOnline
-                    ? "Internet connection detected"
-                    : "No internet connection"}
-                </strong>
-
-                <span>
-                  {checking
-                    ? "We're checking whether Odikart is reachable."
-                    : isOnline
-                    ? "Reloading Odikart..."
-                    : "Make sure your Wi-Fi or mobile data is turned on."}
-                </span>
-              </div>
-            </div>
-
-            {/* Retry */}
-            <button
-              type="button"
-              className="retry-button"
-              onClick={handleRetry}
-              disabled={checking || isOnline}
-            >
-              <RefreshCw
-                className={`retry-icon ${
-                  checking ? "spin" : ""
-                }`}
-              />
-
+          <div>
+            <p className="connection-title">
               {checking
                 ? "Checking connection..."
                 : isOnline
-                ? "Connection restored"
-                : "Retry connection"}
-            </button>
-
-            {/* Helpful tips */}
-            <p className="tips-title">
-              Quick things to check
+                  ? "Connection restored"
+                  : "No internet connection"}
             </p>
-
-            <div className="tips">
-              <div className="tip">
-                <Wifi />
-                Wi-Fi
-              </div>
-
-              <div className="tip">
-                <Smartphone />
-                Mobile Data
-              </div>
-
-              <div className="tip">
-                <Router />
-                Router
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="footer-note">
-              <CheckCircle2 />
-              We'll automatically reconnect when you're back online.
-            </div>
+            <p className="connection-text">
+              {checking
+                ? "We&apos;re checking your network."
+                : isOnline
+                  ? "Reloading Odikart..."
+                  : "Reconnect to Wi-Fi or mobile data to continue."}
+            </p>
           </div>
-        </section>
-      </main>
-    </div>
+        </div>
+
+        <button
+          type="button"
+          className={`retry-button ${checking ? "loading" : ""}`}
+          onClick={handleRetry}
+          disabled={checking}
+          aria-label="Retry connection"
+        >
+          <span className="retry-label">
+            {checking ? "Checking connection..." : "Try Again"}
+          </span>
+          {checking ? <RefreshCw size={18} /> : <ArrowRight size={18} />}
+        </button>
+
+        <div className="tips">
+          <div className="tip">
+            <Zap size={14} />
+            <span>Check your Wi-Fi or mobile data.</span>
+          </div>
+          <div className="tip">
+            <ShieldCheck size={14} />
+            <span>Your account data stays protected.</span>
+          </div>
+        </div>
+
+        <footer className="offline-footer">
+          <div className="footer-brand">
+            <span className="footer-dot" />
+            Odikart
+          </div>
+          <span>Press Enter to retry</span>
+        </footer>
+      </section>
+    </main>
   );
 };
 

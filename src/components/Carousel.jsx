@@ -116,42 +116,15 @@ export default function Carousel() {
      in the current browser session.
   ============================================================ */
 
-  useEffect(() => {
-
-    if (!loading) {
-      return;
-    }
 
 
-    const timer = window.setTimeout(() => {
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setLoading(false);
+  }, 1200);
 
-      setLoading(false);
-
-
-      try {
-
-        sessionStorage.setItem(
-          "odikart_banner_loaded",
-          "true"
-        );
-
-      } catch (error) {
-
-        // Ignore storage errors
-
-      }
-
-    }, 1200);
-
-
-    return () => {
-
-      window.clearTimeout(timer);
-
-    };
-
-  }, [loading]);
-
+  return () => clearTimeout(timer);
+}, []);
 
   return (
     <>
