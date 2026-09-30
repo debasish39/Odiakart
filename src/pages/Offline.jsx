@@ -923,14 +923,7 @@ const Offline = () => {
       </div>
 
       <section className="offline-visual">
-        <div className="brand">
-          <img src="/logo.png" alt="Odikart" />
-          <span className="brand-badge">
-            <span className="brand-dot" />
-            Offline mode
-          </span>
-        </div>
-
+       
         <div className="energy-scene" aria-hidden="true">
           <div className="halo one" />
           <div className="halo two" />
@@ -976,7 +969,7 @@ const Offline = () => {
       <section className="offline-content">
         <div className="content-top">
           <div className="content-logo">
-            <img src="/logo.png" alt="Odikart" />
+            {/* <img src="/logo.png" alt="Odikart" /> */}
           </div>
 
           <div className={`status ${isOnline ? "online" : ""}`}>
