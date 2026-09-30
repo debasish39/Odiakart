@@ -185,7 +185,6 @@ export default function Carousel() {
           background: #ffffff;
         }
 
-
         /* ======================================================
            MAIN OFFER BANNER
         ====================================================== */
