@@ -954,12 +954,12 @@ const handleInstall = () => {
 
               <Route
                 path="/sign-in/*"
-                element={<PhoneLogin />}
+                element={<SignInPage/>}
               />
 
               <Route
                 path="/sign-up/*"
-                element={<PhoneLogin/>}
+                element={<SignUpPage/>}
               />
 
 

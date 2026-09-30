@@ -1526,7 +1526,7 @@ const Cart = ({
   const [couponsOpen, setCouponsOpen] = useState(true);
 
   const formatCouponMoney = (value) =>
-    `₹${Number(value || 0).toLocaleString("en-IN", {
+    `<FaRupeeSign />${Number(value || 0).toLocaleString("en-IN", {
       maximumFractionDigits: 2,
     })}`;
 
@@ -8698,7 +8698,15 @@ total:
 
                                       <div className="modern-product-bottom">
                                         <div>
-                                          <p className="modern-product-price">₹{Number(item.price || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                          <p className="modern-product-price inline-flex items-center gap-1 whitespace-nowrap">
+                                            <FaRupeeSign className="shrink-0" />
+                                            <span>
+                                              {Number(item.price || 0).toLocaleString("en-IN", {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2,
+                                              })}
+                                            </span>
+                                          </p>
                                           <p className="modern-product-note"><FaCheckCircle size={10} /> Free delivery</p>
                                         </div>
 
@@ -8755,8 +8763,19 @@ total:
                             </div>
 
                             <div className="modern-summary-rows">
-                              <div><span>Items</span><strong>₹{Number(subtotalAfterDiscount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
-                              {/* <div><span>Tax</span><strong>₹{Number(itemTax || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div> */}
+                              <div>
+                                <span>Items</span>
+                                <strong className="inline-flex items-center gap-1 whitespace-nowrap">
+                                  <FaRupeeSign className="shrink-0" />
+                                  <span>
+                                    {Number(subtotalAfterDiscount || 0).toLocaleString("en-IN", {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}
+                                  </span>
+                                </strong>
+                              </div>
+                              {/* <div><span>Tax</span><strong><FaRupeeSign />{Number(itemTax || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div> */}
                               <div><span>Delivery</span><strong className="free">FREE</strong></div>
                             </div>
 
@@ -8770,7 +8789,15 @@ total:
                                 <span>Total payable</span>
                                 <small>Inclusive of applicable charges</small>
                               </div>
-                              <strong>₹{Number(finalTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                           <strong className="inline-flex items-center gap-1 whitespace-nowrap">
+  <FaRupeeSign size={12} className="shrink-0" />
+  <span style={{fontSize:"18px"}}>
+    {Number(finalTotal || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}
+  </span>
+</strong>
                             </div>
 
                             <div className="modern-trust-row">
@@ -8804,7 +8831,16 @@ total:
                       <div className="modern-mobile-checkout">
                         <div>
                           <span>Total</span>
-                          <strong>₹{Number(finalTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                        <strong className="inline-flex items-center justify-between gap-1 whitespace-nowrap">
+ 
+  <div className="flex justify-between items-center">
+     <FaRupeeSign size={16} className="shrink-0 top-2" />
+    {Number(finalTotal || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}
+  </div>
+</strong>
                         </div>
                         <button
                           type="button"
@@ -9437,23 +9473,22 @@ total:
               PRICE
           ================================================== */}
           <div className="shrink-0 self-center text-right">
-            <p className="text-[13px] font-bold leading-5 text-blue-600 transition-transform duration-300 group-hover/product:scale-[1.03] sm:text-sm md:text-base lg:text-lg">
-              ₹
-              {Number(lineTotal || 0).toLocaleString(
+            <p className="inline-flex items-center gap-1 whitespace-nowrap text-[13px] font-bold leading-5 text-blue-600 transition-transform duration-300 group-hover/product:scale-[1.03] sm:text-sm md:text-base lg:text-lg">
+              <FaRupeeSign className="shrink-0" />
+              <span>{Number(lineTotal || 0).toLocaleString(
                 "en-IN",
                 {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 }
-              )}
+              )}</span>
             </p>
 
-            <p className="mt-0.5 whitespace-nowrap text-[8px] leading-4 text-slate-400 sm:text-[9px] md:text-[10px] lg:text-[11px]">
-              ₹
-              {Number(item?.price || 0).toLocaleString(
-                "en-IN"
-              )}{" "}
-              × {qty}
+            <p className="mt-0.5 inline-flex items-center gap-1 whitespace-nowrap text-[8px] leading-4 text-slate-400 sm:text-[9px] md:text-[10px] lg:text-[11px]">
+              <FaRupeeSign className="shrink-0" />
+              <span>
+                {Number(item?.price || 0).toLocaleString("en-IN")} × {qty}
+              </span>
             </p>
           </div>
         </div>
@@ -10064,9 +10099,10 @@ total:
         </div>
 
         {/* Discount */}
-        <span className="shrink-0 text-[12px] font-bold text-emerald-700 sm:text-sm md:text-base">
-          -₹
-          {Number(couponDiscount || 0).toFixed(2)}
+        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[12px] font-bold text-emerald-700 sm:text-sm md:text-base">
+          <span>-</span>
+          <FaRupeeSign className="shrink-0" />
+          <span>{Number(couponDiscount || 0).toFixed(2)}</span>
         </span>
       </div>
     </div>
@@ -10836,7 +10872,7 @@ total:
         />
 
         <span className="relative z-10 text-[15px] font-black sm:text-base">
-          ₹
+          <FaRupeeSign />
         </span>
       </div>
 
@@ -10912,16 +10948,17 @@ total:
 
       <span
         className="
+          inline-flex items-center gap-1
           whitespace-nowrap text-[11px]
           font-semibold text-slate-800
           sm:text-xs md:text-sm
         "
       >
-        ₹
-        {Number(totalPrice || 0).toLocaleString("en-IN", {
+        <FaRupeeSign className="shrink-0" />
+        <span>{Number(totalPrice || 0).toLocaleString("en-IN", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-        })}
+        })}</span>
       </span>
     </div>
 
@@ -10962,13 +10999,16 @@ total:
 
       <span
         className="
-          shrink-0 whitespace-nowrap
+          inline-flex shrink-0 items-center gap-1
+          whitespace-nowrap
           text-[11px] font-bold
           text-emerald-600
           sm:text-xs md:text-sm
         "
       >
-        -₹{Number(itemDiscount || 0).toFixed(2)}
+        <span>-</span>
+        <FaRupeeSign className="shrink-0" />
+        <span>{Number(itemDiscount || 0).toFixed(2)}</span>
       </span>
     </div>
 
@@ -11009,13 +11049,16 @@ total:
 
       <span
         className="
-          shrink-0 whitespace-nowrap
+          inline-flex shrink-0 items-center gap-1
+          whitespace-nowrap
           text-[11px] font-bold
           text-emerald-600
           sm:text-xs md:text-sm
         "
       >
-        -₹{Number(couponDiscount || 0).toFixed(2)}
+        <span>-</span>
+        <FaRupeeSign className="shrink-0" />
+        <span>{Number(couponDiscount || 0).toFixed(2)}</span>
       </span>
     </div>
 
@@ -11093,12 +11136,14 @@ total:
 
       <span
         className="
+          inline-flex items-center gap-1
           whitespace-nowrap text-[11px]
           font-semibold text-slate-800
           sm:text-xs md:text-sm
         "
       >
-        ₹{Number(itemTax || 0).toFixed(2)}
+        <FaRupeeSign className="shrink-0" />
+        <span>{Number(itemTax || 0).toFixed(2)}</span>
       </span>
     </div>
   </div>
@@ -11155,23 +11200,25 @@ total:
           Total Amount
         </p>
 
-        <p
-          className="
-            price-amount-shine
-            mt-0.5 truncate
-            text-[24px] font-black
-            leading-tight tracking-[-0.03em]
-            sm:text-[28px]
-            md:text-[30px]
-            lg:text-[32px]
-          "
-        >
-          ₹
-          {Number(finalTotal || 0).toLocaleString("en-IN", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </p>
+       <p
+  className="
+    mt-0.5 inline-flex items-center gap-1 whitespace-nowrap
+    text-[24px] font-black leading-tight tracking-[-0.03em]
+    sm:text-[28px] md:text-[30px] lg:text-[32px]
+  "
+>
+  <FaRupeeSign
+    className="shrink-0 text-slate-900"
+    size={24}
+  />
+
+  <span className="price-amount-shine">
+    {Number(finalTotal || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}
+  </span>
+</p>
       </div>
 
       {/* Free delivery badge */}
@@ -11734,6 +11781,8 @@ total:
         <div className="mt-0.5 flex items-baseline gap-1.5">
           <strong
             className="
+              inline-flex items-center gap-1
+              whitespace-nowrap
               truncate
               text-[15px]
               font-black
@@ -11746,11 +11795,13 @@ total:
               lg:text-[22px]
             "
           >
-            ₹
-            {Number(finalTotal || 0).toLocaleString("en-IN", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
+            <FaRupeeSign className="shrink-0" />
+            <span>
+              {Number(finalTotal || 0).toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
           </strong>
 
           <span
@@ -12321,33 +12372,26 @@ total:
                           "
                         >
 
-                          <FaRupeeSign
-                            className="
-                              text-white
-                              mr-1
-                            "
-                            size={14}
-                          />
-
-
                           <span
                             className="
+                              inline-flex items-center gap-1
+                              whitespace-nowrap
                               text-2xl
                               font-black
                               text-white
                               tracking-tight
                             "
                           >
-                            ₹
-                            {Number(
-                              finalTotal || 0
-                            ).toLocaleString(
-                              "en-IN",
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              }
-                            )}
+                            <FaRupeeSign className="shrink-0 text-white" size={14} />
+                            <span>
+                              {Number(finalTotal || 0).toLocaleString(
+                                "en-IN",
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
+                              )}
+                            </span>
                           </span>
 
                         </div>
@@ -12523,14 +12567,17 @@ total:
 
                         <div
                           className="
-                            text-sm
                             mt-2
+                            inline-flex items-center gap-1
+                            whitespace-nowrap
+                            text-sm
                           "
                         >
-                          Discount: ₹
-                          {Number(
-                            couponDiscount
-                          ).toFixed(2)}
+                          <span>Discount:</span>
+                          <FaRupeeSign className="shrink-0" />
+                          <span>
+                            {Number(couponDiscount).toFixed(2)}
+                          </span>
                         </div>
 
                       </div>
@@ -17405,6 +17452,8 @@ total:
                 className="
                   mt-0.5
                   text-[16px]
+                  inline-flex items-center gap-1
+                  whitespace-nowrap
                   font-black
                   leading-5
                   tracking-[-0.02em]
@@ -17412,11 +17461,13 @@ total:
                   sm:text-lg
                 "
               >
-                ₹
-                {Number(finalTotal || 0).toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                <FaRupeeSign className="shrink-0" />
+                <span>
+                  {Number(finalTotal || 0).toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
               </p>
             </div>
 

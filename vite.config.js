@@ -13,7 +13,7 @@ export default defineConfig({
 
       includeAssets: [
         "favicon.svg",
-        "apple-touch-icon.png"
+        "apple-touch-icon.png",
       ],
 
       manifest: {
@@ -25,7 +25,18 @@ export default defineConfig({
         description:
           "Odikart - Online Shopping Platform",
 
-        theme_color: "#000000",
+        /*
+         * Fallback theme color for the installed PWA.
+         *
+         * The dynamic Light/Dark theme colors are handled
+         * through the theme-color meta tags in index.html.
+         */
+        theme_color: "#4F46E5",
+
+        /*
+         * Keep the PWA background LIGHT.
+         * We are NOT implementing dark mode for the UI.
+         */
         background_color: "#ffffff",
 
         display: "standalone",
@@ -40,11 +51,13 @@ export default defineConfig({
             sizes: "192x192",
             type: "image/png",
           },
+
           {
             src: "web-app-manifest-512x512.png",
             sizes: "512x512",
             type: "image/png",
           },
+
           {
             src: "web-app-manifest-512x512.png",
             sizes: "512x512",

@@ -3,16 +3,58 @@
   <head>
     <meta charset="UTF-8" />
 
-    <!-- Mobile / PWA viewport -->
+    <!-- ========================================================= -->
+    <!-- MOBILE / PWA VIEWPORT -->
+    <!-- ========================================================= -->
+
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
 
-    <!-- Browser supports Light + Dark themes -->
-    <meta name="color-scheme" content="light dark" />
+    <!-- ========================================================= -->
+    <!-- SYSTEM COLOR SCHEME -->
+    <!--
+      This does NOT make Odikart itself dark.
 
+      It tells the browser that the page can respond to
+      the device's light/dark system preference.
+    -->
+    <!-- ========================================================= -->
+
+    <meta
+      name="color-scheme"
+      content="light dark"
+    />
+
+    <!-- ========================================================= -->
+    <!-- DYNAMIC THEME COLOR -->
+    <!--
+      Phone in LIGHT mode  → #4F46E5
+      Phone in DARK mode   → #312E81
+
+      These affect browser/PWA system UI, not the website UI.
+    -->
+    <!-- ========================================================= -->
+
+    <!-- LIGHT MODE -->
+    <meta
+      name="theme-color"
+      content="#4F46E5"
+      media="(prefers-color-scheme: light)"
+    />
+
+    <!-- DARK MODE -->
+    <meta
+      name="theme-color"
+      content="#4F46E5"
+      media="(prefers-color-scheme: dark)"
+    />
+
+    <!-- ========================================================= -->
     <!-- SEO -->
+    <!-- ========================================================= -->
+
     <title>Odikart | Smart Online Shopping</title>
 
     <meta
@@ -30,14 +72,20 @@
       content="Odikart"
     />
 
-    <!-- Favicon -->
+    <!-- ========================================================= -->
+    <!-- FAVICON -->
+    <!-- ========================================================= -->
+
     <link
       rel="icon"
       href="/odikart.png"
       type="image/png"
     />
 
-    <!-- Fonts -->
+    <!-- ========================================================= -->
+    <!-- FONTS -->
+    <!-- ========================================================= -->
+
     <link
       rel="preconnect"
       href="https://fonts.googleapis.com"
@@ -54,13 +102,19 @@
       rel="stylesheet"
     />
 
-    <!-- Material Icons -->
+    <!-- ========================================================= -->
+    <!-- MATERIAL ICONS -->
+    <!-- ========================================================= -->
+
     <link
       href="https://fonts.googleapis.com/css2?family=Material+Icons+Outlined:wght@400;700&display=swap"
       rel="stylesheet"
     />
 
-    <!-- Slick Carousel -->
+    <!-- ========================================================= -->
+    <!-- SLICK CAROUSEL -->
+    <!-- ========================================================= -->
+
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.min.css"
@@ -71,7 +125,10 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick-theme.min.css"
     />
 
-    <!-- Open Graph -->
+    <!-- ========================================================= -->
+    <!-- OPEN GRAPH -->
+    <!-- ========================================================= -->
+
     <meta
       property="og:title"
       content="Odikart | Smart Online Shopping"
@@ -102,7 +159,10 @@
       content="Odikart"
     />
 
-    <!-- Twitter / X -->
+    <!-- ========================================================= -->
+    <!-- TWITTER / X -->
+    <!-- ========================================================= -->
+
     <meta
       name="twitter:card"
       content="summary_large_image"
@@ -124,30 +184,18 @@
     />
 
     <!-- ========================================================= -->
-    <!-- ODikart Browser / PWA Theme -->
+    <!-- MICROSOFT / WINDOWS -->
     <!-- ========================================================= -->
 
-    <!-- Light Mode -->
-    <meta
-      name="theme-color"
-      content="#4F46E5"
-      media="(prefers-color-scheme: light)"
-    />
-
-    <!-- Dark Mode -->
-    <meta
-      name="theme-color"
-      content="#312E81"
-      media="(prefers-color-scheme: dark)"
-    />
-
-    <!-- Windows / Microsoft -->
     <meta
       name="msapplication-TileColor"
       content="#4F46E5"
     />
 
+    <!-- ========================================================= -->
     <!-- PWA -->
+    <!-- ========================================================= -->
+
     <meta
       name="mobile-web-app-capable"
       content="yes"
@@ -167,21 +215,45 @@
       name="apple-mobile-web-app-title"
       content="Odikart"
     />
+
   </head>
 
-  <body class="font-[Poppins] bg-gray-50 text-gray-900 antialiased">
+  <!-- ========================================================= -->
+  <!-- BODY -->
+  <!--
+    IMPORTANT:
+    Keep this LIGHT.
 
-    <!-- React Application -->
+    We are NOT adding:
+      dark:bg-...
+      dark:text-...
+
+    Therefore Android dark mode will NOT change
+    your actual Odikart website UI.
+  -->
+  <!-- ========================================================= -->
+
+  <body
+    class="font-[Poppins] bg-gray-50 text-gray-900 antialiased"
+  >
+
+    <!-- ========================================================= -->
+    <!-- REACT APPLICATION -->
+    <!-- ========================================================= -->
+
     <div id="root"></div>
 
-    <!-- React Entry -->
+    <!-- ========================================================= -->
+    <!-- REACT ENTRY -->
+    <!-- ========================================================= -->
+
     <script
       type="module"
       src="/src/main.jsx"
     ></script>
 
     <!-- ========================================================= -->
-    <!-- Razorpay -->
+    <!-- RAZORPAY -->
     <!-- Uncomment when Razorpay checkout is required -->
     <!-- ========================================================= -->
 
