@@ -23,12 +23,10 @@ export default function ScrollToTopButton() {
       const scrollingUp = currentScrollY < previousScrollY;
       const scrollingDown = currentScrollY > previousScrollY;
 
-      // Show only when user scrolls upward
       if (scrollingUp && currentScrollY > 140) {
         setShowButton(true);
       }
 
-      // Hide while scrolling downward or near the top
       if (scrollingDown || currentScrollY <= 140) {
         setShowButton(false);
       }
@@ -75,34 +73,34 @@ export default function ScrollToTopButton() {
         z-[999999]
         -translate-x-1/2
 
-        top-21
-        sm:top-21
-        max-sm:top-[calc(72px+env(safe-area-inset-top))]
+        bottom-9
+        sm:bottom-9
+        max-sm:bottom-[calc(68px+env(safe-area-inset-bottom))]
 
         flex
         items-center
-        gap-2
+        gap-1.5
 
-        h-12
-        pl-1.5
-        pr-4
+        h-10
+        pl-1
+        pr-2.5
 
         rounded-full
 
         border
-        border-white/80
+        border-white/70
 
-        bg-white/80
-        backdrop-blur-2xl
+        bg-white/60
+        backdrop-blur-xl
         backdrop-saturate-150
 
-        shadow-[0_10px_35px_rgba(15,23,42,0.16)]
-        ring-1
-        ring-black/[0.03]
+        shadow-[0_8px_28px_rgba(30,41,59,0.14)]
 
-        text-[13px]
-        font-bold
-        tracking-tight
+        ring-1
+        ring-indigo-500/[0.06]
+
+        text-[11px]
+        font-semibold
         text-slate-700
 
         overflow-hidden
@@ -110,25 +108,24 @@ export default function ScrollToTopButton() {
         select-none
 
         transition-all
-        duration-300
+        duration-400
         ease-[cubic-bezier(0.22,1,0.36,1)]
 
         hover:border-indigo-200/80
         hover:bg-white/90
         hover:text-indigo-700
-        hover:shadow-[0_14px_42px_rgba(79,70,229,0.20)]
+        hover:shadow-[0_12px_35px_rgba(79,70,229,0.20)]
 
-        active:scale-[0.94]
+        active:scale-[0.92]
 
         focus:outline-none
         focus-visible:ring-2
         focus-visible:ring-indigo-500/40
-        focus-visible:ring-offset-2
 
         ${
           showButton
             ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
-            : "pointer-events-none translate-y-5 scale-90 opacity-0"
+            : "pointer-events-none translate-y-4 scale-90 opacity-0"
         }
       `}
     >
@@ -138,48 +135,43 @@ export default function ScrollToTopButton() {
         className="
           pointer-events-none
           absolute
-          inset-0
-          -z-10
+          -inset-3
+          -z-20
           rounded-full
 
           bg-gradient-to-r
-          from-indigo-500/10
-          via-purple-500/10
-          to-blue-500/10
+          from-blue-500/15
+          via-indigo-500/20
+          to-purple-500/15
 
           blur-xl
         "
       />
 
-      {/* Animated glass highlight */}
+      {/* Glass surface */}
       <span
         aria-hidden="true"
         className="
           pointer-events-none
           absolute
           inset-0
+          -z-10
           rounded-full
 
-          bg-gradient-to-r
-          from-transparent
+          bg-gradient-to-br
+          from-white/90
           via-white/60
-          to-transparent
-
-          opacity-0
-          transition-opacity
-          duration-500
-
-          group-hover:opacity-100
+          to-indigo-50/60
         "
       />
 
-      {/* Icon container */}
+      {/* Small gradient icon */}
       <span
         className="
           relative
           flex
-          h-9
-          w-9
+          h-7
+          w-7
           shrink-0
           items-center
           justify-center
@@ -188,85 +180,32 @@ export default function ScrollToTopButton() {
           rounded-full
 
           bg-gradient-to-br
-          from-indigo-600
-          via-purple-600
-          to-blue-600
+          from-blue-600
+          via-indigo-600
+          to-purple-600
 
           text-white
 
-          shadow-[0_6px_18px_rgba(79,70,229,0.32)]
+          shadow-[0_4px_14px_rgba(79,70,229,0.30)]
 
           ring-1
-          ring-white/40
+          ring-white/50
 
           transition-all
           duration-300
-          ease-out
 
           group-hover:scale-105
-          group-hover:shadow-[0_8px_22px_rgba(79,70,229,0.42)]
+          group-hover:shadow-[0_6px_18px_rgba(79,70,229,0.40)]
         "
       >
-        {/* Icon glow */}
-        <span
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            inset-0
-
-            rounded-full
-
-            bg-white/10
-
-            opacity-0
-            transition-opacity
-            duration-300
-
-            group-hover:opacity-100
-          "
-        />
-
-        {/* Shine */}
-        <span
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -left-10
-            top-0
-
-            h-full
-            w-8
-
-            rotate-[20deg]
-
-            bg-gradient-to-r
-            from-transparent
-            via-white/60
-            to-transparent
-
-            opacity-0
-
-            transition-all
-            duration-700
-
-            group-hover:left-[110%]
-            group-hover:opacity-100
-          "
-        />
-
         <ArrowUp
-          size={17}
+          size={14}
           strokeWidth={2.8}
           className="
             relative
             z-10
-
             transition-transform
             duration-300
-
-            group-hover:-translate-y-0.5
           "
         />
       </span>
@@ -278,16 +217,21 @@ export default function ScrollToTopButton() {
           z-10
           whitespace-nowrap
 
-          transition-all
-          duration-300
+          bg-gradient-to-r
+          from-blue-600
+          via-indigo-600
+          to-purple-600
 
-          group-hover:tracking-normal
+          bg-clip-text
+          text-transparent
+
+          font-bold
         "
       >
         Back to top
       </span>
 
-      {/* Tiny active indicator */}
+      {/* Bottom indicator */}
       <span
         aria-hidden="true"
         className="
@@ -297,19 +241,20 @@ export default function ScrollToTopButton() {
 
           h-[2px]
           w-0
+
           -translate-x-1/2
 
           rounded-full
 
           bg-gradient-to-r
-          from-indigo-500
-          via-purple-500
-          to-blue-500
+          from-blue-500
+          via-indigo-500
+          to-purple-500
 
           transition-all
           duration-300
 
-          group-hover:w-8
+          group-hover:w-6
         "
       />
     </button>

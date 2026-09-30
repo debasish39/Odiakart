@@ -9,6 +9,9 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
 
+    <!-- Browser supports Light + Dark themes -->
+    <meta name="color-scheme" content="light dark" />
+
     <!-- SEO -->
     <title>Odikart | Smart Online Shopping</title>
 
@@ -120,31 +123,73 @@
       content="https://odikart.in/og-image.png"
     />
 
-    <!-- Brand Theme -->
+    <!-- ========================================================= -->
+    <!-- ODikart Browser / PWA Theme -->
+    <!-- ========================================================= -->
+
+    <!-- Light Mode -->
     <meta
       name="theme-color"
       content="#4F46E5"
+      media="(prefers-color-scheme: light)"
     />
 
+    <!-- Dark Mode -->
+    <meta
+      name="theme-color"
+      content="#312E81"
+      media="(prefers-color-scheme: dark)"
+    />
+
+    <!-- Windows / Microsoft -->
     <meta
       name="msapplication-TileColor"
       content="#4F46E5"
     />
+
+    <!-- PWA -->
+    <meta
+      name="mobile-web-app-capable"
+      content="yes"
+    />
+
+    <meta
+      name="apple-mobile-web-app-capable"
+      content="yes"
+    />
+
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <meta
+      name="apple-mobile-web-app-title"
+      content="Odikart"
+    />
   </head>
 
   <body class="font-[Poppins] bg-gray-50 text-gray-900 antialiased">
+
+    <!-- React Application -->
     <div id="root"></div>
 
+    <!-- React Entry -->
     <script
       type="module"
       src="/src/main.jsx"
     ></script>
 
+    <!-- ========================================================= -->
     <!-- Razorpay -->
+    <!-- Uncomment when Razorpay checkout is required -->
+    <!-- ========================================================= -->
+
     <!--
     <script
       src="https://checkout.razorpay.com/v1/checkout.js"
     ></script>
     -->
+
   </body>
 </html>
