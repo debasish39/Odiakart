@@ -73,9 +73,9 @@ export default function ScrollToTopButton() {
         z-[999999]
         -translate-x-1/2
 
-        top-148
-        sm:top-148
-        max-sm:bottom-[calc(68px+env(safe-area-inset-bottom))]
+        bottom-9
+        sm:bottom-9
+        max-sm:bottom-[calc(75px+env(safe-area-inset-bottom))]
 
         flex
         items-center
