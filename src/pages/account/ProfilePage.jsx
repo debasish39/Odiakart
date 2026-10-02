@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+import {
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import {
   FaUser,
@@ -11,41 +15,54 @@ import {
   FaSignOutAlt,
   FaTrash,
   FaChevronRight,
-  FaArrowRight,
   FaShieldAlt,
   FaTimes,
   FaGift,
   FaCreditCard,
   FaWallet,
-  FaLanguage,
   FaLock,
   FaMobileAlt,
   FaInstagram,
   FaYoutube,
   FaLinkedin,
-  FaCoins,
   FaHeadset,
+  FaEdit,
+  FaStore,
 } from "react-icons/fa";
 
 import {
   MdOutlineLocalOffer,
+  MdPayment,
+  MdSecurity,
+  MdHelpOutline,
 } from "react-icons/md";
 
 import { useNavigate } from "react-router-dom";
-import { AccountShell, api } from "./AccountShell";
+
+import {
+  AccountShell,
+  api,
+} from "./AccountShell";
+
+/* =========================================================
+   PROFILE PAGE
+========================================================= */
 
 export default function ProfilePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [showSignOutModal, setShowSignOutModal] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
+  const [showSignOutModal, setShowSignOutModal] =
+    useState(false);
+
+  const [signingOut, setSigningOut] =
+    useState(false);
 
   const token = localStorage.getItem("token");
 
-  // =========================================================
-  // CURRENT USER
-  // =========================================================
+  /* =========================================================
+     CURRENT USER
+  ========================================================= */
 
   const {
     data: user = null,
@@ -57,8 +74,12 @@ export default function ProfilePage() {
     queryFn: async () => {
       const data = await api("/api/auth/me");
 
+      console.log("PROFILE USER RESPONSE:", data);
+
       if (!data?.success) {
-        throw new Error(data?.message || "Failed to load profile");
+        throw new Error(
+          data?.message || "Failed to load profile"
+        );
       }
 
       return data.user;
@@ -67,6 +88,7 @@ export default function ProfilePage() {
     enabled: !!token,
 
     staleTime: 5 * 60 * 1000,
+
     gcTime: 15 * 60 * 1000,
 
     refetchOnWindowFocus: false,
@@ -74,9 +96,9 @@ export default function ProfilePage() {
     retry: 1,
   });
 
-  // =========================================================
-  // RECENTLY VIEWED PRODUCTS
-  // =========================================================
+  /* =========================================================
+     RECENTLY VIEWED
+  ========================================================= */
 
   const {
     data: recentlyViewedData,
@@ -85,41 +107,34 @@ export default function ProfilePage() {
     queryKey: ["recentlyViewed", token],
 
     queryFn: async () => {
-      console.log("🟣 GET RECENTLY VIEWED START");
-
-      // IMPORTANT:
-      // Recently Viewed is cookie-based on the backend.
-      // Use the same VITE_BACKEND_URL as SingleProduct.jsx and
-      // explicitly include cookies so recentVisitorId is preserved.
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+      const BACKEND_URL =
+        import.meta.env.VITE_BACKEND_URL;
 
       if (!BACKEND_URL) {
-        throw new Error("VITE_BACKEND_URL is not configured");
+        throw new Error(
+          "VITE_BACKEND_URL is not configured"
+        );
       }
 
       const response = await fetch(
         `${BACKEND_URL}/api/products/recently-viewed`,
         {
           method: "GET",
+
           credentials: "include",
+
           headers: {
             Accept: "application/json",
           },
         }
       );
 
-      console.log(
-        "🟢 GET RECENTLY VIEWED STATUS:",
-        response.status
-      );
-
       const data = await response.json();
-
-      console.log("🟢 GET RECENTLY VIEWED RESPONSE:", data);
 
       if (!response.ok || !data?.success) {
         throw new Error(
-          data?.message || "Failed to load recently viewed products"
+          data?.message ||
+            "Failed to load recently viewed products"
         );
       }
 
@@ -128,7 +143,6 @@ export default function ProfilePage() {
 
     enabled: !!token,
 
-    // Always fetch latest recently viewed products
     staleTime: 0,
 
     gcTime: 5 * 60 * 1000,
@@ -140,30 +154,23 @@ export default function ProfilePage() {
     retry: 1,
 
     onError: (error) => {
-      console.error("🔴 RECENTLY VIEWED GET ERROR:", error);
+      console.error(
+        "RECENTLY VIEWED GET ERROR:",
+        error
+      );
     },
   });
 
-  /*
-   * Your API returns:
-   *
-   * {
-   *   success: true,
-   *   products: [...]
-   * }
-   *
-   * Therefore use data.products.
-   */
+  const recentlyViewedProducts =
+    Array.isArray(
+      recentlyViewedData?.products
+    )
+      ? recentlyViewedData.products
+      : [];
 
-  const recentlyViewedProducts = Array.isArray(
-    recentlyViewedData?.products
-  )
-    ? recentlyViewedData.products
-    : [];
-
-  // =========================================================
-  // LOGOUT
-  // =========================================================
+  /* =========================================================
+     LOGOUT
+  ========================================================= */
 
   const handleSignOut = () => {
     setSigningOut(true);
@@ -193,9 +200,9 @@ export default function ProfilePage() {
     }, 350);
   };
 
-  // =========================================================
-  // LOADING
-  // =========================================================
+  /* =========================================================
+     LOADING
+  ========================================================= */
 
   if (loading && !user) {
     return (
@@ -205,52 +212,57 @@ export default function ProfilePage() {
     );
   }
 
-  // =========================================================
-  // ERROR
-  // =========================================================
+  /* =========================================================
+     ERROR
+  ========================================================= */
 
   if (userError && !user) {
     return (
       <AccountShell title="Account">
-        <div className="flex min-h-[60vh] w-full items-center justify-center bg-[#f7f8fa] px-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-sm">
-
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+        <div className="flex min-h-[65vh] w-full items-center justify-center bg-[#f1f3f6] px-4">
+          <div className="w-full max-w-md bg-white p-8 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-[#2874f0]">
               <FaUser size={19} />
             </div>
 
-            <h2 className="text-[18px] font-bold text-slate-900">
+            <h2 className="mt-5 text-lg font-semibold text-slate-900">
               Unable to load your profile
             </h2>
 
-            <p className="mt-2 text-[13px] leading-5 text-slate-500">
-              Something went wrong while loading your account details.
+            <p className="mt-2 text-sm leading-5 text-slate-500">
+              Something went wrong while loading
+              your account details.
             </p>
 
             <button
               type="button"
               onClick={() =>
                 queryClient.invalidateQueries({
-                  queryKey: ["currentUser", token],
+                  queryKey: [
+                    "currentUser",
+                    token,
+                  ],
                 })
               }
-              className="mt-6 h-11 rounded-lg bg-[#2874f0] px-6 text-[13px] font-semibold text-white"
+              className="mt-6 h-11 rounded-md bg-[#2874f0] px-7 text-sm font-semibold text-white hover:bg-[#1769e8]"
             >
               Try again
             </button>
-
           </div>
         </div>
       </AccountShell>
     );
   }
 
-  // =========================================================
-  // USER INFO
-  // =========================================================
+  /* =========================================================
+     USER INFORMATION
+  ========================================================= */
 
   const name =
-    [user?.firstName, user?.lastName]
+    [
+      user?.firstName,
+      user?.lastName,
+    ]
       .filter(Boolean)
       .join(" ") || "Odikart User";
 
@@ -259,644 +271,722 @@ export default function ProfilePage() {
     name.split(" ")[0] ||
     "there";
 
-  // =========================================================
-  // MAIN
-  // =========================================================
+  const email =
+    user?.email || "";
+
+  const phone =
+    user?.phone ||
+    user?.phoneNumber ||
+    "";
+
+  /* =========================================================
+     PROFILE IMAGE
+
+     MongoDB:
+     image: "https://res.cloudinary.com/..."
+  ========================================================= */
+
+  const profileImage =
+    typeof user?.image === "string" &&
+    user.image.trim().length > 0
+      ? user.image.trim()
+      : null;
+
+  console.log(
+    "PROFILE IMAGE:",
+    profileImage
+  );
+
+  /* =========================================================
+     MAIN
+  ========================================================= */
 
   return (
     <AccountShell title="Account">
+      <div className="min-h-screen w-full bg-[#f1f3f6] pb-20 text-slate-800">
 
-      <div className="min-h-screen w-full bg-[#f6f7f9] pb-24 text-slate-800">
+        {/* =================================================
+            MAIN FULL WIDTH
+        ================================================= */}
 
-        {/* =====================================================
-            HEADER
-        ===================================================== */}
+        <main className="w-full px-0">
 
-        <section className="border-b border-slate-100 bg-white px-4 pb-4 pt-4 sm:px-6">
+          {/* =================================================
+              PROFILE
+          ================================================= */}
 
-          <div className="flex items-center justify-between">
+          <section className="w-full border-b border-slate-200 bg-white">
 
-            <div>
-              <p className="text-[15px] font-extrabold tracking-[-0.02em] text-slate-900">
-                Hey, {firstName}
-              </p>
+            <div className="flex w-full items-center gap-4 px-4 py-5 sm:px-8 lg:px-12">
 
-              <p className="mt-1 text-[9px] text-slate-400">
-                Manage your Odikart account
-              </p>
-            </div>
+              {/* PROFILE IMAGE */}
 
-            <button
-              type="button"
-              onClick={() => navigate("/account/help")}
-              className="flex h-9 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 text-[10px] font-bold text-slate-700 shadow-[0_2px_8px_rgba(15,23,42,0.05)] transition active:scale-95"
-            >
-              <FaHeadset
-                className="text-slate-500"
-                size={10}
-              />
+              <div className="relative h-16 w-16 shrink-0">
 
-              Help
-            </button>
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt={name}
+                    className="h-16 w-16 rounded-full border-2 border-white object-cover shadow-md"
+                    referrerPolicy="no-referrer"
+                    loading="eager"
+                    onError={(event) => {
+                      console.error(
+                        "PROFILE IMAGE FAILED:",
+                        profileImage
+                      );
 
-          </div>
+                      event.currentTarget.style.display =
+                        "none";
 
-        </section>
+                      if (
+                        event.currentTarget
+                          .nextElementSibling
+                      ) {
+                        event.currentTarget
+                          .nextElementSibling.style.display =
+                          "flex";
+                      }
+                    }}
+                  />
+                ) : null}
 
-        {/* =====================================================
-            ORDERS + WISHLIST
-        ===================================================== */}
+                {/* FALLBACK */}
 
-        <section className="border-b border-slate-100 bg-white px-4 pb-4 sm:px-6">
+                <div
+                  className={`${
+                    profileImage
+                      ? "hidden"
+                      : "flex"
+                  } h-16 w-16 items-center justify-center rounded-full bg-[#2874f0] text-lg font-bold text-white shadow-md`}
+                >
+                  {getInitials(name)}
+                </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+                {/* VERIFIED */}
 
-            <QuickAction
-              icon={<FaShoppingBag />}
-              title="Orders"
-              onClick={() => navigate("/account/orders")}
-            />
-
-            <QuickAction
-              icon={<FaHeart />}
-              title="Wishlist"
-              onClick={() => navigate("/account/wishlist")}
-            />
-
-          </div>
-
-        </section>
-
-        {/* =====================================================
-            RECENTLY VIEWED
-        ===================================================== */}
-
-        {(recentlyViewedLoading ||
-          recentlyViewedProducts.length > 0) && (
-
-          <section className="mt-2 border-y border-slate-100 bg-white py-4">
-
-            {/* HEADER */}
-
-            <div className="mb-3 flex items-center justify-between px-4 sm:px-6">
-
-              <div>
-
-                <h2 className="text-[14px] font-extrabold tracking-[-0.025em] text-slate-900">
-                  Recently Viewed
-                </h2>
-
-                <p className="mt-1 text-[9px] text-slate-400">
-                  Pick up where you left off
-                </p>
-
+                {user?.isVerified && (
+                  <span className="absolute bottom-0 right-0 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-green-500">
+                    <span className="text-[7px] font-bold text-white">
+                      ✓
+                    </span>
+                  </span>
+                )}
               </div>
 
-              {recentlyViewedProducts.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => navigate("/products")}
-                  className="flex items-center gap-1 text-[9px] font-bold text-[#2874f0]"
-                >
-                  View all
+              {/* USER DETAILS */}
 
-                  <FaChevronRight size={7} />
-                </button>
-              )}
+              <div className="min-w-0 flex-1">
+
+                <div className="flex items-center gap-2">
+
+                  <h2 className="truncate text-base font-semibold text-slate-900 sm:text-lg">
+                    Hello, {firstName}
+                  </h2>
+
+                  {user?.isVerified && (
+                    <span className="hidden rounded-full bg-green-50 px-2 py-0.5 text-[9px] font-semibold text-green-600 sm:inline-block">
+                      Verified
+                    </span>
+                  )}
+                </div>
+
+                {email && (
+                  <p className="mt-1 truncate text-xs text-slate-500">
+                    {email}
+                  </p>
+                )}
+
+                {phone && (
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {phone}
+                  </p>
+                )}
+              </div>
+
+              {/* EDIT */}
+
+              <button
+                type="button"
+                onClick={() =>
+                  navigate(
+                    "/account/personal-information"
+                  )
+                }
+                className="flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-[#2874f0] px-3 text-xs font-semibold text-[#2874f0] hover:bg-blue-50"
+              >
+                <FaEdit size={10} />
+
+                <span className="hidden sm:inline">
+                  Edit Profile
+                </span>
+
+                <span className="sm:hidden">
+                  Edit
+                </span>
+              </button>
 
             </div>
 
             {/* =================================================
-                SKELETON
+                QUICK ACTIONS
             ================================================= */}
 
-            {recentlyViewedLoading ? (
-
-              <div className="flex gap-2.5 overflow-hidden px-4 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-
-                {[1, 2, 3, 4].map((item) => (
-
-                  <div
-                    key={item}
-                    className="w-[116px] shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_10px_rgba(15,23,42,0.04)]"
-                  >
-
-                    <div className="aspect-square animate-pulse bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100" />
-
-                    <div className="p-2">
-
-                      <div className="h-2.5 w-16 animate-pulse rounded-full bg-slate-100" />
-
-                      <div className="mt-2 h-2 w-11 animate-pulse rounded-full bg-slate-100" />
-
-                    </div>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-            ) : (
-
-              /* =================================================
-                 PRODUCT LIST
-              ================================================= */
-
-              <div className="flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
-
-                {recentlyViewedProducts.map((product) => {
-
-                  const productId =
-                    product?._id ||
-                    product?.id;
-
-                  if (!productId) {
-                    return null;
-                  }
-
-                  // Collect all possible product images
-                  const images = [
-                    product?.media?.thumbnail,
-
-                    ...(Array.isArray(
-                      product?.media?.images
-                    )
-                      ? product.media.images
-                      : []),
-
-                    ...(Array.isArray(
-                      product?.images
-                    )
-                      ? product.images
-                      : []),
-
-                    ...(Array.isArray(
-                      product?.variants
-                    )
-                      ? product.variants.flatMap(
-                          (variant) =>
-                            Array.isArray(
-                              variant?.images
-                            )
-                              ? variant.images
-                              : []
-                        )
-                      : []),
-
-                    product?.image,
-
-                    product?.thumbnail,
-                  ].filter(Boolean);
-
-                  const image =
-                    images[0] ||
-                    "https://via.placeholder.com/300x300?text=Product";
-
-                  // Product name
-                  const productName =
-                    product?.title ||
-                    product?.name ||
-                    "Product";
-
-                  // Find active variant
-                  const activeVariant =
-                    Array.isArray(product?.variants)
-                      ? product.variants.find(
-                          (variant) =>
-                            variant?.isActive !== false
-                        ) ||
-                        product.variants[0]
-                      : null;
-
-                  // Product price
-                  const price =
-                    activeVariant?.price ??
-                    product?.price ??
-                    null;
-
-                  // Category
-                  const category =
-                    product?.category?.name ||
-                    product?.categoryName ||
-                    product?.category ||
-                    "";
-
-                  return (
-
-                    <button
-                      key={productId}
-                      type="button"
-
-                      onClick={() =>
-                        navigate(
-                          `/products/${productId}`
-                        )
-                      }
-
-                      className="group w-[116px] shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-white text-left shadow-[0_2px_10px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-200 hover:shadow-[0_6px_16px_rgba(15,23,42,0.08)] active:scale-[0.98]"
-                    >
-
-                      {/* =================================================
-                          IMAGE
-                      ================================================= */}
-
-                      <div className="relative aspect-square overflow-hidden bg-slate-50">
-
-                        <img
-                          src={image}
-                          alt={productName}
-                          loading="lazy"
-
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-
-                          onError={(event) => {
-                            event.currentTarget.src =
-                              "https://via.placeholder.com/300x300?text=Product";
-                          }}
-                        />
-
-                        {/* Viewed Badge */}
-
-                        <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[6.5px] font-bold text-slate-600 shadow-sm backdrop-blur-sm">
-                          Viewed
-                        </span>
-
-                      </div>
-
-                      {/* =================================================
-                          PRODUCT INFO
-                      ================================================= */}
-
-                      <div className="p-2">
-
-                        <p className="line-clamp-2 min-h-[24px] text-[8.5px] font-bold leading-[12px] text-slate-800">
-                          {productName}
-                        </p>
-
-                        {category && (
-                          <p className="mt-0.5 truncate text-[7px] text-slate-400">
-                            {category}
-                          </p>
-                        )}
-
-                        {price !== null && (
-                          <p className="mt-1 text-[9px] font-extrabold text-slate-950">
-                            ₹
-                            {Number(
-                              price
-                            ).toLocaleString("en-IN")}
-                          </p>
-                        )}
-
-                        <div className="mt-1.5 flex items-center justify-between">
-
-                          <span className="text-[7px] font-medium text-slate-400">
-                            View product
-                          </span>
-
-                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-50 text-[#2874f0] transition group-hover:bg-[#2874f0] group-hover:text-white">
-
-                            <FaArrowRight size={7} />
-
-                          </span>
-
-                        </div>
-
-                      </div>
-
-                    </button>
-
-                  );
-                })}
-
-              </div>
-
-            )}
-
-          </section>
-        )}
-
-        {/* =====================================================
-            COUPONS
-        ===================================================== */}
-
-        <section className="mt-2 bg-white px-4 py-3 sm:px-6">
-
-          <button
-            type="button"
-            onClick={() => navigate("/coupons")}
-            className="group flex w-full items-center justify-between rounded-xl border border-violet-100 bg-gradient-to-r from-violet-50 via-white to-white px-3.5 py-3 shadow-[0_2px_10px_rgba(124,58,237,0.05)] transition hover:border-violet-200 hover:shadow-[0_5px_16px_rgba(124,58,237,0.08)] active:scale-[0.995]"
-          >
-
-            <div className="flex items-center gap-2.5">
-
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
-
-                <MdOutlineLocalOffer size={17} />
-
-              </span>
-
-              <span className="text-left">
-
-                <span className="block text-[11px] font-bold text-slate-800">
-                  Coupons & Offers
-                </span>
-
-                <span className="mt-0.5 block text-[9px] text-slate-500">
-                  Explore and grab the best deals
-                </span>
-
-              </span>
+            <div className="grid grid-cols-3 border-t border-slate-100">
+
+              <MiniStat
+                icon={<FaShoppingBag />}
+                label="Orders"
+                onClick={() =>
+                  navigate("/account/orders")
+                }
+              />
+
+              <MiniStat
+                icon={<FaHeart />}
+                label="Wishlist"
+                onClick={() =>
+                  navigate("/account/wishlist")
+                }
+              />
+
+              <MiniStat
+                icon={<MdOutlineLocalOffer />}
+                label="Coupons"
+                onClick={() =>
+                  navigate("/coupons")
+                }
+              />
 
             </div>
 
-            <FaChevronRight
-              size={9}
-              className="text-slate-400"
-            />
+          </section>
 
-          </button>
+          {/* =================================================
+              RECENTLY VIEWED
+          ================================================= */}
 
-        </section>
+          {(recentlyViewedLoading ||
+            recentlyViewedProducts.length > 0) && (
 
-        {/* =====================================================
-            PROFILE SETTINGS
-        ===================================================== */}
+            <section className="mt-3 w-full border-y border-slate-200 bg-white">
 
-        <AccountSection title="Profile Settings">
+              <SectionHeader
+                title="Recently Viewed"
+                subtitle="Continue shopping from where you left off"
+                action={
+                  recentlyViewedProducts.length >
+                  0
+                    ? "View All"
+                    : null
+                }
+                onAction={() =>
+                  navigate("/products")
+                }
+              />
 
-          <Tile
+              {recentlyViewedLoading ? (
+                <div className="flex gap-3 overflow-hidden px-4 pb-5 sm:px-6">
+
+                  {[1, 2, 3, 4, 5].map(
+                    (item) => (
+                      <div
+                        key={item}
+                        className="w-[150px] shrink-0 overflow-hidden border border-slate-100"
+                      >
+                        <div className="aspect-square animate-pulse bg-slate-100" />
+
+                        <div className="p-3">
+                          <div className="h-3 w-20 animate-pulse rounded bg-slate-100" />
+
+                          <div className="mt-2 h-2.5 w-14 animate-pulse rounded bg-slate-100" />
+
+                          <div className="mt-3 h-3 w-12 animate-pulse rounded bg-slate-100" />
+                        </div>
+                      </div>
+                    )
+                  )}
+
+                </div>
+              ) : (
+                <div className="flex gap-3 overflow-x-auto px-4 pb-5 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
+
+                  {recentlyViewedProducts.map(
+                    (product) => {
+
+                      const productId =
+                        product?._id ||
+                        product?.id;
+
+                      if (!productId) {
+                        return null;
+                      }
+
+                      const images = [
+                        product?.media
+                          ?.thumbnail,
+
+                        ...(Array.isArray(
+                          product?.media?.images
+                        )
+                          ? product.media.images
+                          : []),
+
+                        ...(Array.isArray(
+                          product?.images
+                        )
+                          ? product.images
+                          : []),
+
+                        ...(Array.isArray(
+                          product?.variants
+                        )
+                          ? product.variants.flatMap(
+                              (variant) =>
+                                Array.isArray(
+                                  variant?.images
+                                )
+                                  ? variant.images
+                                  : []
+                            )
+                          : []),
+
+                        product?.image,
+
+                        product?.thumbnail,
+                      ].filter(Boolean);
+
+                      const image =
+                        images[0] ||
+                        "https://via.placeholder.com/400x400?text=Product";
+
+                      const productName =
+                        product?.title ||
+                        product?.name ||
+                        "Product";
+
+                      const activeVariant =
+                        Array.isArray(
+                          product?.variants
+                        )
+                          ? product.variants.find(
+                              (variant) =>
+                                variant?.isActive !==
+                                false
+                            ) ||
+                            product.variants[0]
+                          : null;
+
+                      const price =
+                        activeVariant?.price ??
+                        product?.price ??
+                        null;
+
+                      const category =
+                        product?.category?.name ||
+                        product?.categoryName ||
+                        product?.category ||
+                        "";
+
+                      return (
+                        <button
+                          key={productId}
+                          type="button"
+                          onClick={() =>
+                            navigate(
+                              `/products/${productId}`
+                            )
+                          }
+                          className="group w-[150px] shrink-0 overflow-hidden border border-slate-200 bg-white text-left transition hover:shadow-md"
+                        >
+                          <div className="relative aspect-square overflow-hidden bg-slate-50">
+
+                            <img
+                              src={image}
+                              alt={productName}
+                              loading="lazy"
+                              className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                              onError={(event) => {
+                                event.currentTarget.src =
+                                  "https://via.placeholder.com/400x400?text=Product";
+                              }}
+                            />
+
+                            <span className="absolute left-2 top-2 bg-white px-1.5 py-1 text-[8px] font-medium text-slate-600 shadow-sm">
+                              Viewed
+                            </span>
+
+                          </div>
+
+                          <div className="p-3">
+
+                            <p className="line-clamp-2 min-h-[32px] text-xs font-medium leading-4 text-slate-800">
+                              {productName}
+                            </p>
+
+                            {category && (
+                              <p className="mt-1 truncate text-[10px] text-slate-400">
+                                {category}
+                              </p>
+                            )}
+
+                            {price !== null && (
+                              <p className="mt-2 text-sm font-semibold text-slate-900">
+                                ₹
+                                {Number(
+                                  price
+                                ).toLocaleString(
+                                  "en-IN"
+                                )}
+                              </p>
+                            )}
+
+                          </div>
+                        </button>
+                      );
+                    }
+                  )}
+
+                </div>
+              )}
+
+            </section>
+          )}
+
+          {/* =================================================
+              ACCOUNT SETTINGS
+          ================================================= */}
+
+          <AccountGroup
+            title="Account Settings"
             icon={<FaUser />}
-            title="Edit profile"
-            sub="Name, phone number and photo"
-            path="/account/personal-information"
-            navigate={navigate}
-            iconClassName="bg-blue-50 text-blue-600"
-          />
-
-          <Tile
-            icon={<FaMapMarkerAlt />}
-            title="Saved addresses"
-            sub="Manage your delivery addresses"
-            path="/account/addresses"
-            navigate={navigate}
-            iconClassName="bg-cyan-50 text-cyan-600"
-          />
-
-          <Tile
-            icon={<FaLanguage />}
-            title="Change language"
-            sub="English"
-            path="/account/language"
-            navigate={navigate}
-            iconClassName="bg-violet-50 text-violet-600"
-          />
-
-          <Tile
-            icon={<FaBell />}
-            title="Notification settings"
-            sub="Manage alerts and offers"
-            path="/account/notifications"
-            navigate={navigate}
-            iconClassName="bg-amber-50 text-amber-600"
-          />
-
-          <Tile
-            icon={<FaCoins />}
-            title="My subscriptions"
-            sub="Manage Odikart membership"
-            path="/account/subscriptions"
-            navigate={navigate}
-            iconClassName="bg-emerald-50 text-emerald-600"
-          />
-
-        </AccountSection>
-
-        {/* =====================================================
-            PAYMENTS
-        ===================================================== */}
-
-        <AccountSection title="Payments & Wallets">
-
-          <Tile
-            icon={<FaGift />}
-            title="Gift card"
-            sub="Add or manage gift cards"
-            path="/account/gift-card"
-            navigate={navigate}
-            iconClassName="bg-blue-50 text-blue-600"
-            rightText="Add gift card"
-          />
-
-          <Tile
-            icon={<FaCreditCard />}
-            title="Saved payment methods"
-            sub="Manage cards and payment preferences"
-            path="/account/payment-methods"
-            navigate={navigate}
-            iconClassName="bg-indigo-50 text-indigo-600"
-          />
-
-          <Tile
-            icon={<FaWallet />}
-            title="Odikart Wallet"
-            sub="View balance and wallet activity"
-            path="/account/wallet"
-            navigate={navigate}
-            iconClassName="bg-emerald-50 text-emerald-600"
-          />
-
-        </AccountSection>
-
-        {/* =====================================================
-            PRIVACY
-        ===================================================== */}
-
-        <AccountSection title="Privacy & Security">
-
-          <Tile
-            icon={<FaLock />}
-            title="Privacy center"
-            sub="Control your privacy preferences"
-            path="/account/privacy"
-            navigate={navigate}
-            iconClassName="bg-blue-50 text-blue-600"
-          />
-
-          <Tile
-            icon={<FaMobileAlt />}
-            title="Manage devices"
-            sub="Review active signed-in devices"
-            path="/account/devices"
-            navigate={navigate}
-            iconClassName="bg-slate-100 text-slate-600"
-            rightText="Active devices"
-          />
-
-        </AccountSection>
-
-        {/* =====================================================
-            EARN WITH ODIKART
-        ===================================================== */}
-
-        <AccountSection title="Earn with Odikart">
-
-          <Tile
-            icon={<FaCoins />}
-            title="Odikart affiliate program"
-            sub="Earn rewards by sharing products"
-            path="/affiliate"
-            navigate={navigate}
-            iconClassName="bg-amber-50 text-amber-600"
-          />
-
-          <Tile
-            icon={<FaShoppingBag />}
-            title="Sell on Odikart"
-            sub="Start selling your products"
-            path="/seller"
-            navigate={navigate}
-            iconClassName="bg-blue-50 text-blue-600"
-          />
-
-        </AccountSection>
-
-        {/* =====================================================
-            FAQ
-        ===================================================== */}
-
-        <AccountSection title="FAQ & Terms">
-
-          <Tile
-            icon={<FaQuestionCircle />}
-            title="FAQs"
-            sub="Frequently asked questions"
-            path="/faq"
-            navigate={navigate}
-            iconClassName="bg-cyan-50 text-cyan-600"
-          />
-
-          <Tile
-            icon={<FaShieldAlt />}
-            title="Terms, Policies & Licences"
-            sub="Read Odikart's legal information"
-            path="/account/legal"
-            navigate={navigate}
-            iconClassName="bg-slate-100 text-slate-600"
-          />
-
-        </AccountSection>
-
-        {/* =====================================================
-            ACTIVITY
-        ===================================================== */}
-
-        <AccountSection title="My Activity">
-
-          <Tile
-            icon={<FaQuestionCircle />}
-            title="Questions & Answers"
-            sub="Your product questions and answers"
-            path="/account/questions"
-            navigate={navigate}
-            iconClassName="bg-indigo-50 text-indigo-600"
-          />
-
-          <Tile
-            icon={<FaHeart />}
-            title="Wishlist activity"
-            sub="Recently saved products"
-            path="/account/wishlist"
-            navigate={navigate}
-            iconClassName="bg-rose-50 text-rose-600"
-          />
-
-        </AccountSection>
-
-        {/* =====================================================
-            SOCIAL
-        ===================================================== */}
-
-        <section className="mt-6 bg-white px-4 py-4 sm:px-6">
-
-          <p className="mb-2.5 text-[10px] font-extrabold uppercase tracking-[0.1em] text-slate-500">
-            Follow Us On
-          </p>
-
-          <div className="grid grid-cols-3 gap-2">
-
-            <SocialButton
-              icon={<FaInstagram />}
-              label="Instagram"
-            />
-
-            <SocialButton
-              icon={<FaYoutube />}
-              label="YouTube"
-            />
-
-            <SocialButton
-              icon={<FaLinkedin />}
-              label="LinkedIn"
-            />
-
-          </div>
-
-        </section>
-
-        {/* =====================================================
-            LOGOUT
-        ===================================================== */}
-
-        <section className="bg-white px-4 py-4 sm:px-6">
-
-          <button
-            type="button"
-            onClick={() => setShowSignOutModal(true)}
-            className="flex h-10 w-full items-center justify-center rounded-md border border-[#2874f0] bg-white text-[11px] font-bold text-[#2874f0] transition hover:bg-blue-50"
-          >
-            Log out
-          </button>
-
-          <p className="mt-3 text-center text-[8px] text-slate-400">
-            v1.0.0
-          </p>
-
-        </section>
-
-        {/* =====================================================
-            DELETE ACCOUNT
-        ===================================================== */}
-
-        <section className="px-4 pb-6 pt-2 sm:px-6">
-
-          <button
-            type="button"
-            onClick={() => navigate("/account/delete")}
-            className="mx-auto flex items-center gap-1.5 text-[9px] font-medium text-slate-400 hover:text-rose-500"
           >
 
-            <FaTrash size={8} />
+            <AccountRow
+              icon={<FaUser />}
+              title="Personal Information"
+              description="Name, phone number and profile details"
+              color="blue"
+              onClick={() =>
+                navigate(
+                  "/account/personal-information"
+                )
+              }
+            />
 
-            Delete account
+            <AccountRow
+              icon={<FaMapMarkerAlt />}
+              title="Saved Addresses"
+              description="Manage your delivery addresses"
+              color="cyan"
+              onClick={() =>
+                navigate("/account/addresses")
+              }
+            />
 
-          </button>
+            <AccountRow
+              icon={<FaBell />}
+              title="Notification Settings"
+              description="Manage alerts, updates and offers"
+              color="orange"
+              onClick={() =>
+                navigate("/account/notifications")
+              }
+            />
 
-        </section>
+          </AccountGroup>
 
-        {/* =====================================================
-            SIGN OUT MODAL
-        ===================================================== */}
+          {/* =================================================
+              PAYMENTS
+          ================================================= */}
+
+          <AccountGroup
+            title="Payments & Wallet"
+            icon={<MdPayment />}
+          >
+
+            <AccountRow
+              icon={<FaGift />}
+              title="Gift Cards"
+              description="Add or manage your gift cards"
+              color="purple"
+              onClick={() =>
+                navigate("/account/gift-card")
+              }
+            />
+
+            <AccountRow
+              icon={<FaCreditCard />}
+              title="Saved Payment Methods"
+              description="Manage cards and payment preferences"
+              color="indigo"
+              onClick={() =>
+                navigate(
+                  "/account/payment-methods"
+                )
+              }
+            />
+
+            <AccountRow
+              icon={<FaWallet />}
+              title="Odikart Wallet"
+              description="View balance and wallet activity"
+              color="green"
+              onClick={() =>
+                navigate("/account/wallet")
+              }
+            />
+
+          </AccountGroup>
+
+          {/* =================================================
+              PRIVACY
+          ================================================= */}
+
+          <AccountGroup
+            title="Privacy & Security"
+            icon={<MdSecurity />}
+          >
+
+            <AccountRow
+              icon={<FaLock />}
+              title="Privacy Center"
+              description="Control your privacy preferences"
+              color="blue"
+              onClick={() =>
+                navigate("/account/privacy")
+              }
+            />
+
+            <AccountRow
+              icon={<FaMobileAlt />}
+              title="Manage Devices"
+              description="Review active signed-in devices"
+              color="slate"
+              rightLabel="Active devices"
+              onClick={() =>
+                navigate("/account/devices")
+              }
+            />
+
+            <AccountRow
+              icon={<FaShieldAlt />}
+              title="Terms, Policies & Licences"
+              description="Read Odikart's legal information"
+              color="gray"
+              onClick={() =>
+                navigate("/account/legal")
+              }
+            />
+
+          </AccountGroup>
+
+          {/* =================================================
+              MORE
+          ================================================= */}
+
+          <AccountGroup
+            title="More"
+            icon={<FaStore />}
+          >
+
+            <AccountRow
+              icon={<FaStore />}
+              title="Sell on Odikart"
+              description="Start selling your products"
+              color="blue"
+              rightLabel="Start Selling"
+              onClick={() =>
+                navigate("/seller")
+              }
+            />
+
+            <AccountRow
+              icon={<FaQuestionCircle />}
+              title="FAQs"
+              description="Frequently asked questions"
+              color="cyan"
+              onClick={() =>
+                navigate("/faq")
+              }
+            />
+
+            <AccountRow
+              icon={<FaQuestionCircle />}
+              title="Questions & Answers"
+              description="Your product questions and answers"
+              color="indigo"
+              onClick={() =>
+                navigate(
+                  "/account/questions"
+                )
+              }
+            />
+
+            <AccountRow
+              icon={<FaHeart />}
+              title="Wishlist Activity"
+              description="Recently saved products"
+              color="red"
+              onClick={() =>
+                navigate("/account/wishlist")
+              }
+            />
+
+          </AccountGroup>
+
+          {/* =================================================
+              SUPPORT
+          ================================================= */}
+
+          <section className="mt-3 w-full border-y border-slate-200 bg-white">
+
+            <div className="px-4 py-4 sm:px-6">
+
+              <div className="flex items-center gap-3">
+
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-[#2874f0]">
+                  <FaHeadset size={14} />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    Need Help?
+                  </h3>
+
+                  <p className="mt-0.5 text-[10px] text-slate-500">
+                    We're here to help you
+                  </p>
+                </div>
+
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2">
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate("/account/help")
+                  }
+                  className="flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  <FaHeadset
+                    size={11}
+                    className="text-[#2874f0]"
+                  />
+
+                  Help Center
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate("/faq")
+                  }
+                  className="flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  <MdHelpOutline
+                    size={15}
+                    className="text-[#2874f0]"
+                  />
+
+                  FAQs
+                </button>
+
+              </div>
+
+            </div>
+
+          </section>
+
+          {/* =================================================
+              SOCIAL
+          ================================================= */}
+
+          <section className="mt-3 w-full border-y border-slate-200 bg-white p-4 sm:px-6">
+
+            <p className="text-xs font-semibold text-slate-700">
+              Follow Odikart
+            </p>
+
+            <div className="mt-3 grid grid-cols-3 gap-2">
+
+              <SocialButton
+                icon={<FaInstagram />}
+                label="Instagram"
+              />
+
+              <SocialButton
+                icon={<FaYoutube />}
+                label="YouTube"
+              />
+
+              <SocialButton
+                icon={<FaLinkedin />}
+                label="LinkedIn"
+              />
+
+            </div>
+
+          </section>
+
+          {/* =================================================
+              LOGOUT
+          ================================================= */}
+
+          <section className="mt-3 w-full border-y border-slate-200 bg-white p-4 sm:px-6">
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowSignOutModal(true)
+              }
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-[#2874f0] bg-white text-sm font-semibold text-[#2874f0] hover:bg-blue-50"
+            >
+              <FaSignOutAlt size={13} />
+
+              Logout
+            </button>
+
+            <p className="mt-3 text-center text-[10px] text-slate-400">
+              Odikart • v1.0.0
+            </p>
+
+          </section>
+
+          {/* =================================================
+              DELETE ACCOUNT
+          ================================================= */}
+
+          <section className="w-full px-4 pb-8 pt-4 text-center">
+
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/account/delete")
+              }
+              className="inline-flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-red-500"
+            >
+              <FaTrash size={9} />
+
+              Delete account
+            </button>
+
+          </section>
+
+        </main>
+
+        {/* =================================================
+            LOGOUT MODAL
+        ================================================= */}
 
         {showSignOutModal && (
-
           <div
-            className="fixed inset-0 z-[9999] flex items-end justify-center bg-slate-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-5"
-
+            className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/50 sm:items-center sm:p-5"
             onMouseDown={(event) => {
               if (
-                event.target === event.currentTarget &&
+                event.target ===
+                  event.currentTarget &&
                 !signingOut
               ) {
                 setShowSignOutModal(false);
@@ -907,9 +997,7 @@ export default function ProfilePage() {
             <div
               role="dialog"
               aria-modal="true"
-
-              className="relative w-full overflow-hidden rounded-t-[24px] bg-white shadow-2xl sm:max-w-[420px] sm:rounded-[24px]"
-
+              className="relative w-full rounded-t-2xl bg-white shadow-2xl sm:max-w-[420px] sm:rounded-lg"
               onMouseDown={(event) =>
                 event.stopPropagation()
               }
@@ -917,7 +1005,7 @@ export default function ProfilePage() {
 
               <div className="h-1 w-full bg-[#2874f0]" />
 
-              <div className="p-5">
+              <div className="p-6">
 
                 <button
                   type="button"
@@ -925,37 +1013,38 @@ export default function ProfilePage() {
                     setShowSignOutModal(false)
                   }
                   disabled={signingOut}
-                  className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+                  className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500"
                 >
-                  <FaTimes size={12} />
+                  <FaTimes size={11} />
                 </button>
 
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-[#2874f0]">
-                  <FaSignOutAlt size={18} />
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-[#2874f0]">
+                  <FaSignOutAlt size={17} />
                 </div>
 
-                <h2 className="mt-4 text-[18px] font-bold text-slate-900">
-                  Log out of your account?
+                <h2 className="mt-4 text-lg font-semibold text-slate-900">
+                  Logout from Odikart?
                 </h2>
 
-                <p className="mt-2 pr-5 text-[12px] leading-5 text-slate-500">
-                  You can sign back in anytime using your account credentials.
+                <p className="mt-2 text-xs leading-5 text-slate-500">
+                  You can sign back in anytime using
+                  your account credentials.
                 </p>
 
-                <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-blue-50 p-3">
+                <div className="mt-4 flex gap-2 rounded-md bg-blue-50 p-3">
 
                   <FaShieldAlt
                     className="mt-0.5 shrink-0 text-[#2874f0]"
-                    size={13}
+                    size={12}
                   />
 
                   <p className="text-[10px] leading-4 text-slate-600">
-                    Your account data will remain safe when you sign back in.
+                    Your account data will remain safe.
                   </p>
 
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-2.5">
+                <div className="mt-5 grid grid-cols-2 gap-2">
 
                   <button
                     type="button"
@@ -963,7 +1052,7 @@ export default function ProfilePage() {
                       setShowSignOutModal(false)
                     }
                     disabled={signingOut}
-                    className="h-11 rounded-xl border border-slate-200 text-[12px] font-bold text-slate-700"
+                    className="h-11 rounded-md border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                   >
                     Cancel
                   </button>
@@ -972,9 +1061,8 @@ export default function ProfilePage() {
                     type="button"
                     onClick={handleSignOut}
                     disabled={signingOut}
-                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2874f0] text-[12px] font-bold text-white disabled:opacity-60"
+                    className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#2874f0] text-xs font-semibold text-white disabled:opacity-60"
                   >
-
                     {signingOut ? (
                       <>
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -983,12 +1071,11 @@ export default function ProfilePage() {
                       </>
                     ) : (
                       <>
-                        <FaSignOutAlt size={12} />
+                        <FaSignOutAlt size={11} />
 
-                        Log out
+                        Logout
                       </>
                     )}
-
                   </button>
 
                 </div>
@@ -998,57 +1085,125 @@ export default function ProfilePage() {
             </div>
 
           </div>
-
         )}
 
       </div>
-
     </AccountShell>
   );
 }
 
-// =========================================================
-// QUICK ACTION
-// =========================================================
+/* =========================================================
+   GET INITIALS
+========================================================= */
 
-function QuickAction({
+function getInitials(name = "") {
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((item) =>
+      item.charAt(0).toUpperCase()
+    )
+    .join("");
+
+  return initials || "O";
+}
+
+/* =========================================================
+   MINI STAT
+========================================================= */
+
+function MiniStat({
   icon,
-  title,
+  label,
   onClick,
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-[11px] font-bold text-slate-700 shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]"
+      className="flex h-16 items-center justify-center gap-2 border-r border-slate-100 text-xs font-medium text-slate-700 last:border-r-0 hover:bg-slate-50"
     >
-
       <span className="text-[#2874f0]">
         {icon}
       </span>
 
-      {title}
+      {label}
 
+      <FaChevronRight
+        size={7}
+        className="text-slate-300"
+      />
     </button>
   );
 }
 
-// =========================================================
-// ACCOUNT SECTION
-// =========================================================
+/* =========================================================
+   SECTION HEADER
+========================================================= */
 
-function AccountSection({
+function SectionHeader({
   title,
+  subtitle,
+  action,
+  onAction,
+}) {
+  return (
+    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-6">
+
+      <div>
+        <h2 className="text-sm font-semibold text-slate-900">
+          {title}
+        </h2>
+
+        {subtitle && (
+          <p className="mt-0.5 text-[10px] text-slate-400">
+            {subtitle}
+          </p>
+        )}
+      </div>
+
+      {action && (
+        <button
+          type="button"
+          onClick={onAction}
+          className="flex items-center gap-1 text-xs font-semibold text-[#2874f0]"
+        >
+          {action}
+
+          <FaChevronRight size={7} />
+        </button>
+      )}
+
+    </div>
+  );
+}
+
+/* =========================================================
+   ACCOUNT GROUP
+========================================================= */
+
+function AccountGroup({
+  title,
+  icon,
   children,
 }) {
   return (
-    <section className="mt-2 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_12px_rgba(15,23,42,0.035)]">
+    <section className="mt-3 w-full border-y border-slate-200 bg-white">
 
-      <div className="flex items-center justify-between px-4 pb-2.5 pt-3.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-slate-500 sm:px-6">
-        {title}
+      <div className="flex items-center gap-2.5 border-b border-slate-100 px-4 py-3.5 sm:px-6">
+
+        <span className="text-[#2874f0]">
+          {icon}
+        </span>
+
+        <h2 className="text-sm font-semibold text-slate-900">
+          {title}
+        </h2>
+
       </div>
 
-      <div className="overflow-hidden border-t border-slate-100 bg-white">
+      <div>
         {children}
       </div>
 
@@ -1056,73 +1211,100 @@ function AccountSection({
   );
 }
 
-// =========================================================
-// TILE
-// =========================================================
+/* =========================================================
+   ACCOUNT ROW
+========================================================= */
 
-function Tile({
+function AccountRow({
   icon,
   title,
-  sub,
-  path,
+  description,
+  color = "blue",
+  rightLabel,
   onClick,
-  navigate,
-  iconClassName = "",
-  rightText,
 }) {
+  const colorMap = {
+    blue:
+      "bg-blue-50 text-blue-600",
+
+    cyan:
+      "bg-cyan-50 text-cyan-600",
+
+    orange:
+      "bg-orange-50 text-orange-600",
+
+    purple:
+      "bg-purple-50 text-purple-600",
+
+    indigo:
+      "bg-indigo-50 text-indigo-600",
+
+    green:
+      "bg-green-50 text-green-600",
+
+    slate:
+      "bg-slate-100 text-slate-600",
+
+    gray:
+      "bg-gray-100 text-gray-600",
+
+    red:
+      "bg-red-50 text-red-600",
+  };
+
   return (
     <button
       type="button"
-
-      className="group relative flex min-h-[62px] w-full items-center gap-3 border-b border-slate-100 bg-white px-4 text-left last:border-b-0 transition hover:bg-slate-50 active:bg-slate-100 sm:px-6"
-
-      onClick={
-        onClick ||
-        (() => {
-          if (path) {
-            navigate(path);
-          }
-        })
-      }
-
-      aria-label={title}
+      onClick={onClick}
+      className="group flex min-h-[68px] w-full items-center gap-3 border-b border-slate-100 px-4 text-left last:border-b-0 hover:bg-slate-50 active:bg-slate-100 sm:px-6"
     >
 
+      {/* ICON */}
+
       <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[12px] ${iconClassName} shadow-sm`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs ${
+          colorMap[color] ||
+          colorMap.blue
+        }`}
       >
         {icon}
       </span>
 
+      {/* CONTENT */}
+
       <span className="min-w-0 flex-1">
 
-        <span className="block truncate text-[10.5px] font-semibold text-slate-800">
+        <span className="block truncate text-xs font-medium text-slate-800 sm:text-[13px]">
           {title}
         </span>
 
-        <span className="mt-0.5 block truncate text-[8.5px] text-slate-400">
-          {sub}
+        <span className="mt-0.5 block truncate text-[10px] text-slate-400 sm:text-[11px]">
+          {description}
         </span>
 
       </span>
 
-      {rightText && (
-        <span className="max-w-[90px] truncate text-[8px] font-semibold text-[#2874f0]">
-          {rightText}
+      {/* OPTIONAL LABEL */}
+
+      {rightLabel && (
+        <span className="hidden rounded-sm bg-blue-50 px-2 py-1 text-[9px] font-semibold text-[#2874f0] sm:block">
+          {rightLabel}
         </span>
       )}
 
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center text-slate-300 transition group-hover:text-slate-500">
-        <FaChevronRight size={8} />
+      {/* ARROW */}
+
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-300 group-hover:text-[#2874f0]">
+        <FaChevronRight size={9} />
       </span>
 
     </button>
   );
 }
 
-// =========================================================
-// SOCIAL BUTTON
-// =========================================================
+/* =========================================================
+   SOCIAL BUTTON
+========================================================= */
 
 function SocialButton({
   icon,
@@ -1131,119 +1313,128 @@ function SocialButton({
   return (
     <button
       type="button"
-      className="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-[9px] font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
+      className="flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white text-[10px] font-medium text-slate-600 hover:bg-slate-50"
     >
-
-      <span className="text-slate-700">
+      <span className="text-sm text-slate-700">
         {icon}
       </span>
 
       {label}
-
     </button>
   );
 }
 
-// =========================================================
-// PROFILE SKELETON
-// =========================================================
+/* =========================================================
+   PROFILE SKELETON
+========================================================= */
 
 function ProfileSkeleton() {
   return (
-    <div className="min-h-screen w-full bg-[#f7f8fa] pb-20">
+    <div className="min-h-screen w-full bg-[#f1f3f6]">
 
-      {/* Header */}
+      <div className="border-b border-slate-200 bg-white px-4 py-5">
+        <Skeleton className="h-5 w-28 rounded" />
 
-      <div className="border-b border-slate-100 bg-white px-4 py-4">
-
-        <Skeleton className="h-4 w-28 rounded" />
-
-        <Skeleton className="mt-2 h-2.5 w-40 rounded" />
-
+        <Skeleton className="mt-2 h-3 w-48 rounded" />
       </div>
 
-      {/* Main profile */}
+      <div className="w-full bg-white p-5">
 
-      <div className="bg-white px-4 py-3">
+        <div className="flex items-center gap-4">
 
-        <Skeleton className="h-14 w-full rounded-lg" />
+          <Skeleton className="h-16 w-16 rounded-full" />
 
-      </div>
+          <div className="flex-1">
 
-      {/* Actions */}
+            <Skeleton className="h-4 w-32 rounded" />
 
-      <div className="bg-white px-4 pb-4">
+            <Skeleton className="mt-2 h-3 w-44 rounded" />
 
-        <div className="grid grid-cols-2 gap-2.5">
+            <Skeleton className="mt-2 h-3 w-32 rounded" />
 
-          <Skeleton className="h-11 rounded-md" />
+          </div>
 
-          <Skeleton className="h-11 rounded-md" />
+          <Skeleton className="h-9 w-16 rounded" />
 
         </div>
 
       </div>
 
-      {/* Sections */}
+      <div className="grid grid-cols-3 bg-white">
 
-      {[4, 3, 5, 3, 2].map(
-        (rows, sectionIndex) => (
+        {[1, 2, 3].map(
+          (item) => (
+            <Skeleton
+              key={item}
+              className="h-16 rounded-none border-r border-white"
+            />
+          )
+        )}
 
-          <section
-            key={sectionIndex}
-            className="mt-2 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_12px_rgba(15,23,42,0.035)]"
-          >
+      </div>
 
-            <div className="px-4 py-3">
+      <div className="space-y-3 pt-3">
 
-              <Skeleton className="h-2.5 w-24 rounded" />
+        {[4, 3, 3, 4].map(
+          (rows, sectionIndex) => (
 
-            </div>
+            <section
+              key={sectionIndex}
+              className="overflow-hidden bg-white"
+            >
 
-            {Array.from({
-              length: rows,
-            }).map((_, index) => (
+              <div className="px-4 py-4">
+                <Skeleton
+                  className="h-3 w-28 rounded"
+                />
+              </div>
 
-              <div
-                key={index}
-                className="flex min-h-[58px] items-center gap-3 border-y border-slate-50 px-4"
-              >
+              {Array.from({
+                length: rows,
+              }).map((_, index) => (
 
-                <Skeleton className="h-8 w-8 rounded-full" />
+                <div
+                  key={index}
+                  className="flex min-h-[68px] items-center gap-3 border-t border-slate-100 px-4"
+                >
 
-                <div className="flex-1">
+                  <Skeleton className="h-9 w-9 rounded-full" />
 
-                  <Skeleton className="h-2.5 w-32 rounded" />
+                  <div className="flex-1">
 
-                  <Skeleton className="mt-2 h-2 w-48 max-w-[80%] rounded" />
+                    <Skeleton className="h-2.5 w-32 rounded" />
+
+                    <Skeleton className="mt-2 h-2 w-48 rounded" />
+
+                  </div>
+
+                  <Skeleton className="h-4 w-2 rounded" />
 
                 </div>
 
-                <Skeleton className="h-3 w-2 rounded" />
+              ))}
 
-              </div>
+            </section>
 
-            ))}
+          )
+        )}
 
-          </section>
-
-        )
-      )}
+      </div>
 
     </div>
   );
 }
 
-// =========================================================
-// SKELETON
-// =========================================================
+/* =========================================================
+   SKELETON
+========================================================= */
 
 function Skeleton({
   className = "",
 }) {
   return (
     <div
-      className={`animate-pulse bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 ${className}`}
+      className={`animate-pulse bg-slate-100 ${className}`}
     />
   );
 }
