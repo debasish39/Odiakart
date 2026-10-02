@@ -3346,53 +3346,71 @@ export default function PhoneLogin() {
         /*
          * Firebase invisible reCAPTCHA
          *
-         * Keep Google's required reCAPTCHA attribution available,
-         * but make the badge small and unobtrusive so it doesn't
-         * cover the login UI.
+         * The reCAPTCHA container is rendered after the active
+         * authentication section. During OTP verification that
+         * means it sits directly below the Resend OTP area.
+         *
+         * Keep Google's attribution visible, but place it in
+         * normal document flow with exactly 9px top spacing.
          */
-        /* =================================================
-           FIREBASE INVISIBLE RECAPTCHA
-
-           Keep Google's required attribution available, but
-           move it away from the OTP controls and make it
-           unobtrusive. Do NOT use display:none.
-        ================================================= */
 
         .recaptcha-wrap {
-          position: fixed !important;
-          right: 4px !important;
-          bottom: 2px !important;
+          position: relative !important;
 
-          width: 1px !important;
-          height: 1px !important;
-          min-height: 0 !important;
+          width: 100% !important;
+          height: 30px !important;
+          min-height: 30px !important;
+
+          margin-top: 9px !important;
+
+          display: flex !important;
+          align-items: flex-start !important;
+          justify-content: center !important;
 
           overflow: visible !important;
           z-index: 999999 !important;
-          pointer-events: none !important;
         }
 
+        /*
+         * Firebase/Google inserts the badge inside our container.
+         * Keep it directly below Resend OTP instead of fixed to
+         * the viewport.
+         */
         .recaptcha-wrap .grecaptcha-badge {
-          position: fixed !important;
-          right: 4px !important;
-          bottom: 2px !important;
+          position: absolute !important;
 
-          transform: scale(.50) !important;
-          transform-origin: bottom right !important;
+          top: 0 !important;
+          bottom: auto !important;
+
+          left: 50% !important;
+          right: auto !important;
+
+          width: 256px !important;
+          height: 60px !important;
+
+          transform:
+            translateX(-50%)
+            scale(0.46) !important;
+
+          transform-origin: top center !important;
 
           z-index: 999999 !important;
         }
 
         @media (max-width: 600px) {
           .recaptcha-wrap {
-            right: 2px !important;
-            bottom: 2px !important;
+            height: 29px !important;
+            min-height: 29px !important;
+
+            margin-top: 9px !important;
           }
 
           .recaptcha-wrap .grecaptcha-badge {
-            right: 2px !important;
-            bottom: 2px !important;
-            transform: scale(.46) !important;
+            transform:
+              translateX(-50%)
+              scale(0.46) !important;
+
+            transform-origin: top center !important;
           }
         }
 
@@ -4265,7 +4283,7 @@ export default function PhoneLogin() {
           }
 
           .banner-logo {
-            min-height: 93px;
+            min-height: 18px;
 
             padding:
               8px 13px;
