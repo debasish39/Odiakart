@@ -1671,13 +1671,13 @@ const reverseGeocode = async (lat, lng) => {
         }`}
       >
       <div
-  className={`w-full max-w-none overflow-visible rounded-none border-x-0 border-t-0 backdrop-blur-2xl transition-all duration-300 ${
+  className={`w-full max-w-none overflow-visible rounded-none border-x-0 border-t-0 bg-[#F0F2FF] backdrop-blur-2xl transition-all duration-300 ${
             scrolled
-              ? "border-indigo-100/80 bg-white/95 shadow-[0_14px_40px_rgba(15,23,42,.10)]"
-              : "border-slate-200/70 bg-white/92 shadow-[0_8px_28px_rgba(15,23,42,.07)]"
+              ? "border-indigo-100 bg-[#F0F2FF]/95 shadow-[0_8px_24px_rgba(43,55,120,.08)]"
+              : "border-indigo-100 bg-[#F0F2FF] shadow-[0_5px_18px_rgba(43,55,120,.05)]"
           }`}
         >
-          <div className="flex min-h-[64px] items-center gap-2 px-2.5 py-2 sm:px-4">
+          <div className="flex min-h-[62px] items-center gap-2 bg-[#F0F2FF] px-3 py-2 sm:px-4">
             {/* <Link
               to="/"
               className="group flex h-12 w-[78px] shrink-0 items-center justify-center overflow-hidden md:w-[105px]"
@@ -1698,25 +1698,25 @@ const reverseGeocode = async (lat, lng) => {
                 e.stopPropagation();
                 onOpen();
               }}
-              className="group flex min-w-0 flex-1 items-center gap-2 rounded-2xl px-2 py-1.5 text-left transition-all duration-200 hover:bg-slate-50 focus:outline-none"
+              className="group flex min-w-0 flex-1 items-center gap-2 rounded-2xl px-2 py-1.5 text-left transition-all duration-200 hover:bg-white/10 focus:outline-none"
             >
-              <span className="flex shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-100">
+              <span className="flex shrink-0 items-center justify-center rounded-full bg-[#4F46E5] p-2 text-white shadow-sm transition group-hover:bg-indigo-700">
                 <MapPin size={18} />
               </span>
 
               <span className="min-w-0 flex-1">
-                <span className="block text-[8px] font-bold uppercase tracking-[.08em] text-slate-400">
+                <span className="block text-[10px] font-semibold tracking-wide text-slate-500">
                   Deliver to
                 </span>
 
-                <span className="mt-0.5 block max-w-[190px] truncate text-[10px] font-extrabold text-slate-800 sm:max-w-[300px]">
+                <span className="mt-0.5 block max-w-[190px] truncate text-[12px] font-extrabold text-[#3730B5] sm:max-w-[300px]">
                   {locationLabel}
                 </span>
               </span>
 
               <ChevronDown
                 size={15}
-                className="shrink-0 text-slate-400 transition group-hover:text-indigo-600"
+                className="shrink-0 text-[#3730B5] transition group-hover:text-indigo-700"
               />
             </button>
 
@@ -1725,17 +1725,19 @@ const reverseGeocode = async (lat, lng) => {
                 type="button"
                 onClick={openSearchPage}
                 aria-label="Search products"
-                className="odikart-icon-btn flex h-10 w-10 items-center justify-center rounded-xl  bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none shadow-md"
+                className="odikart-icon-btn flex h-9 w-9 items-center justify-center rounded-xl bg-transparent text-slate-700 transition-all hover:bg-indigo-100 focus:outline-none"
               >
                 <Search size={20} />
               </button>
 
-              <NotificationBell />
+              <div className="odikart-notification-on-purple flex h-9 w-9 items-center justify-center rounded-xl bg-transparent text-slate-700 [&_button]:!flex [&_button]:!h-9 [&_button]:!w-9 [&_button]:!items-center [&_button]:!justify-center [&_button]:!rounded-xl [&_button]:!border-0 [&_button]:!bg-transparent [&_button]:!text-slate-700 [&_svg]:!text-slate-700">
+                <NotificationBell />
+              </div>
 
               <Link
                 to="/cart"
                 aria-label="Cart"
-                className="odikart-icon-btn relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 text-slate-600 transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 shadow-md"
+                className="odikart-icon-btn relative flex h-9 w-9 items-center justify-center rounded-xl bg-transparent text-slate-700 transition-all hover:bg-indigo-100"
               >
                 <ShoppingCart size={20} />
 
@@ -1748,13 +1750,29 @@ const reverseGeocode = async (lat, lng) => {
             </div>
           </div>
 
+          {/* Mobile search bar — screenshot-inspired */}
+          <div className="bg-[#F0F2FF] px-3 pb-3 pt-0 sm:px-4 md:hidden">
+            <button
+              type="button"
+              onClick={openSearchPage}
+              aria-label="Search for Odisha products"
+              className="flex h-[44px] w-full items-center gap-2.5 rounded-2xl border border-white bg-white/90 px-3.5 text-left shadow-[0_3px_10px_rgba(42,55,120,.08)] transition hover:shadow-md focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+            >
+              <Search size={19} className="shrink-0 text-slate-500" />
+              <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-slate-500">
+                Search for Odisha products...
+              </span>
+              <Mic size={18} className="shrink-0 text-indigo-600" />
+            </button>
+          </div>
+
           {/* <div className="px-3 pb-3 sm:px-4 sm:pb-3.5">
             <button
               type="button"
               onClick={openSearchPage}
               className="group flex h-[54px] w-full items-center gap-3 rounded-[19px] border border-slate-200 bg-slate-50 px-3.5 text-left transition-all duration-300 hover:border-indigo-200 hover:bg-white hover:shadow-[0_10px_30px_rgba(79,70,229,.08)] focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-100">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#4F46E5] p-2 text-white shadow-sm transition group-hover:bg-indigo-700">
                 <Search size={18} />
               </span>
 
@@ -1768,7 +1786,7 @@ const reverseGeocode = async (lat, lng) => {
             </button>
           </div> */}
 
-          <div className="hidden items-center justify-between border-t border-slate-100 px-4 py-2 md:flex">
+          <div className="hidden items-center justify-between border-t border-indigo-100 bg-[#F0F2FF] px-4 py-2 text-slate-700 md:flex">
             <nav className="flex items-center gap-1">
               {NAV_LINKS.map(
                 ({ name, path, icon }) => (
@@ -1883,7 +1901,7 @@ const reverseGeocode = async (lat, lng) => {
       </header>
 
 
-<div className="sm:h-[91px] md:h-[139px]" />
+<div className="h-[112px] sm:h-[120px] md:h-[139px]" />
       {/* =================================================
           LOCATION MODAL — RN STYLE + EXACT NOMINATIM FLOW
       ================================================= */}

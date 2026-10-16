@@ -432,126 +432,53 @@ export default function Category() {
   ===================================================== */
 
   return (
-    <section
-      className="
-        mx-auto
-        w-full
-        max-w-7xl
-        border-b
-        border-gray-100
-        bg-white
-        py-9
-      "
-    >
-      <div className="px-3">
+    <section className="mx-auto w-full max-w-7xl bg-white px-3 py-4 sm:px-5 sm:py-6">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-extrabold tracking-tight text-slate-900 sm:text-base">
+          
+        </h2>
+        <span className="text-[10px] font-semibold text-blue-600 sm:text-xs">
+          Explore all
+        </span>
+      </div>
 
-        {/* CATEGORY TITLE */}
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-extrabold text-gray-900">
-            Shop by Category
-          </h2>
-        </div>
+      <div className="grid grid-cols-4 gap-x-2 gap-y-3 sm:grid-cols-6 sm:gap-4 lg:grid-cols-8">
+        {categories.map((category, index) => {
+          const name =
+            category?.name?.replace(/-/g, " ")?.trim() || "Category";
 
-        {/* HORIZONTAL CATEGORY SCROLL */}
-        <div
-          className="
-            flex
-            gap-4
-            overflow-x-auto
-            pb-1
-            [scrollbar-width:none]
-            [&::-webkit-scrollbar]:hidden
-          "
-          style={{
-            WebkitOverflowScrolling: "touch",
-          }}
-        >
-          {categories.map((category) => {
-            const name =
-              category?.name
-                ?.replace(/-/g, " ")
-                ?.trim() ||
-              "Category";
+          const tileColors = [
+            "bg-orange-50", "bg-amber-50", "bg-pink-50", "bg-orange-50",
+            "bg-rose-50", "bg-blue-50", "bg-emerald-50", "bg-violet-50",
+          ];
 
-            return (
-              <button
-                key={category?._id}
-                type="button"
-                onClick={() =>
-                  handleCategoryClick(category)
-                }
-                aria-label={`View ${name} products`}
-                className="
-                  group
-                  flex
-                  w-[58px]
-                  min-w-[58px]
-                  flex-col
-                  items-center
-                  gap-1
-                  outline-none
-                "
-              >
-                {/* CATEGORY IMAGE */}
-                <div
-                  className="
-                    flex
-                    h-12
-                    w-12
-                    items-center
-                    justify-center
-                    overflow-hidden
-                    rounded-full
-                    border
-                    border-gray-100
-                    bg-gray-50
-                    transition
-                    duration-200
-                    group-hover:border-indigo-300
-                    group-hover:bg-indigo-50
-                    group-active:scale-90
-                  "
-                >
-                  {category?.image ? (
-                    <img
-                      src={category.image}
-                      alt={name}
-                      loading="lazy"
-                      decoding="async"
-                      className="
-                        h-full
-                        w-full
-                        object-contain
-                        p-1.5
-                      "
-                    />
-                  ) : (
-                    <span className="text-lg">
-                      🛍️
-                    </span>
-                  )}
-                </div>
-
-                {/* CATEGORY NAME */}
-                <span
-                  className="
-                    w-full
-                    truncate
-                    text-center
-                    text-[9px]
-                    font-semibold
-                    capitalize
-                    text-gray-600
-                    transition
-                    group-hover:text-indigo-600
-                  "
-                >
-                  {name}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+          return (
+            <button
+              key={category?._id || name}
+              type="button"
+              onClick={() => handleCategoryClick(category)}
+              aria-label={`View ${name} products`}
+              className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl py-1 text-center outline-none transition active:scale-95"
+            >
+              <span className={`flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-white shadow-sm ring-1 ring-slate-100 transition group-hover:-translate-y-0.5 group-hover:shadow-md sm:h-14 sm:w-14 ${tileColors[index % tileColors.length]}`}>
+                {category?.image ? (
+                  <img
+                    src={category.image}
+                    alt={name}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-contain p-1.5"
+                  />
+                ) : (
+                  <span className="text-xl" aria-hidden="true">🛍️</span>
+                )}
+              </span>
+              <span className="w-full truncate text-[9px] font-semibold capitalize leading-tight text-slate-700 sm:text-[11px]">
+                {name}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </section>
   );

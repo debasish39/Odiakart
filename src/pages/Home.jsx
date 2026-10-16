@@ -1,58 +1,53 @@
 import React from "react";
 
 import Carousel from "../components/Carousel";
+import Category from "../components/Category";
+import PopulartProducts from "../components/PopulartProducts";
 import RecentlyViewed from "../components/RecentlyViewed";
 import BestSellerProducts from "../components/BestSellerrProducts";
-import PopulartProducts from "../components/PopulartProducts";
 import TopRatedProducts from "../components/TopRatedProducts";
 import FeaturedProducts from "../components/FeaturedProducts";
 import NewArrivalProducts from "../components/NewArrivalProducts";
-import Category from "../components/Category";
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-white text-gray-800 duration-500">
+    <main className="min-h-screen bg-[#F8F9FC] text-slate-900">
+      <div className="mx-auto w-full max-w-7xl ">
+        {/* Hero banner */}
+        <section >
+          <Carousel />
+        </section>
 
-      {/* Category */}
-      <section>
-        <Category />
-      </section>
+        {/* Compact category grid */}
+        <section className="mt-1">
+          <Category />
+        </section>
 
-      {/* Hero / Carousel */}
-      <section>
-        <Carousel />
-      </section>
+        {/* Trending product cards */}
+        <section className="mt-2 sm:mt-5">
+          <PopulartProducts />
+        </section>
 
-      {/* Recently Viewed */}
-      <section>
-        <RecentlyViewed />
-      </section>
+        <section className="mt-5 sm:mt-8">
+          <RecentlyViewed />
+        </section>
 
-      {/* Best Sellers */}
-      <section>
-        <BestSellerProducts />
-      </section>
+        <section className="mt-5 sm:mt-8">
+          <BestSellerProducts />
+        </section>
 
-      {/* Popular Products */}
-      <section>
-        <PopulartProducts />
-      </section>
+        <section className="mt-5 sm:mt-8">
+          <TopRatedProducts />
+        </section>
 
-      {/* Top Rated */}
-      <section>
-        <TopRatedProducts />
-      </section>
+        <section className="mt-5 sm:mt-8">
+          <FeaturedProducts />
+        </section>
 
-      {/* Featured Products */}
-      <section>
-        <FeaturedProducts />
-      </section>
-
-      {/* New Arrivals */}
-      <section>
-        <NewArrivalProducts />
-      </section>
-
+        <section className="mt-5 sm:mt-8">
+          <NewArrivalProducts />
+        </section>
+      </div>
     </main>
   );
 }
